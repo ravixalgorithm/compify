@@ -3,6 +3,7 @@
 import { Component, useRef } from "react";
 import type { PreviewLayout, TweakState } from "@compify/shared";
 import { getLibraryComponent } from "@compify/library";
+import { DynamicComponent } from "./DynamicComponent";
 import { cn } from "@/lib/cn";
 import {
   DETAIL_PREVIEW_PADDING,
@@ -50,24 +51,31 @@ function PreviewContent({
   componentProps,
   fill,
   center = false,
+  moduleUrl,
 }: {
   name: string;
   componentProps: TweakState;
   fill: boolean;
   center?: boolean;
+  moduleUrl?: string;
 }) {
-  const LibraryComponent = getLibraryComponent(name);
+  // DB-backed path: render the runtime-compiled module. Filesystem path
+  // (no moduleUrl): render the bundled library component (unchanged behavior).
+  const LibraryComponent = moduleUrl ? undefined : getLibraryComponent(name);
+  const wrapperClass = cn(
+    fill && "size-full min-h-0",
+    !fill && center && "flex w-full items-center justify-center",
+    !fill && !center && "inline-flex max-w-full justify-center",
+  );
 
   return (
-    <PreviewErrorBoundary key={name}>
-      {LibraryComponent ? (
-        <div
-          className={cn(
-            fill && "size-full min-h-0",
-            !fill && center && "flex w-full items-center justify-center",
-            !fill && !center && "inline-flex max-w-full justify-center",
-          )}
-        >
+    <PreviewErrorBoundary key={moduleUrl ?? name}>
+      {moduleUrl ? (
+        <div className={wrapperClass}>
+          <DynamicComponent moduleUrl={moduleUrl} componentProps={componentProps} />
+        </div>
+      ) : LibraryComponent ? (
+        <div className={wrapperClass}>
           <LibraryComponent
             key={componentProps.preview ? `${name}-showcase` : name}
             {...componentProps}
@@ -95,11 +103,13 @@ export function PreviewFrame({
   state,
   previewAccent = "#7C3AED",
   previewLayout = "full",
+  moduleUrl,
 }: {
   name: string;
   state: TweakState;
   previewAccent?: string;
   previewLayout?: PreviewLayout;
+  moduleUrl?: string;
 }) {
   const contentRef = useRef<HTMLDivElement>(null);
   const frame = previewSurfaceConfig(name, "detail");
@@ -127,7 +137,7 @@ export function PreviewFrame({
             aspectRatio: `${frame.width} / ${frame.height}`,
           }}
         >
-          <PreviewContent name={name} componentProps={componentProps} fill={false} />
+          <PreviewContent name={name} componentProps={componentProps} fill={false} moduleUrl={moduleUrl} />
         </div>
       </div>
     );
@@ -154,7 +164,7 @@ export function PreviewFrame({
         >
           {fill ? (
             <div className="absolute inset-0">
-              <PreviewContent name={name} componentProps={componentProps} fill center={center} />
+              <PreviewContent name={name} componentProps={componentProps} fill center={center} moduleUrl={moduleUrl} />
             </div>
           ) : (
             <PreviewContent
@@ -162,6 +172,7 @@ export function PreviewFrame({
               componentProps={componentProps}
               fill={false}
               center={center}
+              moduleUrl={moduleUrl}
             />
           )}
         </div>
@@ -185,7 +196,7 @@ export function PreviewFrame({
         ref={contentRef}
         className={cn(center ? "flex w-full items-center justify-center" : "relative w-full")}
       >
-          <PreviewContent name={name} componentProps={componentProps} fill={fill} center={center} />
+          <PreviewContent name={name} componentProps={componentProps} fill={fill} center={center} moduleUrl={moduleUrl} />
       </div>
     </div>
   );

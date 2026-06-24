@@ -14,10 +14,12 @@ export function ComponentDetailColumn({
   entry,
   source,
   state,
+  moduleUrl,
 }: {
   entry: RegistryEntry;
   source: string;
   state: TweakState;
+  moduleUrl?: string;
 }) {
   const [stats, setStats] = useState<ComponentStats | null>(null);
 
@@ -73,6 +75,7 @@ export function ComponentDetailColumn({
         state={state}
         previewAccent={entry.previewAccent}
         previewLayout={resolvePreviewLayout(entry)}
+        moduleUrl={moduleUrl}
       />
       <ComponentDocumentation entry={entry} />
     </div>

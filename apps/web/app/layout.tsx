@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Roboto_Mono, Space_Mono } from "next/font/google";
 import { CATEGORIES, registry } from "@compify/shared";
 import { AppFrame } from "@/components/AppFrame";
+import { RuntimeGlobals } from "@/components/RuntimeGlobals";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${robotoMono.variable} ${spaceMono.variable}`}>
       <body>
+        <RuntimeGlobals />
         <Suspense fallback={<div className="min-h-screen bg-bg" />}>
           <AppFrame
             categories={categories}

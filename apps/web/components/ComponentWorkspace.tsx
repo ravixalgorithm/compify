@@ -8,9 +8,11 @@ import { ComponentDetailColumn } from "./ComponentDetailColumn";
 export function ComponentWorkspace({
   entry,
   source,
+  moduleUrl,
 }: {
   entry: RegistryEntry;
   source: string;
+  moduleUrl?: string;
 }) {
   const defaults = useMemo<TweakState>(
     () => Object.fromEntries(entry.tweakSchema.map((c) => [c.key, c.default])),
@@ -24,7 +26,7 @@ export function ComponentWorkspace({
 
   return (
     <div className="flex flex-col gap-5 p-[26px] xl:flex-row xl:items-start">
-      <ComponentDetailColumn entry={entry} source={source} state={state} />
+      <ComponentDetailColumn entry={entry} source={source} state={state} moduleUrl={moduleUrl} />
 
       {/* Stacks below the preview up to xl (so 1024px tablets get a full-width preview);
           becomes the sticky side rail at xl+.
