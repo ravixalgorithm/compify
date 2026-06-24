@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronDown, ImageIcon, Loader2, Upload } from "lucide-react";
+import { Check, ChevronDown, Loader2, Upload } from "lucide-react";
 import {
   CATEGORIES,
   tweakableSchema,
@@ -41,6 +41,7 @@ function draftFromEntry(entry: RegistryEntry, source: string): EditorDraft {
     tweakSchema: entry.tweakSchema.map((c) => ({ ...c })),
     usage: entry.usage,
     framerModuleUrl: entry.framerModuleUrl ?? "",
+    previewLayout: entry.previewLayout ? JSON.stringify({ mode: entry.previewLayout }) : undefined,
   };
 }
 
@@ -138,18 +139,12 @@ function UploadZone({
 
 function FilesSidebar({
   componentFileName,
-  thumbnailFile,
-  thumbnailPreview,
   controlCount,
   onComponentFile,
-  onThumbnailFile,
 }: {
   componentFileName: string | null;
-  thumbnailFile: File | null;
-  thumbnailPreview: string | null;
   controlCount: number;
   onComponentFile: (file: File) => void;
-  onThumbnailFile: (file: File) => void;
 }) {
   return (
     <aside className="sticky top-6 w-[320px] shrink-0 space-y-4 border border-stroke bg-surface p-4">
@@ -163,24 +158,6 @@ function FilesSidebar({
         onFile={onComponentFile}
         icon={<Upload size={18} />}
       />
-
-      <UploadZone
-        label="Gallery thumbnail"
-        hint="PNG, JPEG, or WebP for the browse page."
-        accept="image/png,image/jpeg,image/webp"
-        fileName={thumbnailFile?.name ?? (thumbnailPreview ? "Current thumbnail" : null)}
-        onFile={onThumbnailFile}
-        icon={<ImageIcon size={18} />}
-      />
-
-      {thumbnailPreview ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={thumbnailPreview}
-          alt="Thumbnail preview"
-          className="h-36 w-full border border-stroke object-cover"
-        />
-      ) : null}
 
       {controlCount ? (
         <p className="text-[13px] text-green-400">
@@ -223,6 +200,11 @@ export function ComponentForm({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Live preview of the uploaded source, compiled on demand to a blob module.
+  const [previewModuleUrl, setPreviewModuleUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [compilingPreview, setCompilingPreview] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const defaults = useMemo(() => tweakDefaults(draft.tweakSchema), [draft.tweakSchema]);
   const previewSlug = mode === "edit" ? draft.name : draft.name || draft.templateSlug;
@@ -230,7 +212,15 @@ export function ComponentForm({
     () => tweakableSchema(draft.tweakSchema),
     [draft.tweakSchema],
   );
-  const canPreview = Boolean(previewSlug && draft.tweakSchema.length);
+  const canPreview = Boolean(draft.source.trim());
+  const previewMode = useMemo(() => {
+    if (!draft.previewLayout) return "";
+    try {
+      return (JSON.parse(draft.previewLayout).mode as string) ?? "";
+    } catch {
+      return "";
+    }
+  }, [draft.previewLayout]);
 
   useEffect(() => {
     setPreviewState(defaults);
@@ -244,6 +234,70 @@ export function ComponentForm({
 
   function updateDraft(patch: Partial<EditorDraft>) {
     setDraft((prev) => ({ ...prev, ...patch }));
+  }
+
+  // Compile the current draft source on the server and load it as a blob module
+  // so the preview reflects the uploaded component before it is published.
+  async function buildPreview() {
+    if (!draft.source.trim()) return;
+    setCompilingPreview(true);
+    setPreviewError(null);
+    try {
+      const res = await fetch("/api/admin/compile-preview", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ source: draft.source, slug: previewSlug || "preview" }),
+      });
+      const data = (await res.json()) as { ok?: boolean; code?: string; error?: string };
+      if (!res.ok || !data.ok || !data.code) {
+        setPreviewError(data.error ?? "Could not compile the component for preview.");
+        return;
+      }
+      const url = URL.createObjectURL(new Blob([data.code], { type: "text/javascript" }));
+      setPreviewModuleUrl((prev) => {
+        if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+        return url;
+      });
+    } catch (e) {
+      setPreviewError(e instanceof Error ? e.message : "Could not compile the component.");
+    } finally {
+      setCompilingPreview(false);
+    }
+  }
+
+  // Rebuild the preview whenever the admin opens the preview tab or changes the
+  // uploaded source.
+  useEffect(() => {
+    if (tab === "preview" && draft.source.trim()) void buildPreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, draft.source]);
+
+  // Revoke the blob URL on unmount.
+  useEffect(() => {
+    return () => {
+      if (previewModuleUrl?.startsWith("blob:")) URL.revokeObjectURL(previewModuleUrl);
+    };
+  }, [previewModuleUrl]);
+
+  async function handleDelete() {
+    if (mode !== "edit") return;
+    if (!window.confirm(`Delete "${draft.displayName}"? This removes it from the marketplace and cannot be undone.`)) {
+      return;
+    }
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/components?slug=${encodeURIComponent(draft.name)}`, {
+        method: "DELETE",
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Could not delete.");
+      router.push("/admin");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete.");
+      setDeleting(false);
+    }
   }
 
   async function handleComponentFile(file: File) {
@@ -295,12 +349,20 @@ export function ComponentForm({
       form.append("framerModuleUrl", draft.framerModuleUrl ?? "");
       if (thumbnailFile) form.append("thumbnail", thumbnailFile);
 
-      const res = await fetch("/api/admin/publish", { method: "POST", body: form });
-      const data = (await res.json()) as { error?: string; pageUrl?: string };
+      if (draft.previewLayout) form.append("previewLayout", draft.previewLayout);
 
-      if (!res.ok) throw new Error(data.error ?? "Could not publish.");
+      const res = await fetch("/api/admin/components", { method: "POST", body: form });
+      const data = (await res.json()) as { error?: string; stage?: string; component?: { slug: string } };
 
-      router.push(data.pageUrl ?? `/components/${draft.name}`);
+      if (!res.ok) {
+        throw new Error(
+          data.stage === "compile"
+            ? `Component failed to compile:\n${data.error}`
+            : (data.error ?? "Could not publish."),
+        );
+      }
+
+      router.push(`/components/${draft.name}`);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not publish.");
@@ -317,11 +379,8 @@ export function ComponentForm({
   const filesSidebar = (
     <FilesSidebar
       componentFileName={componentFileName}
-      thumbnailFile={thumbnailFile}
-      thumbnailPreview={thumbnailPreview}
       controlCount={tweakableSchema(draft.tweakSchema).length}
       onComponentFile={handleComponentFile}
-      onThumbnailFile={handleThumbnailFile}
     />
   );
 
@@ -389,31 +448,21 @@ export function ComponentForm({
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Category">
-              <select
-                className={inputClass}
-                value={draft.category}
-                onChange={(e) =>
-                  updateDraft({ category: e.target.value as EditorDraft["category"] })
-                }
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Accent color" hint="Fallback when no thumbnail is set.">
-              <input
-                className={inputClass}
-                type="color"
-                value={draft.previewAccent}
-                onChange={(e) => updateDraft({ previewAccent: e.target.value })}
-              />
-            </Field>
-          </div>
+          <Field label="Category">
+            <select
+              className={inputClass}
+              value={draft.category}
+              onChange={(e) =>
+                updateDraft({ category: e.target.value as EditorDraft["category"] })
+              }
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </Field>
 
           <Field label="Short description" hint="One line summary for the gallery.">
             <textarea
@@ -486,6 +535,26 @@ export function ComponentForm({
                   onChange={(e) => updateDraft({ related: e.target.value })}
                 />
               </Field>
+              <Field
+                label="Preview layout"
+                hint="How the preview stage frames this component. Auto picks by category; Centered suits small components (buttons, text); Full fills the stage."
+              >
+                <select
+                  className={inputClass}
+                  value={previewMode}
+                  onChange={(e) =>
+                    updateDraft({
+                      previewLayout: e.target.value
+                        ? JSON.stringify({ mode: e.target.value })
+                        : undefined,
+                    })
+                  }
+                >
+                  <option value="">Auto</option>
+                  <option value="centered">Centered</option>
+                  <option value="full">Full</option>
+                </select>
+              </Field>
             </div>
           ) : null}
 
@@ -505,21 +574,30 @@ export function ComponentForm({
         <div className="space-y-6">
           <div className="flex min-h-[480px] gap-4 border border-stroke bg-bg p-4">
             <div className="min-w-0 flex-1">
-              {canPreview ? (
+              {!canPreview ? (
+                <div className="flex h-full min-h-[320px] items-center justify-center text-[14px] text-muted">
+                  Upload a component file to see the live preview.
+                </div>
+              ) : previewError ? (
+                <div className="flex h-full min-h-[320px] items-center justify-center p-6 text-center font-mono text-[12px] leading-relaxed text-red-400">
+                  {previewError}
+                </div>
+              ) : !previewModuleUrl ? (
+                <div className="flex h-full min-h-[320px] items-center justify-center gap-2 text-[14px] text-muted">
+                  <Loader2 size={16} className="animate-spin" /> Compiling preview…
+                </div>
+              ) : (
                 <PreviewFrame
                   name={previewSlug}
                   state={previewState}
                   previewAccent={draft.previewAccent}
+                  moduleUrl={previewModuleUrl}
                   previewLayout={resolvePreviewLayout({
                     name: previewSlug,
                     category: draft.category,
                     previewLayout: initialEntry?.previewLayout,
                   })}
                 />
-              ) : (
-                <div className="flex h-full min-h-[320px] items-center justify-center text-[14px] text-muted">
-                  Upload a component file to see the live preview.
-                </div>
               )}
             </div>
             {tweakableControls.length ? (
@@ -556,6 +634,18 @@ export function ComponentForm({
                   ? "Publish to marketplace"
                   : "Save changes"}
             </button>
+
+            {mode === "edit" ? (
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting || publishing}
+                className="flex h-10 items-center justify-center gap-2 border border-red-500/40 text-[13px] text-red-400 transition hover:bg-red-500/10 disabled:opacity-40"
+              >
+                {deleting ? <Loader2 size={15} className="animate-spin" /> : null}
+                {deleting ? "Deleting…" : "Delete component"}
+              </button>
+            ) : null}
           </div>
         </div>
       ) : null}

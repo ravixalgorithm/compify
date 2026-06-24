@@ -1,20 +1,19 @@
 import { notFound } from "next/navigation";
-import { getComponent } from "@compify/shared";
+import { getDbComponent } from "@/lib/db-components";
 import { ComponentForm } from "@/components/admin/ComponentForm";
-import { readSource } from "@/lib/source";
 
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const entry = getComponent(params.slug);
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  const data = await getDbComponent(params.slug);
   return {
-    title: entry ? `Edit ${entry.displayName} · Admin` : "Edit component · Admin",
+    title: data ? `Edit ${data.entry.displayName} · Admin` : "Edit component · Admin",
   };
 }
 
-export default function AdminEditComponentPage({ params }: { params: { slug: string } }) {
-  const entry = getComponent(params.slug);
-  if (!entry) notFound();
+export default async function AdminEditComponentPage({ params }: { params: { slug: string } }) {
+  const data = await getDbComponent(params.slug);
+  if (!data) notFound();
 
-  const source = readSource(entry);
-
-  return <ComponentForm mode="edit" initialEntry={entry} initialSource={source} />;
+  return <ComponentForm mode="edit" initialEntry={data.entry} initialSource={data.source} />;
 }

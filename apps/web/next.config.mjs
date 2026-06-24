@@ -10,6 +10,10 @@ const nextConfig = {
   transpilePackages: ["@compify/library", "@compify/shared"],
   // Include library sources for server-side readSource() on Vercel.
   experimental: {
+    // esbuild has a native binary + dynamic requires; let Next require it at
+    // runtime instead of bundling it into the serverless function (fixes the
+    // admin compile routes in dev and on Vercel).
+    serverComponentsExternalPackages: ["esbuild"],
     outputFileTracingIncludes: {
       "/components/[name]": [
         "../../packages/library/src/components/**/*",

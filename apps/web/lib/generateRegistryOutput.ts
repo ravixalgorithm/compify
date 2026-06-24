@@ -16,6 +16,8 @@ export interface EditorDraft {
   tweakSchema: TweakControl[];
   framerModuleUrl?: string;
   usage: string;
+  /** JSON string of per-surface preview layout overrides (admin-edited). */
+  previewLayout?: string;
 }
 
 export function slugify(value: string): string {

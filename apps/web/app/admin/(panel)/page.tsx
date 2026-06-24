@@ -1,4 +1,4 @@
-import { registry } from "@compify/shared";
+import { listDbComponents } from "@/lib/db-components";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 
 export const metadata = {
@@ -6,6 +6,9 @@ export const metadata = {
   description: "Manage marketplace components.",
 };
 
-export default function AdminPage() {
-  return <AdminDashboard entries={registry} />;
+export const dynamic = "force-dynamic";
+
+export default async function AdminPage() {
+  const entries = (await listDbComponents()).map((c) => c.entry);
+  return <AdminDashboard entries={entries} />;
 }
