@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { RiArrowDownSLine } from "@remixicon/react";
 import type { TweakControl, TweakState } from "@compify/shared";
@@ -8,6 +9,7 @@ import { isTweakableControl } from "@compify/shared";
 import { cn } from "@/lib/cn";
 import { collapseVariants, microTransition } from "@/lib/motion";
 import * as Select from "@/components/ui/select";
+import { ColorPicker } from "@/components/ColorPicker";
 
 function controlGroup(control: TweakControl): string {
   if (control.group) return control.group;
@@ -156,29 +158,88 @@ function ColorControl({
   onChange: (v: string) => void;
 }) {
   const pickerValue = colorPickerValue(value);
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<
+    { top: number; left: number; caretSide: "top" | "bottom"; caretLeft: number } | null
+  >(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const swatchRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+
+  // The picker is rendered in a portal (fixed position) so the tweak panel's
+  // overflow-hidden scroll container can't clip it. It stacks directly below the
+  // swatch (flips above if there's no room), with the caret pointing at it.
+  useEffect(() => {
+    if (!open) return;
+    const PICKER_W = 225;
+    const PICKER_H = 240;
+    const place = () => {
+      const el = swatchRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const center = r.left + r.width / 2;
+      const left = Math.max(8, Math.min(center - PICKER_W / 2, window.innerWidth - PICKER_W - 8));
+      const below = r.bottom + 10 + PICKER_H <= window.innerHeight;
+      const top = below ? r.bottom + 10 : Math.max(8, r.top - 10 - PICKER_H);
+      const caretLeft = Math.max(12, Math.min(center - left, PICKER_W - 12));
+      setPos({ top, left, caretSide: below ? "top" : "bottom", caretLeft });
+    };
+    place();
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (anchorRef.current?.contains(t) || popRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("pointerdown", onDown);
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", place, true);
+    window.addEventListener("resize", place);
+    return () => {
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", place, true);
+      window.removeEventListener("resize", place);
+    };
+  }, [open]);
 
   return (
-    <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
-      <label className="relative size-[18px] shrink-0 border border-[#222]">
-        <input
-          type="color"
-          value={pickerValue}
-          onChange={(e) => onChange(e.target.value)}
-          className="absolute inset-0 size-full cursor-pointer opacity-0"
-          aria-label="Color"
-        />
-        <span
-          className="block size-full"
-          style={{ backgroundColor: value }}
-          aria-hidden
-        />
-      </label>
+    <div ref={anchorRef} className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+      <button
+        ref={swatchRef}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="relative size-[18px] shrink-0 border border-[#222]"
+        aria-label="Open color picker"
+        aria-expanded={open}
+      >
+        <span className="block size-full" style={{ backgroundColor: value }} aria-hidden />
+      </button>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="min-w-0 w-0 flex-1 border border-black bg-black py-[4px] pl-2 pr-2 font-mono text-[13px] uppercase text-[#aaa] outline-none"
       />
+      {open && pos && typeof document !== "undefined"
+        ? createPortal(
+            <div ref={popRef} style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}>
+              <ColorPicker
+                value={pickerValue}
+                onChange={onChange}
+                onApply={(hex) => {
+                  onChange(hex);
+                  setOpen(false);
+                }}
+                caretSide={pos.caretSide}
+                caretLeft={pos.caretLeft}
+              />
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
