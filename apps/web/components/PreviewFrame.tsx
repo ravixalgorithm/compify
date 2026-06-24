@@ -123,12 +123,16 @@ export function PreviewFrame({
   const clip = frame.clip !== false;
   const stageStyle = stageBackground(previewAccent, previewLayout);
   const componentProps = previewPropsForSurface(name, state, "detail");
+  // Admin-controlled stage height + vertical alignment.
+  const stageMinHeight = surfaceLayout?.minHeight ?? DETAIL_STAGE_MIN_HEIGHT;
+  const alignItems =
+    frame.align === "top" ? "items-start" : frame.align === "bottom" ? "items-end" : "items-center";
 
   if (fixed) {
     return (
       <div
-        className="relative flex w-full shrink-0 items-center justify-center"
-        style={{ ...stagePad, ...stageStyle, minHeight: DETAIL_STAGE_MIN_HEIGHT }}
+        className={cn("relative flex w-full shrink-0 justify-center", alignItems)}
+        style={{ ...stagePad, ...stageStyle, minHeight: stageMinHeight }}
       >
         <div
           ref={contentRef}
@@ -148,15 +152,15 @@ export function PreviewFrame({
   if (framed) {
     return (
       <div
-        className={cn("relative w-full shrink-0", center && "flex items-center justify-center")}
-        style={{ ...stagePad, ...stageStyle, minHeight: DETAIL_STAGE_MIN_HEIGHT }}
+        className={cn("relative w-full shrink-0", center && cn("flex justify-center", alignItems))}
+        style={{ ...stagePad, ...stageStyle, minHeight: stageMinHeight }}
       >
         <div
           ref={contentRef}
           className={cn(
             "relative w-full",
             clip ? "overflow-hidden" : "overflow-visible",
-            center && "mx-auto flex max-w-full items-center justify-center",
+            center && cn("mx-auto flex max-w-full justify-center", alignItems),
           )}
           style={{
             aspectRatio: frame.aspectRatio,
@@ -186,17 +190,17 @@ export function PreviewFrame({
     <div
       className={cn(
         "relative w-full shrink-0",
-        center && "flex items-center justify-center",
+        center && cn("flex justify-center", alignItems),
       )}
       style={{
         padding: fill ? stagePad.padding : `${STAGE_PADDING_Y}px ${STAGE_PADDING_X}px`,
         ...stageStyle,
-        minHeight: DETAIL_STAGE_MIN_HEIGHT,
+        minHeight: stageMinHeight,
       }}
     >
       <div
         ref={contentRef}
-        className={cn(center ? "flex w-full items-center justify-center" : "relative w-full")}
+        className={cn(center ? cn("flex w-full justify-center", alignItems) : "relative w-full")}
       >
           <PreviewContent name={name} componentProps={componentProps} fill={fill} center={center} moduleUrl={moduleUrl} />
       </div>

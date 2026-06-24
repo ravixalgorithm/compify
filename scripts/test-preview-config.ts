@@ -22,6 +22,17 @@ checks.push(["fill -> fill true", filled.fill === true]);
 const minH = previewSurfaceConfig("brand-new-comp", "detail", { fit: "center", minHeight: 420 });
 checks.push(["minHeight applied", minH.minHeight === 420]);
 
+// maxWidth -> frame.width; padding -> frame.padding; align passes through.
+const full = previewSurfaceConfig("brand-new-comp", "detail", {
+  fit: "center",
+  maxWidth: 480,
+  padding: 32,
+  align: "top",
+});
+checks.push(["maxWidth -> width", full.width === 480]);
+checks.push(["padding applied", full.padding === 32]);
+checks.push(["align applied", full.align === "top"]);
+
 // fit=auto is a no-op (keeps base).
 const auto = previewSurfaceConfig("lightning", "detail", { fit: "auto" });
 checks.push(["auto -> unchanged (still fills)", auto.fill === true]);

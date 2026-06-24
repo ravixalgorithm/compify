@@ -87,25 +87,93 @@ function Field({
   );
 }
 
-function FitControl({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+type SurfaceLayoutValue = {
+  fit?: string;
+  minHeight?: number;
+  maxWidth?: number;
+  padding?: number;
+  align?: string;
+};
+
+const numCtrlClass =
+  "w-[68px] border border-stroke bg-black px-2 py-1 text-[12px] text-white outline-none focus:border-stroke-hover";
+
+function num(v: string): number | undefined {
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+/** Per-surface framing controls: fit, height, max width, padding, alignment. */
+function SurfaceControls({
+  layout,
+  onChange,
+}: {
+  layout?: SurfaceLayoutValue;
+  onChange: (patch: SurfaceLayoutValue) => void;
+}) {
+  const l = layout ?? {};
   return (
-    <div className="flex items-center gap-1">
-      <span className="mr-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Fit</span>
-      {(["auto", "center", "fill"] as const).map((opt) => (
-        <button
-          key={opt}
-          type="button"
-          onClick={() => onChange(opt)}
-          className={cn(
-            "border px-2 py-0.5 text-[11px] capitalize transition",
-            value === opt
-              ? "border-white text-white"
-              : "border-stroke text-muted hover:text-white",
-          )}
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border border-stroke bg-surface px-3 py-2 text-[11px]">
+      <div className="flex items-center gap-1">
+        <span className="mr-1 uppercase tracking-[0.1em] text-muted-foreground">Fit</span>
+        {(["auto", "center", "fill"] as const).map((opt) => (
+          <button
+            key={opt}
+            type="button"
+            onClick={() => onChange({ fit: opt })}
+            className={cn(
+              "border px-2 py-0.5 capitalize transition",
+              (l.fit ?? "auto") === opt
+                ? "border-white text-white"
+                : "border-stroke text-muted hover:text-white",
+            )}
+          >
+            {opt}
+          </button>
+        ))}
+      </div>
+      <label className="flex items-center gap-1.5 text-muted">
+        Height
+        <input
+          type="number"
+          className={numCtrlClass}
+          placeholder="auto"
+          value={l.minHeight ?? ""}
+          onChange={(e) => onChange({ minHeight: num(e.target.value) })}
+        />
+      </label>
+      <label className="flex items-center gap-1.5 text-muted">
+        Max width
+        <input
+          type="number"
+          className={numCtrlClass}
+          placeholder="auto"
+          value={l.maxWidth ?? ""}
+          onChange={(e) => onChange({ maxWidth: num(e.target.value) })}
+        />
+      </label>
+      <label className="flex items-center gap-1.5 text-muted">
+        Padding
+        <input
+          type="number"
+          className={numCtrlClass}
+          placeholder="0"
+          value={l.padding ?? ""}
+          onChange={(e) => onChange({ padding: num(e.target.value) })}
+        />
+      </label>
+      <label className="flex items-center gap-1.5 text-muted">
+        Align
+        <select
+          className="border border-stroke bg-black px-2 py-1 text-[12px] text-white outline-none focus:border-stroke-hover"
+          value={l.align ?? "center"}
+          onChange={(e) => onChange({ align: e.target.value })}
         >
-          {opt}
-        </button>
-      ))}
+          <option value="top">Top</option>
+          <option value="center">Center</option>
+          <option value="bottom">Bottom</option>
+        </select>
+      </label>
     </div>
   );
 }
@@ -253,13 +321,22 @@ export function ComponentForm({
     return Object.keys(out).length ? out : undefined;
   }, [previewLayoutObj]);
 
-  function setSurfaceFit(surface: "gallery" | "detail" | "variant", fit: string) {
+  function setSurfaceLayout(
+    surface: "gallery" | "detail" | "variant",
+    patch: Record<string, unknown>,
+  ) {
     const next = { ...previewLayoutObj };
-    if (fit === "auto") {
-      delete next[surface];
-    } else {
-      next[surface] = { ...(next[surface] ?? {}), fit };
+    const cur = { ...(next[surface] ?? {}) };
+    for (const [k, v] of Object.entries(patch)) {
+      // Treat empty / auto / NaN as "unset" so the override stays minimal.
+      if (v === undefined || v === "" || v === "auto" || (typeof v === "number" && Number.isNaN(v))) {
+        delete cur[k];
+      } else {
+        cur[k] = v;
+      }
     }
+    if (Object.keys(cur).length) next[surface] = cur;
+    else delete next[surface];
     updateDraft({ previewLayout: Object.keys(next).length ? JSON.stringify(next) : undefined });
   }
 
@@ -608,15 +685,13 @@ export function ComponentForm({
               ) : (
                 <div className="space-y-6">
                   <section className="space-y-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
-                        Detail page
-                      </p>
-                      <FitControl
-                        value={previewLayoutObj.detail?.fit ?? "auto"}
-                        onChange={(v) => setSurfaceFit("detail", v)}
-                      />
-                    </div>
+                    <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
+                      Detail page
+                    </p>
+                    <SurfaceControls
+                      layout={previewLayoutObj.detail}
+                      onChange={(p) => setSurfaceLayout("detail", p)}
+                    />
                     <div className="overflow-hidden border border-stroke">
                       <PreviewFrame
                         name={previewSlug}
@@ -635,29 +710,25 @@ export function ComponentForm({
 
                   <div className="grid gap-6 sm:grid-cols-2">
                     <section className="space-y-2">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
-                          Main page · gallery card
-                        </p>
-                        <FitControl
-                          value={previewLayoutObj.gallery?.fit ?? "auto"}
-                          onChange={(v) => setSurfaceFit("gallery", v)}
-                        />
-                      </div>
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
+                        Main page · gallery card
+                      </p>
+                      <SurfaceControls
+                        layout={previewLayoutObj.gallery}
+                        onChange={(p) => setSurfaceLayout("gallery", p)}
+                      />
                       <div className="mx-auto w-full max-w-[340px] overflow-hidden border border-stroke bg-black">
                         <GalleryInlinePreview key={`gallery-${previewModuleUrl}`} entry={previewEntry} surface="gallery" />
                       </div>
                     </section>
                     <section className="space-y-2">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
-                          Variants grid
-                        </p>
-                        <FitControl
-                          value={previewLayoutObj.variant?.fit ?? "auto"}
-                          onChange={(v) => setSurfaceFit("variant", v)}
-                        />
-                      </div>
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
+                        Variants grid
+                      </p>
+                      <SurfaceControls
+                        layout={previewLayoutObj.variant}
+                        onChange={(p) => setSurfaceLayout("variant", p)}
+                      />
                       <div className="flex h-[180px] w-full max-w-[260px] items-center justify-center overflow-hidden border border-stroke bg-black">
                         <GalleryInlinePreview key={`variant-${previewModuleUrl}`} entry={previewEntry} surface="variant" />
                       </div>

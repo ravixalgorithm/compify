@@ -61,6 +61,9 @@ function surfacesFromLayout(layout: unknown): RegistryEntry["previewSurfaces"] {
       out[surface] = {
         fit: s.fit === "center" || s.fit === "fill" ? s.fit : "auto",
         minHeight: typeof s.minHeight === "number" ? s.minHeight : undefined,
+        maxWidth: typeof s.maxWidth === "number" ? s.maxWidth : undefined,
+        padding: typeof s.padding === "number" ? s.padding : undefined,
+        align: s.align === "top" || s.align === "bottom" ? s.align : undefined,
       };
     }
   }

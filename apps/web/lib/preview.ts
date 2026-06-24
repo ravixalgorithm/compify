@@ -26,6 +26,8 @@ export type PreviewFrameConfig = {
   center?: boolean;
   /** Clip overflow inside the frame (default true). Set false for effects that extend outside the box. */
   clip?: boolean;
+  /** Vertical alignment of content within the stage (admin override). */
+  align?: "top" | "center" | "bottom";
 };
 
 type PreviewPropsFn = (state: TweakState) => TweakState;
@@ -269,18 +271,32 @@ export function previewSurfaceConfig(
       : spec[surface];
 
   // Admin per-surface override wins over the built-in framing.
-  if (!override || (!override.fit && override.minHeight == null)) return base;
+  const hasOverride =
+    override &&
+    (override.fit ||
+      override.minHeight != null ||
+      override.maxWidth != null ||
+      override.padding != null ||
+      override.align);
+  if (!hasOverride) return base;
   const merged: PreviewFrameConfig = { ...base };
-  if (override.fit === "fill") {
+  if (override!.fit === "fill") {
     merged.fill = true;
     merged.center = false;
-  } else if (override.fit === "center") {
+  } else if (override!.fit === "center") {
     merged.center = true;
     merged.fill = false;
     // Centering implies natural size, so drop a forced aspect ratio.
     merged.aspectRatio = undefined;
   }
-  if (override.minHeight != null) merged.minHeight = override.minHeight;
+  if (override!.minHeight != null) merged.minHeight = override!.minHeight;
+  if (override!.maxWidth != null) merged.width = override!.maxWidth;
+  if (override!.padding != null) {
+    merged.padding = override!.padding;
+    merged.paddingX = undefined;
+    merged.paddingY = undefined;
+  }
+  if (override!.align) merged.align = override!.align;
   return merged;
 }
 

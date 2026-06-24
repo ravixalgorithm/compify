@@ -118,8 +118,14 @@ export type PreviewSurfaceName = "gallery" | "detail" | "variant";
 export interface PreviewSurfaceLayout {
   /** "center" = show at natural size, centered; "fill" = stretch to the stage. */
   fit?: "auto" | "center" | "fill";
-  /** Minimum stage height in px (small components sit centered above it). */
+  /** Stage/card preview height in px. */
   minHeight?: number;
+  /** Cap the component width in px (applies when centered). */
+  maxWidth?: number;
+  /** Inner padding around the component in px. */
+  padding?: number;
+  /** Vertical alignment of the component within the stage. */
+  align?: "top" | "center" | "bottom";
 }
 
 export interface PropDoc {

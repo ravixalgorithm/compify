@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { RegistryEntry } from "@compify/shared";
 import { GALLERY_USE_THUMBNAILS, componentThumbnail } from "@/lib/thumbnails";
-import { galleryFrameFor } from "@/lib/preview";
+import { previewSurfaceConfig } from "@/lib/preview";
 import { useInView } from "@/lib/useInView";
 import { GalleryInlinePreview } from "./GalleryInlinePreview";
 import { GalleryMediaSkeleton } from "./GalleryCardSkeleton";
@@ -50,7 +50,7 @@ export function GalleryCardMedia({
     if (!showLivePreview) setPreviewReady(false);
   }, [showLivePreview]);
 
-  const frame = galleryFrameFor(entry.name);
+  const frame = previewSurfaceConfig(entry.name, "gallery", entry.previewSurfaces?.gallery);
   const skeletonMinHeight = frame.minHeight ?? 200;
 
   const showSkeleton =
