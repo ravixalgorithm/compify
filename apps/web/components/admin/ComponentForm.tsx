@@ -87,6 +87,29 @@ function Field({
   );
 }
 
+function FitControl({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex items-center gap-1">
+      <span className="mr-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Fit</span>
+      {(["auto", "center", "fill"] as const).map((opt) => (
+        <button
+          key={opt}
+          type="button"
+          onClick={() => onChange(opt)}
+          className={cn(
+            "border px-2 py-0.5 text-[11px] capitalize transition",
+            value === opt
+              ? "border-white text-white"
+              : "border-stroke text-muted hover:text-white",
+          )}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function UploadZone({
   label,
   hint,
@@ -210,19 +233,45 @@ export function ComponentForm({
     [draft.tweakSchema],
   );
   const canPreview = Boolean(draft.source.trim());
-  const previewMode = useMemo(() => {
-    if (!draft.previewLayout) return "";
+
+  // Per-surface preview framing, parsed from the draft's previewLayout JSON.
+  const previewLayoutObj = useMemo<Record<string, any>>(() => {
+    if (!draft.previewLayout) return {};
     try {
-      return (JSON.parse(draft.previewLayout).mode as string) ?? "";
+      return JSON.parse(draft.previewLayout) ?? {};
     } catch {
-      return "";
+      return {};
     }
   }, [draft.previewLayout]);
-  // Synthetic entry carrying the compiled module, so the gallery/variant
-  // previews render the uploaded component just like the live site.
+
+  const previewSurfaces = useMemo<RegistryEntry["previewSurfaces"]>(() => {
+    const out: NonNullable<RegistryEntry["previewSurfaces"]> = {};
+    (["gallery", "detail", "variant"] as const).forEach((s) => {
+      const v = previewLayoutObj[s];
+      if (v && typeof v === "object") out[s] = { fit: v.fit ?? "auto", minHeight: v.minHeight };
+    });
+    return Object.keys(out).length ? out : undefined;
+  }, [previewLayoutObj]);
+
+  function setSurfaceFit(surface: "gallery" | "detail" | "variant", fit: string) {
+    const next = { ...previewLayoutObj };
+    if (fit === "auto") {
+      delete next[surface];
+    } else {
+      next[surface] = { ...(next[surface] ?? {}), fit };
+    }
+    updateDraft({ previewLayout: Object.keys(next).length ? JSON.stringify(next) : undefined });
+  }
+
+  // Synthetic entry carrying the compiled module + per-surface framing, so the
+  // admin previews render exactly like the live site.
   const previewEntry = useMemo<RegistryEntry>(
-    () => ({ ...draftToRegistryEntry(draft), compiledModuleUrl: previewModuleUrl ?? undefined }),
-    [draft, previewModuleUrl],
+    () => ({
+      ...draftToRegistryEntry(draft),
+      compiledModuleUrl: previewModuleUrl ?? undefined,
+      previewSurfaces,
+    }),
+    [draft, previewModuleUrl, previewSurfaces],
   );
 
   useEffect(() => {
@@ -525,26 +574,6 @@ export function ComponentForm({
                   onChange={(e) => updateDraft({ related: e.target.value })}
                 />
               </Field>
-              <Field
-                label="Preview layout"
-                hint="How the preview stage frames this component. Auto picks by category; Centered suits small components (buttons, text); Full fills the stage."
-              >
-                <select
-                  className={inputClass}
-                  value={previewMode}
-                  onChange={(e) =>
-                    updateDraft({
-                      previewLayout: e.target.value
-                        ? JSON.stringify({ mode: e.target.value })
-                        : undefined,
-                    })
-                  }
-                >
-                  <option value="">Auto</option>
-                  <option value="centered">Centered</option>
-                  <option value="full">Full</option>
-                </select>
-              </Field>
             </div>
           ) : null}
 
@@ -579,15 +608,22 @@ export function ComponentForm({
               ) : (
                 <div className="space-y-6">
                   <section className="space-y-2">
-                    <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
-                      Detail page
-                    </p>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
+                        Detail page
+                      </p>
+                      <FitControl
+                        value={previewLayoutObj.detail?.fit ?? "auto"}
+                        onChange={(v) => setSurfaceFit("detail", v)}
+                      />
+                    </div>
                     <div className="overflow-hidden border border-stroke">
                       <PreviewFrame
                         name={previewSlug}
                         state={previewState}
                         previewAccent={draft.previewAccent}
                         moduleUrl={previewModuleUrl}
+                        surfaceLayout={previewSurfaces?.detail}
                         previewLayout={resolvePreviewLayout({
                           name: previewSlug,
                           category: draft.category,
@@ -599,17 +635,29 @@ export function ComponentForm({
 
                   <div className="grid gap-6 sm:grid-cols-2">
                     <section className="space-y-2">
-                      <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
-                        Main page · gallery card
-                      </p>
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
+                          Main page · gallery card
+                        </p>
+                        <FitControl
+                          value={previewLayoutObj.gallery?.fit ?? "auto"}
+                          onChange={(v) => setSurfaceFit("gallery", v)}
+                        />
+                      </div>
                       <div className="mx-auto w-full max-w-[340px] overflow-hidden border border-stroke bg-black">
                         <GalleryInlinePreview key={`gallery-${previewModuleUrl}`} entry={previewEntry} surface="gallery" />
                       </div>
                     </section>
                     <section className="space-y-2">
-                      <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
-                        Variants grid
-                      </p>
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
+                          Variants grid
+                        </p>
+                        <FitControl
+                          value={previewLayoutObj.variant?.fit ?? "auto"}
+                          onChange={(v) => setSurfaceFit("variant", v)}
+                        />
+                      </div>
                       <div className="flex h-[180px] w-full max-w-[260px] items-center justify-center overflow-hidden border border-stroke bg-black">
                         <GalleryInlinePreview key={`variant-${previewModuleUrl}`} entry={previewEntry} surface="variant" />
                       </div>

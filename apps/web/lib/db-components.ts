@@ -46,7 +46,25 @@ function rowToEntry(row: Record<string, any>): RegistryEntry {
     related: row.related?.length ? row.related : undefined,
     copyCount: row.copy_count ?? 0,
     compiledModuleUrl: row.compiled_module_url ?? undefined,
+    previewSurfaces: surfacesFromLayout(row.preview_layout),
   };
+}
+
+// Extract per-surface framing from the stored preview_layout jsonb
+// ({ mode?, gallery?, detail?, variant? }), ignoring the legacy `mode` key.
+function surfacesFromLayout(layout: unknown): RegistryEntry["previewSurfaces"] {
+  if (!layout || typeof layout !== "object") return undefined;
+  const out: NonNullable<RegistryEntry["previewSurfaces"]> = {};
+  for (const surface of ["gallery", "detail", "variant"] as const) {
+    const s = (layout as Record<string, any>)[surface];
+    if (s && typeof s === "object") {
+      out[surface] = {
+        fit: s.fit === "center" || s.fit === "fill" ? s.fit : "auto",
+        minHeight: typeof s.minHeight === "number" ? s.minHeight : undefined,
+      };
+    }
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 function toDbComponent(row: Record<string, any>): DbComponent {

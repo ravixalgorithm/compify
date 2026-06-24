@@ -105,6 +105,21 @@ export interface RegistryEntry {
    * library component. Absent for filesystem/registry.json entries.
    */
   compiledModuleUrl?: string;
+  /**
+   * Admin-set framing for each preview surface (gallery card, detail stage,
+   * variants grid). Overrides the built-in framing so the admin can position a
+   * component per surface, and the choice is applied on the live site.
+   */
+  previewSurfaces?: Partial<Record<PreviewSurfaceName, PreviewSurfaceLayout>>;
+}
+
+export type PreviewSurfaceName = "gallery" | "detail" | "variant";
+
+export interface PreviewSurfaceLayout {
+  /** "center" = show at natural size, centered; "fill" = stretch to the stage. */
+  fit?: "auto" | "center" | "fill";
+  /** Minimum stage height in px (small components sit centered above it). */
+  minHeight?: number;
 }
 
 export interface PropDoc {

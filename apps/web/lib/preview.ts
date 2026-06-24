@@ -1,5 +1,11 @@
 import type { CSSProperties } from "react";
-import type { ComponentCategory, PreviewLayout, RegistryEntry, TweakState } from "@compify/shared";
+import type {
+  ComponentCategory,
+  PreviewLayout,
+  PreviewSurfaceLayout,
+  RegistryEntry,
+  TweakState,
+} from "@compify/shared";
 
 export type PreviewSurface = "gallery" | "detail" | "variant";
 
@@ -248,15 +254,34 @@ function specFor(name: string): ComponentPreviewSpec | undefined {
   return COMPONENT_PREVIEW[name];
 }
 
-export function previewSurfaceConfig(name: string, surface: PreviewSurface): PreviewFrameConfig {
+export function previewSurfaceConfig(
+  name: string,
+  surface: PreviewSurface,
+  override?: PreviewSurfaceLayout,
+): PreviewFrameConfig {
   const spec = specFor(name);
-  if (!spec) {
-    return surface === "detail" ? DEFAULT_DETAIL_FRAME : DEFAULT_FRAME;
+  const base: PreviewFrameConfig = !spec
+    ? surface === "detail"
+      ? DEFAULT_DETAIL_FRAME
+      : DEFAULT_FRAME
+    : surface === "variant"
+      ? (spec.variant ?? spec.gallery)
+      : spec[surface];
+
+  // Admin per-surface override wins over the built-in framing.
+  if (!override || (!override.fit && override.minHeight == null)) return base;
+  const merged: PreviewFrameConfig = { ...base };
+  if (override.fit === "fill") {
+    merged.fill = true;
+    merged.center = false;
+  } else if (override.fit === "center") {
+    merged.center = true;
+    merged.fill = false;
+    // Centering implies natural size, so drop a forced aspect ratio.
+    merged.aspectRatio = undefined;
   }
-  if (surface === "variant") {
-    return spec.variant ?? spec.gallery;
-  }
-  return spec[surface];
+  if (override.minHeight != null) merged.minHeight = override.minHeight;
+  return merged;
 }
 
 export function previewPropsForSurface(

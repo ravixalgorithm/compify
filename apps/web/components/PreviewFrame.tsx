@@ -1,7 +1,7 @@
 "use client";
 
 import { Component, useRef } from "react";
-import type { PreviewLayout, TweakState } from "@compify/shared";
+import type { PreviewLayout, PreviewSurfaceLayout, TweakState } from "@compify/shared";
 import { getLibraryComponent } from "@compify/library";
 import { DynamicComponent } from "./DynamicComponent";
 import { cn } from "@/lib/cn";
@@ -104,15 +104,17 @@ export function PreviewFrame({
   previewAccent = "#7C3AED",
   previewLayout = "full",
   moduleUrl,
+  surfaceLayout,
 }: {
   name: string;
   state: TweakState;
   previewAccent?: string;
   previewLayout?: PreviewLayout;
   moduleUrl?: string;
+  surfaceLayout?: PreviewSurfaceLayout;
 }) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const frame = previewSurfaceConfig(name, "detail");
+  const frame = previewSurfaceConfig(name, "detail", surfaceLayout);
   const stagePad = stagePaddingStyle(frame);
   const fixed = frame.width != null && frame.height != null;
   const framed = Boolean(frame.aspectRatio || frame.minHeight);

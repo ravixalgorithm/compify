@@ -68,7 +68,7 @@ export function GalleryInlinePreview({
   ) : LibraryComponent ? (
     <LibraryComponent {...componentProps} />
   ) : null;
-  const frame = previewSurfaceConfig(entry.name, surface);
+  const frame = previewSurfaceConfig(entry.name, surface, entry.previewSurfaces?.[surface]);
   const fixed = frame.width != null && frame.height != null;
   const fill = frame.fill ?? Boolean(frame.aspectRatio || fixed);
   const stagePad = stagePaddingStyle(frame, 0);
