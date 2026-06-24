@@ -99,6 +99,12 @@ export interface RegistryEntry {
   related?: string[];
   /** Total copy count (social proof). Seeded for V1. */
   copyCount: number;
+  /**
+   * URL of the runtime-compiled ESM module (DB-backed components). When set,
+   * previews render this module via DynamicComponent instead of the bundled
+   * library component. Absent for filesystem/registry.json entries.
+   */
+  compiledModuleUrl?: string;
 }
 
 export interface PropDoc {

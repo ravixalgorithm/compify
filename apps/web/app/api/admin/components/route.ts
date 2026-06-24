@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import type { ComponentCategory } from "@compify/shared/types";
 import { getAdminUser } from "@/lib/server/require-admin";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { compileComponent } from "@/lib/server/compile-component";
 import { deriveComponentRow } from "@/lib/server/component-row";
+import { COMPONENTS_TAG } from "@/lib/db-components";
 
 // esbuild needs the Node runtime (native binary), not the Edge runtime.
 export const runtime = "nodejs";
@@ -144,6 +146,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Save failed: ${error.message}`, stage: "db" }, { status: 500 });
     }
 
+    // ISR: make the new/updated component appear on the live site immediately.
+    revalidateTag(COMPONENTS_TAG);
+
     return NextResponse.json({ ok: true, component: data, warnings: compiled.warnings });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Publish failed.";
@@ -176,6 +181,8 @@ export async function DELETE(request: Request) {
     await db.storage.from(MODULES_BUCKET).remove(mods.data.map((f) => `${slug}/${f.name}`));
   }
   await db.storage.from(THUMBS_BUCKET).remove([`${slug}.png`, `${slug}.jpg`, `${slug}.webp`]);
+
+  revalidateTag(COMPONENTS_TAG);
 
   return NextResponse.json({ ok: true, slug });
 }

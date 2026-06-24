@@ -3,6 +3,7 @@
 import { Component, useEffect, useMemo } from "react";
 import type { RegistryEntry } from "@compify/shared";
 import { getLibraryComponent } from "@compify/library";
+import { DynamicComponent } from "./DynamicComponent";
 import { cn } from "@/lib/cn";
 import {
   galleryPreviewProps,
@@ -58,7 +59,15 @@ export function GalleryInlinePreview({
   );
 
   const componentProps = propsForSurface(entry, defaults, surface);
-  const LibraryComponent = getLibraryComponent(entry.name);
+  // DB-backed entries render their compiled module; others use the bundle.
+  const moduleUrl = entry.compiledModuleUrl;
+  const LibraryComponent = moduleUrl ? undefined : getLibraryComponent(entry.name);
+  const hasComponent = Boolean(moduleUrl) || Boolean(LibraryComponent);
+  const rendered = moduleUrl ? (
+    <DynamicComponent moduleUrl={moduleUrl} componentProps={componentProps as Record<string, unknown>} />
+  ) : LibraryComponent ? (
+    <LibraryComponent {...componentProps} />
+  ) : null;
   const frame = previewSurfaceConfig(entry.name, surface);
   const fixed = frame.width != null && frame.height != null;
   const fill = frame.fill ?? Boolean(frame.aspectRatio || fixed);
@@ -69,15 +78,15 @@ export function GalleryInlinePreview({
   const clip = frame.clip !== false;
 
   useEffect(() => {
-    if (!LibraryComponent) {
+    if (!hasComponent) {
       onReady?.();
       return;
     }
     const id = requestAnimationFrame(() => onReady?.());
     return () => cancelAnimationFrame(id);
-  }, [LibraryComponent, onReady]);
+  }, [hasComponent, onReady]);
 
-  if (!LibraryComponent) {
+  if (!hasComponent) {
     return (
       <div className="p-6 text-center font-mono text-[13px] text-muted">
         Unknown component: {entry.name}
@@ -120,13 +129,7 @@ export function GalleryInlinePreview({
                   }
             }
           >
-            {fill ? (
-              <div className="size-full">
-                <LibraryComponent {...componentProps} />
-              </div>
-            ) : (
-              <LibraryComponent {...componentProps} />
-            )}
+            {fill ? <div className="size-full">{rendered}</div> : rendered}
           </div>
         </div>
       </PreviewErrorBoundary>

@@ -1,5 +1,9 @@
+import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import type { RegistryEntry } from "@compify/shared";
+
+/** Cache tag for all component reads. Revalidated on admin publish/delete. */
+export const COMPONENTS_TAG = "components";
 
 /**
  * Public (anon) read client for the components table. Published rows are
@@ -41,10 +45,15 @@ function rowToEntry(row: Record<string, any>): RegistryEntry {
     usage: row.usage ?? undefined,
     related: row.related?.length ? row.related : undefined,
     copyCount: row.copy_count ?? 0,
+    compiledModuleUrl: row.compiled_module_url ?? undefined,
   };
 }
 
-export async function getDbComponent(slug: string): Promise<DbComponent | null> {
+function toDbComponent(row: Record<string, any>): DbComponent {
+  return { entry: rowToEntry(row), source: row.source ?? "", moduleUrl: row.compiled_module_url ?? null };
+}
+
+async function fetchOne(slug: string): Promise<DbComponent | null> {
   const { data, error } = await readClient()
     .from("components")
     .select("*")
@@ -52,19 +61,28 @@ export async function getDbComponent(slug: string): Promise<DbComponent | null> 
     .eq("status", "published")
     .maybeSingle();
   if (error || !data) return null;
-  return { entry: rowToEntry(data), source: data.source ?? "", moduleUrl: data.compiled_module_url ?? null };
+  return toDbComponent(data);
 }
 
-export async function listDbComponents(): Promise<DbComponent[]> {
+async function fetchAll(): Promise<DbComponent[]> {
   const { data, error } = await readClient()
     .from("components")
     .select("*")
     .eq("status", "published")
-    .order("slug");
+    .order("copy_count", { ascending: false });
   if (error || !data) return [];
-  return data.map((row) => ({
-    entry: rowToEntry(row),
-    source: row.source ?? "",
-    moduleUrl: row.compiled_module_url ?? null,
-  }));
+  return data.map(toDbComponent);
 }
+
+// ISR: results are cached and only refreshed when COMPONENTS_TAG is revalidated
+// (on admin publish/delete) or after the fallback window. unstable_cache keys
+// by keyParts + arguments, so getDbComponent caches per slug.
+export const getDbComponent = unstable_cache(fetchOne, ["db-component"], {
+  tags: [COMPONENTS_TAG],
+  revalidate: 3600,
+});
+
+export const listDbComponents = unstable_cache(fetchAll, ["db-components-list"], {
+  tags: [COMPONENTS_TAG],
+  revalidate: 3600,
+});

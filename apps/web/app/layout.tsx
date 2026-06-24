@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Roboto_Mono, Space_Mono } from "next/font/google";
-import { CATEGORIES, registry } from "@compify/shared";
+import { CATEGORIES } from "@compify/shared";
+import { listDbComponents } from "@/lib/db-components";
 import { AppFrame } from "@/components/AppFrame";
 import { RuntimeGlobals } from "@/components/RuntimeGlobals";
 import { Toaster } from "@/components/ui/sonner";
@@ -33,7 +34,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const registry = (await listDbComponents()).map((c) => c.entry);
+
   const categories = CATEGORIES.map((c) => ({
     id: c.id,
     label: c.label,

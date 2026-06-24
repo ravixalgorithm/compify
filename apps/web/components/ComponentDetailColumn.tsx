@@ -75,7 +75,7 @@ export function ComponentDetailColumn({
         state={state}
         previewAccent={entry.previewAccent}
         previewLayout={resolvePreviewLayout(entry)}
-        moduleUrl={moduleUrl}
+        moduleUrl={moduleUrl ?? entry.compiledModuleUrl}
       />
       <ComponentDocumentation entry={entry} />
     </div>
