@@ -103,6 +103,16 @@ function defaultPreviewLayout(
   return "full";
 }
 
+// Reused by the DB-backed publish route so a component row is derived from
+// source identically to the filesystem registry (single source of truth).
+export {
+  propsFromSchema,
+  usageFromSlug,
+  descriptionFromSource,
+  dependenciesFromSource,
+  exportNameFromSlug,
+};
+
 function mergeEntry(
   existing: RegistryEntry | undefined,
   slug: string,

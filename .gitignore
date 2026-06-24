@@ -31,3 +31,6 @@ coverage/
 .gstack/
 .vercel/
 *.stackdump
+
+# Generated runtime component modules (spike artifacts; prod stores these in Supabase Storage)
+apps/web/public/compify-runtime/
