@@ -1,0 +1,2340 @@
+[
+  {
+    "name": "lightning",
+    "displayName": "Lightning",
+    "category": "animation",
+    "description": "Animated WebGL lightning-bolt background with fbm-distorted glow. Drop it behind content as a full-bleed background.",
+    "descriptionParagraphs": [
+      "Animated WebGL lightning-bolt background with fbm-distorted glow.",
+      "Customize color",
+      "motion",
+      "intensity",
+      "and angle through the controls panel — or use it as a static backdrop in the Framer editor."
+    ],
+    "keyFeatures": [
+      "Procedural lightning glow rendered entirely on the GPU via WebGL shaders.",
+      "Smooth float and distortion loops driven by configurable speed and intensity.",
+      "Full control over bolt color",
+      "horizontal offset",
+      "size",
+      "and rotation angle.",
+      "Toggle live animation or freeze a single frame for static export.",
+      "Editor preview mode renders one frame in the Framer canvas without burning GPU cycles."
+    ],
+    "tags": [
+      "animation",
+      "webgl",
+      "shader",
+      "background",
+      "glow"
+    ],
+    "dependencies": [],
+    "tweakSchema": [
+      {
+        "key": "color",
+        "label": "Color",
+        "type": "color",
+        "default": "#3b5bff"
+      },
+      {
+        "key": "xOffset",
+        "label": "X Offset",
+        "type": "number",
+        "default": 0,
+        "min": -1,
+        "max": 1,
+        "step": 0.01
+      },
+      {
+        "key": "speed",
+        "label": "Speed",
+        "type": "number",
+        "default": 0.2,
+        "min": 0,
+        "max": 2,
+        "step": 0.05
+      },
+      {
+        "key": "intensity",
+        "label": "Intensity",
+        "type": "number",
+        "default": 1,
+        "min": 0,
+        "max": 3,
+        "step": 0.05
+      },
+      {
+        "key": "size",
+        "label": "Size",
+        "type": "number",
+        "default": 0.8,
+        "min": 0.1,
+        "max": 3,
+        "step": 0.05
+      },
+      {
+        "key": "angle",
+        "label": "Angle",
+        "type": "number",
+        "default": -40,
+        "min": -90,
+        "max": 90,
+        "step": 1,
+        "unit": "°"
+      },
+      {
+        "key": "animation",
+        "label": "Animation",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "preview",
+        "label": "Preview",
+        "type": "boolean",
+        "default": true
+      }
+    ],
+    "variants": [
+      "framer"
+    ],
+    "premium": false,
+    "sourcePath": "packages/library/src/components/lightning.tsx",
+    "previewAccent": "#3b5bff",
+    "previewLayout": "full",
+    "thumbnail": "/thumbnails/lightning.png",
+    "framerModuleUrl": "https://framer.com/m/Lightning-10c6x9.js@avOeNNbE6z34Pcl6d6nd",
+    "props": [
+      {
+        "name": "color",
+        "type": "color",
+        "default": "\"#3b5bff\"",
+        "description": "Color prop."
+      },
+      {
+        "name": "xOffset",
+        "type": "number",
+        "default": "0",
+        "description": "X Offset prop."
+      },
+      {
+        "name": "speed",
+        "type": "number",
+        "default": "0.2",
+        "description": "Speed prop."
+      },
+      {
+        "name": "intensity",
+        "type": "number",
+        "default": "1",
+        "description": "Intensity prop."
+      },
+      {
+        "name": "size",
+        "type": "number",
+        "default": "0.8",
+        "description": "Size prop."
+      },
+      {
+        "name": "angle",
+        "type": "number",
+        "default": "-40",
+        "description": "Angle prop."
+      },
+      {
+        "name": "animation",
+        "type": "boolean",
+        "default": "true",
+        "description": "Animation prop."
+      },
+      {
+        "name": "preview",
+        "type": "boolean",
+        "default": "true",
+        "description": "Preview prop."
+      }
+    ],
+    "usage": "import Lightning from \"./lightning\"\r\n\r\n<Lightning color=\"#3b5bff\" speed={0.2} intensity={1} />",
+    "related": [
+      "repeat-image-hover",
+      "animatedbars"
+    ],
+    "copyCount": 312
+  },
+  {
+    "name": "repeat-image-hover",
+    "displayName": "Repeat Image Hover",
+    "category": "animation",
+    "description": "Image pill that fans out into concentric echo rings on hover, then collapses back to a single filled image.",
+    "descriptionParagraphs": [
+      "Repeat Image Hover stacks multiple copies of the same image and animates them into a pill-shaped echo trail.",
+      "Tune geometry, tint, and motion from the controls panel — or flip Effect On to show the trail at rest."
+    ],
+    "keyFeatures": [
+      "Rests as one clean image; on hover echoed copies fan into faded concentric rings.",
+      "Configurable layer count, pill radius, front scale, and scale step.",
+      "Overlay tint, fade strength, duration, stagger, and easing curves.",
+      "Invert behaviour with Effect On: hover vs rest.",
+      "Static preview pins the expanded trail for marketplace thumbnails."
+    ],
+    "tags": [
+      "animation",
+      "hover",
+      "image",
+      "interaction",
+      "css"
+    ],
+    "dependencies": [],
+    "tweakSchema": [
+      {
+        "key": "imageUrl",
+        "label": "Image URL",
+        "type": "string",
+        "default": "https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=840&auto=format&fit=crop"
+      },
+      {
+        "key": "layers",
+        "label": "Layers",
+        "type": "number",
+        "default": 4,
+        "min": 2,
+        "max": 8,
+        "step": 1
+      },
+      {
+        "key": "borderRadius",
+        "label": "Radius",
+        "type": "number",
+        "default": 180,
+        "min": 0,
+        "max": 400,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "frontScale",
+        "label": "Front Scale",
+        "type": "number",
+        "default": 0.72,
+        "min": 0.3,
+        "max": 1,
+        "step": 0.01
+      },
+      {
+        "key": "scaleStep",
+        "label": "Scale Step",
+        "type": "number",
+        "default": 0.16,
+        "min": 0,
+        "max": 0.4,
+        "step": 0.01
+      },
+      {
+        "key": "originX",
+        "label": "Origin X",
+        "type": "number",
+        "default": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "%"
+      },
+      {
+        "key": "originY",
+        "label": "Origin Y",
+        "type": "number",
+        "default": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "%"
+      },
+      {
+        "key": "overlayColor",
+        "label": "Overlay",
+        "type": "color",
+        "default": "rgba(190,190,195,1)"
+      },
+      {
+        "key": "overlayStrength",
+        "label": "Fade",
+        "type": "number",
+        "default": 0.55,
+        "min": 0,
+        "max": 1,
+        "step": 0.05
+      },
+      {
+        "key": "duration",
+        "label": "Duration",
+        "type": "number",
+        "default": 0.6,
+        "min": 0.1,
+        "max": 3,
+        "step": 0.05,
+        "unit": "s"
+      },
+      {
+        "key": "stagger",
+        "label": "Stagger",
+        "type": "number",
+        "default": 0.06,
+        "min": 0,
+        "max": 0.4,
+        "step": 0.01,
+        "unit": "s"
+      },
+      {
+        "key": "easing",
+        "label": "Easing",
+        "type": "enum",
+        "default": "easeOut",
+        "options": [
+          "ease",
+          "easeOut",
+          "easeInOut",
+          "overshoot"
+        ]
+      },
+      {
+        "key": "effectOn",
+        "label": "Effect On",
+        "type": "enum",
+        "default": "hover",
+        "options": [
+          "hover",
+          "rest"
+        ]
+      },
+      {
+        "key": "width",
+        "label": "Width",
+        "type": "string",
+        "default": "420"
+      },
+      {
+        "key": "height",
+        "label": "Height",
+        "type": "string",
+        "default": "620"
+      }
+    ],
+    "variants": [
+      "framer"
+    ],
+    "premium": false,
+    "sourcePath": "packages/library/src/components/repeat-image-hover.tsx",
+    "previewAccent": "#9aa8bc",
+    "previewLayout": "centered",
+    "thumbnail": "/thumbnails/repeat-image-hover.png",
+    "props": [
+      {
+        "name": "imageUrl",
+        "type": "string",
+        "default": "\"https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=840&auto=format&fit=crop\"",
+        "description": "Image URL prop."
+      },
+      {
+        "name": "layers",
+        "type": "number",
+        "default": "4",
+        "description": "Layers prop."
+      },
+      {
+        "name": "borderRadius",
+        "type": "number",
+        "default": "180",
+        "description": "Radius prop."
+      },
+      {
+        "name": "frontScale",
+        "type": "number",
+        "default": "0.72",
+        "description": "Front Scale prop."
+      },
+      {
+        "name": "scaleStep",
+        "type": "number",
+        "default": "0.16",
+        "description": "Scale Step prop."
+      },
+      {
+        "name": "originX",
+        "type": "number",
+        "default": "50",
+        "description": "Origin X prop."
+      },
+      {
+        "name": "originY",
+        "type": "number",
+        "default": "50",
+        "description": "Origin Y prop."
+      },
+      {
+        "name": "overlayColor",
+        "type": "color",
+        "default": "\"rgba(190,190,195,1)\"",
+        "description": "Overlay prop."
+      },
+      {
+        "name": "overlayStrength",
+        "type": "number",
+        "default": "0.55",
+        "description": "Fade prop."
+      },
+      {
+        "name": "duration",
+        "type": "number",
+        "default": "0.6",
+        "description": "Duration prop."
+      },
+      {
+        "name": "stagger",
+        "type": "number",
+        "default": "0.06",
+        "description": "Stagger prop."
+      },
+      {
+        "name": "easing",
+        "type": "\"ease\" | \"easeOut\" | \"easeInOut\" | \"overshoot\"",
+        "default": "\"easeOut\"",
+        "description": "Easing prop."
+      },
+      {
+        "name": "effectOn",
+        "type": "\"hover\" | \"rest\"",
+        "default": "\"hover\"",
+        "description": "Effect On prop."
+      },
+      {
+        "name": "width",
+        "type": "string",
+        "default": "\"420\"",
+        "description": "Width prop."
+      },
+      {
+        "name": "height",
+        "type": "string",
+        "default": "\"620\"",
+        "description": "Height prop."
+      }
+    ],
+    "usage": "import RepeatImageHover from \"./repeat-image-hover\"\n\n<RepeatImageHover layers={4} borderRadius={180} />",
+    "related": [
+      "lightning",
+      "floating-badge",
+      "scroll-reveal"
+    ],
+    "copyCount": 0,
+    "framerModuleUrl": "https://framer.com/m/RepeatImageHover-4LVbGn.js@v5afXAa1pktuy7pPGut3"
+  },
+  {
+    "name": "animatedbars",
+    "displayName": "Animated Bar",
+    "category": "animation",
+    "description": "Single scroll-triggered progress bar with animated fill and counter.",
+    "descriptionParagraphs": [
+      "A single animated progress bar that fills and counts up when scrolled into view."
+    ],
+    "keyFeatures": [
+      "Scroll-triggered fill animation with animated percentage counter.",
+      "Configurable colors, bar height, radius, and duration.",
+      "Optional replay when re-entering the viewport."
+    ],
+    "tags": [
+      "animation",
+      "progress",
+      "scroll",
+      "framer-motion"
+    ],
+    "dependencies": [
+      "framer-motion"
+    ],
+    "tweakSchema": [
+      {
+        "key": "bars",
+        "label": "Bars",
+        "type": "array",
+        "default": [
+          {
+            "label": "YouTube",
+            "percent": 67,
+            "color": "#2b7fff"
+          },
+          {
+            "label": "Instagram",
+            "percent": 48,
+            "color": "#e1306c"
+          },
+          {
+            "label": "X",
+            "percent": 82,
+            "color": "#e7e7ea"
+          }
+        ],
+        "items": [
+          {
+            "key": "label",
+            "label": "Label",
+            "type": "string",
+            "default": "YouTube"
+          },
+          {
+            "key": "percent",
+            "label": "Percent",
+            "type": "number",
+            "default": 67,
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "unit": "%"
+          },
+          {
+            "key": "color",
+            "label": "Fill",
+            "type": "color",
+            "default": "#2b7fff"
+          }
+        ],
+        "hidden": true
+      },
+      {
+        "key": "trackColor",
+        "label": "Track",
+        "type": "color",
+        "default": "#2b2b31"
+      },
+      {
+        "key": "barHeight",
+        "label": "Bar Height",
+        "type": "number",
+        "default": 46,
+        "min": 8,
+        "max": 120,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "radius",
+        "label": "Radius",
+        "type": "number",
+        "default": 12,
+        "min": 0,
+        "max": 60,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "gap",
+        "label": "Gap",
+        "type": "number",
+        "default": 28,
+        "min": 0,
+        "max": 80,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "labelColor",
+        "label": "Label Color",
+        "type": "color",
+        "default": "#e9e9ec"
+      },
+      {
+        "key": "numberColor",
+        "label": "Number Color",
+        "type": "color",
+        "default": "#ffffff"
+      },
+      {
+        "key": "suffix",
+        "label": "Suffix",
+        "type": "string",
+        "default": "%"
+      },
+      {
+        "key": "decimals",
+        "label": "Decimals",
+        "type": "number",
+        "default": 0,
+        "min": 0,
+        "max": 2,
+        "step": 1
+      },
+      {
+        "key": "duration",
+        "label": "Duration",
+        "type": "number",
+        "default": 1.4,
+        "min": 0.2,
+        "max": 5,
+        "step": 0.1,
+        "unit": "s"
+      },
+      {
+        "key": "replay",
+        "label": "Replay",
+        "type": "boolean",
+        "default": false
+      },
+      {
+        "key": "background",
+        "label": "Background",
+        "type": "color",
+        "default": "rgba(0,0,0,0)"
+      }
+    ],
+    "variants": [
+      "framer"
+    ],
+    "premium": false,
+    "sourcePath": "packages/library/src/components/animatedbars.tsx",
+    "previewAccent": "#7C3AED",
+    "previewLayout": "full",
+    "thumbnail": "/thumbnails/animatedbars.jpg",
+    "framerModuleUrl": "https://framer.com/m/AnimatedBars-1jbJyK.js@jV6bBTAZ7l7a10YW8PKY",
+    "props": [
+      {
+        "name": "trackColor",
+        "type": "color",
+        "default": "\"#2b2b31\"",
+        "description": "Track prop."
+      },
+      {
+        "name": "barHeight",
+        "type": "number",
+        "default": "46",
+        "description": "Bar Height prop."
+      },
+      {
+        "name": "radius",
+        "type": "number",
+        "default": "12",
+        "description": "Radius prop."
+      },
+      {
+        "name": "gap",
+        "type": "number",
+        "default": "28",
+        "description": "Gap prop."
+      },
+      {
+        "name": "labelColor",
+        "type": "color",
+        "default": "\"#e9e9ec\"",
+        "description": "Label Color prop."
+      },
+      {
+        "name": "numberColor",
+        "type": "color",
+        "default": "\"#ffffff\"",
+        "description": "Number Color prop."
+      },
+      {
+        "name": "suffix",
+        "type": "string",
+        "default": "\"%\"",
+        "description": "Suffix prop."
+      },
+      {
+        "name": "decimals",
+        "type": "number",
+        "default": "0",
+        "description": "Decimals prop."
+      },
+      {
+        "name": "duration",
+        "type": "number",
+        "default": "1.4",
+        "description": "Duration prop."
+      },
+      {
+        "name": "replay",
+        "type": "boolean",
+        "default": "false",
+        "description": "Replay prop."
+      },
+      {
+        "name": "background",
+        "type": "color",
+        "default": "\"rgba(0,0,0,0)\"",
+        "description": "Background prop."
+      }
+    ],
+    "usage": "import Animatedbars from \"./animatedbars\"\n\n<Animatedbars />",
+    "related": [
+      "lightning",
+      "repeat-image-hover"
+    ],
+    "copyCount": 0
+  },
+  {
+    "name": "snowfall",
+    "displayName": "Snowfall",
+    "category": "animation",
+    "description": "Customizable canvas snowfall with density, wind drift, flake size, opacity, and fall direction.",
+    "descriptionParagraphs": [
+      "A customizable canvas snowfall: density, randomized speed, per-flake wind drift, size and opacity ranges, fall direction, colour and an optional backdrop.",
+      "Toggle Preview for live snow vs a static scene on the canvas."
+    ],
+    "keyFeatures": [
+      "Canvas-rendered snowflakes with configurable density and speed ranges.",
+      "Per-flake wind drift with swaying motion and wrap-around edges.",
+      "Control flake radius, opacity, colour, and fall direction (down or up).",
+      "Optional backdrop colour with smooth transition timing.",
+      "Preview toggle for live animation vs a static canvas frame."
+    ],
+    "tags": [
+      "animation",
+      "canvas",
+      "background",
+      "winter",
+      "snow"
+    ],
+    "dependencies": [],
+    "tweakSchema": [
+      {
+        "key": "preview",
+        "label": "Preview",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "count",
+        "label": "Count",
+        "type": "number",
+        "default": 160,
+        "min": 1,
+        "max": 1200,
+        "step": 1
+      },
+      {
+        "key": "speedMin",
+        "label": "Speed Min",
+        "type": "number",
+        "default": 0.6,
+        "min": 0,
+        "max": 10,
+        "step": 0.1
+      },
+      {
+        "key": "speedMax",
+        "label": "Speed Max",
+        "type": "number",
+        "default": 2.4,
+        "min": 0,
+        "max": 14,
+        "step": 0.1
+      },
+      {
+        "key": "wind",
+        "label": "Wind",
+        "type": "number",
+        "default": 0.2,
+        "min": -5,
+        "max": 5,
+        "step": 0.1
+      },
+      {
+        "key": "windVariation",
+        "label": "Wind Variation",
+        "type": "number",
+        "default": 0.8,
+        "min": 0,
+        "max": 4,
+        "step": 0.1
+      },
+      {
+        "key": "radiusMin",
+        "label": "Radius Min",
+        "type": "number",
+        "default": 1,
+        "min": 0.5,
+        "max": 20,
+        "step": 0.5,
+        "unit": "px"
+      },
+      {
+        "key": "radiusMax",
+        "label": "Radius Max",
+        "type": "number",
+        "default": 4,
+        "min": 0.5,
+        "max": 30,
+        "step": 0.5,
+        "unit": "px"
+      },
+      {
+        "key": "opacityMin",
+        "label": "Opacity Min",
+        "type": "number",
+        "default": 0.3,
+        "min": 0,
+        "max": 1,
+        "step": 0.05
+      },
+      {
+        "key": "opacityMax",
+        "label": "Opacity Max",
+        "type": "number",
+        "default": 0.9,
+        "min": 0,
+        "max": 1,
+        "step": 0.05
+      },
+      {
+        "key": "direction",
+        "label": "Direction",
+        "type": "enum",
+        "default": "down",
+        "options": [
+          "down",
+          "up"
+        ]
+      },
+      {
+        "key": "color",
+        "label": "Color",
+        "type": "color",
+        "default": "#ffffff"
+      },
+      {
+        "key": "background",
+        "label": "Background",
+        "type": "color",
+        "default": "rgba(0,0,0,0)"
+      },
+      {
+        "key": "transition",
+        "label": "Transition",
+        "type": "number",
+        "default": 0.3,
+        "min": 0,
+        "max": 2,
+        "step": 0.05,
+        "unit": "s"
+      }
+    ],
+    "variants": [
+      "framer"
+    ],
+    "premium": false,
+    "sourcePath": "packages/library/src/components/snowfall.tsx",
+    "previewAccent": "#c8e6ff",
+    "previewLayout": "full",
+    "thumbnail": "/thumbnails/snowfall.png",
+    "framerModuleUrl": "https://framer.com/m/Snowfall-tnWkHX.js@H0f0R6JUsDYLMR9CavzE",
+    "props": [
+      {
+        "name": "preview",
+        "type": "boolean",
+        "default": "true",
+        "description": "Preview prop."
+      },
+      {
+        "name": "count",
+        "type": "number",
+        "default": "160",
+        "description": "Count prop."
+      },
+      {
+        "name": "speedMin",
+        "type": "number",
+        "default": "0.6",
+        "description": "Speed Min prop."
+      },
+      {
+        "name": "speedMax",
+        "type": "number",
+        "default": "2.4",
+        "description": "Speed Max prop."
+      },
+      {
+        "name": "wind",
+        "type": "number",
+        "default": "0.2",
+        "description": "Wind prop."
+      },
+      {
+        "name": "windVariation",
+        "type": "number",
+        "default": "0.8",
+        "description": "Wind Variation prop."
+      },
+      {
+        "name": "radiusMin",
+        "type": "number",
+        "default": "1",
+        "description": "Radius Min prop."
+      },
+      {
+        "name": "radiusMax",
+        "type": "number",
+        "default": "4",
+        "description": "Radius Max prop."
+      },
+      {
+        "name": "opacityMin",
+        "type": "number",
+        "default": "0.3",
+        "description": "Opacity Min prop."
+      },
+      {
+        "name": "opacityMax",
+        "type": "number",
+        "default": "0.9",
+        "description": "Opacity Max prop."
+      },
+      {
+        "name": "direction",
+        "type": "\"down\" | \"up\"",
+        "default": "\"down\"",
+        "description": "Direction prop."
+      },
+      {
+        "name": "color",
+        "type": "color",
+        "default": "\"#ffffff\"",
+        "description": "Color prop."
+      },
+      {
+        "name": "background",
+        "type": "color",
+        "default": "\"rgba(0,0,0,0)\"",
+        "description": "Background prop."
+      },
+      {
+        "name": "transition",
+        "type": "number",
+        "default": "0.3",
+        "description": "Transition prop."
+      }
+    ],
+    "usage": "import Snowfall from \"./snowfall\"\n\n<Snowfall />",
+    "related": [
+      "lightning",
+      "repeat-image-hover"
+    ],
+    "copyCount": 0
+  },
+  {
+    "name": "before-after-slider",
+    "displayName": "Before / After Slider",
+    "category": "animation",
+    "description": "Drag-to-reveal image comparison slider with a divider handle, click-to-jump, and keyboard control.",
+    "descriptionParagraphs": [
+      "Drag the handle to reveal the two images. Click anywhere to jump the divider, or focus and use the arrow keys.",
+      "Swap before and after images, tune handle styling, and set the starting reveal position from the controls panel."
+    ],
+    "keyFeatures": [
+      "Side-by-side before and after images with a draggable reveal divider.",
+      "Click anywhere on the frame to jump the handle position.",
+      "Keyboard accessible — arrow keys nudge the divider in 2% steps.",
+      "Customizable divider, handle size, colours, corner radius, and initial position.",
+      "Touch-friendly pointer events with a circular drag handle."
+    ],
+    "tags": [
+      "animation",
+      "image",
+      "interaction",
+      "comparison",
+      "slider"
+    ],
+    "dependencies": [],
+    "tweakSchema": [
+      {
+        "key": "initialPosition",
+        "label": "Position",
+        "type": "number",
+        "default": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "%"
+      },
+      {
+        "key": "dividerColor",
+        "label": "Divider",
+        "type": "color",
+        "default": "#ffffff"
+      },
+      {
+        "key": "dividerWidth",
+        "label": "Divider W",
+        "type": "number",
+        "default": 2,
+        "min": 0,
+        "max": 12,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "handleSize",
+        "label": "Handle Size",
+        "type": "number",
+        "default": 56,
+        "min": 24,
+        "max": 120,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "handleColor",
+        "label": "Handle",
+        "type": "color",
+        "default": "#ffffff"
+      },
+      {
+        "key": "handleIconColor",
+        "label": "Icon",
+        "type": "color",
+        "default": "#111111"
+      },
+      {
+        "key": "radius",
+        "label": "Radius",
+        "type": "number",
+        "default": 0,
+        "min": 0,
+        "max": 60,
+        "step": 1,
+        "unit": "px"
+      }
+    ],
+    "variants": [
+      "framer"
+    ],
+    "premium": false,
+    "sourcePath": "packages/library/src/components/before-after-slider.tsx",
+    "previewAccent": "#ffffff",
+    "previewLayout": "full",
+    "thumbnail": "/thumbnails/before-after-slider.png",
+    "framerModuleUrl": "https://framer.com/m/BeforeAfterSlider-Hkftq8.js@unSPGg5ZHdYNkCi2k4lM",
+    "props": [
+      {
+        "name": "initialPosition",
+        "type": "number",
+        "default": "50",
+        "description": "Position prop."
+      },
+      {
+        "name": "dividerColor",
+        "type": "color",
+        "default": "\"#ffffff\"",
+        "description": "Divider prop."
+      },
+      {
+        "name": "dividerWidth",
+        "type": "number",
+        "default": "2",
+        "description": "Divider W prop."
+      },
+      {
+        "name": "handleSize",
+        "type": "number",
+        "default": "56",
+        "description": "Handle Size prop."
+      },
+      {
+        "name": "handleColor",
+        "type": "color",
+        "default": "\"#ffffff\"",
+        "description": "Handle prop."
+      },
+      {
+        "name": "handleIconColor",
+        "type": "color",
+        "default": "\"#111111\"",
+        "description": "Icon prop."
+      },
+      {
+        "name": "radius",
+        "type": "number",
+        "default": "0",
+        "description": "Radius prop."
+      }
+    ],
+    "usage": "import BeforeAfterSlider from \"./before-after-slider\"\n\n<BeforeAfterSlider />",
+    "related": [
+      "repeat-image-hover",
+      "snowfall"
+    ],
+    "copyCount": 0
+  },
+  {
+    "name": "coverflow",
+    "displayName": "Coverflow",
+    "category": "animation",
+    "description": "3D cover-flow image carousel with depth, rotation, and drag-to-browse.",
+    "tags": [
+      "image",
+      "carousel",
+      "3d",
+      "coverflow",
+      "drag"
+    ],
+    "dependencies": [
+      "framer-motion"
+    ],
+    "tweakSchema": [
+      {
+        "key": "images",
+        "label": "Images",
+        "type": "array",
+        "default": [],
+        "items": [
+          {
+            "key": "srcUrl",
+            "label": "URL",
+            "type": "string",
+            "default": ""
+          },
+          {
+            "key": "alt",
+            "label": "Alt",
+            "type": "string",
+            "default": ""
+          }
+        ],
+        "hidden": true
+      },
+      {
+        "key": "activeWidth",
+        "label": "Active Width",
+        "type": "number",
+        "default": 460,
+        "min": 120,
+        "max": 1200,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "activeHeight",
+        "label": "Active Height",
+        "type": "number",
+        "default": 300,
+        "min": 80,
+        "max": 1000,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "restWidth",
+        "label": "Slat Width",
+        "type": "number",
+        "default": 34,
+        "min": 8,
+        "max": 200,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "restHeight",
+        "label": "Slat Height",
+        "type": "number",
+        "default": 150,
+        "min": 8,
+        "max": 1000,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "gap",
+        "label": "Gap",
+        "type": "number",
+        "default": 12,
+        "min": 0,
+        "max": 80,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "cornerRadius",
+        "label": "Corner Radius",
+        "type": "number",
+        "default": 14,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "widthFalloffDecay",
+        "label": "Width Decay",
+        "type": "number",
+        "default": 0.16,
+        "min": 0.05,
+        "max": 0.9,
+        "step": 0.01
+      },
+      {
+        "key": "heightFalloffDecay",
+        "label": "Height Decay",
+        "type": "number",
+        "default": 0.74,
+        "min": 0.3,
+        "max": 0.95,
+        "step": 0.01
+      },
+      {
+        "key": "falloffRange",
+        "label": "Falloff Range",
+        "type": "number",
+        "default": 6,
+        "min": 1,
+        "max": 16,
+        "step": 1
+      },
+      {
+        "key": "neighborInfluence",
+        "label": "Neighbor Influence",
+        "type": "number",
+        "default": 1,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      {
+        "key": "loop",
+        "label": "Loop",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "showArrows",
+        "label": "Arrows",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "arrowColor",
+        "label": "Arrow Color",
+        "type": "color",
+        "default": "#ffffff"
+      },
+      {
+        "key": "arrowBackground",
+        "label": "Arrow BG",
+        "type": "color",
+        "default": "rgba(255,255,255,0.12)"
+      },
+      {
+        "key": "arrowSize",
+        "label": "Arrow Size",
+        "type": "number",
+        "default": 56,
+        "min": 24,
+        "max": 120,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "edgeFade",
+        "label": "Edge Fade",
+        "type": "number",
+        "default": 90,
+        "min": 0,
+        "max": 300,
+        "step": 2,
+        "unit": "px"
+      },
+      {
+        "key": "drag",
+        "label": "Drag",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "autoplay",
+        "label": "Autoplay",
+        "type": "boolean",
+        "default": false
+      },
+      {
+        "key": "autoplayInterval",
+        "label": "Interval",
+        "type": "number",
+        "default": 3,
+        "min": 0.5,
+        "max": 20,
+        "step": 0.5,
+        "unit": "s"
+      },
+      {
+        "key": "startIndex",
+        "label": "Start Index",
+        "type": "number",
+        "default": 0,
+        "min": 0,
+        "step": 1
+      },
+      {
+        "key": "reflection",
+        "label": "Reflection",
+        "type": "boolean",
+        "default": false
+      },
+      {
+        "key": "backgroundColor",
+        "label": "Background",
+        "type": "color",
+        "default": "#0a0a0a"
+      },
+      {
+        "key": "stiffness",
+        "label": "Stiffness",
+        "type": "number",
+        "default": 300,
+        "min": 1,
+        "max": 1000,
+        "step": 1
+      },
+      {
+        "key": "damping",
+        "label": "Damping",
+        "type": "number",
+        "default": 32,
+        "min": 1,
+        "max": 120,
+        "step": 1
+      },
+      {
+        "key": "mass",
+        "label": "Mass",
+        "type": "number",
+        "default": 1,
+        "min": 0.1,
+        "max": 10,
+        "step": 0.1
+      },
+      {
+        "key": "width",
+        "label": "Width",
+        "type": "number",
+        "default": 800,
+        "min": 1,
+        "max": 2000,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "height",
+        "label": "Height",
+        "type": "number",
+        "default": 460,
+        "min": 1,
+        "max": 1200,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "className",
+        "label": "Class Name",
+        "type": "string",
+        "default": ""
+      }
+    ],
+    "variants": [
+      "framer"
+    ],
+    "premium": false,
+    "sourcePath": "packages/library/src/components/coverflow.tsx",
+    "previewAccent": "#ec4899",
+    "previewLayout": "full",
+    "thumbnail": "/thumbnails/coverflow.png",
+    "framerModuleUrl": "https://framer.com/m/CoverflowCarousel-yiUAi5.js@QIH5LwV8iMCLDDTqh5jw",
+    "props": [
+      {
+        "name": "activeWidth",
+        "type": "number",
+        "default": "460",
+        "description": "Active Width prop."
+      },
+      {
+        "name": "activeHeight",
+        "type": "number",
+        "default": "300",
+        "description": "Active Height prop."
+      },
+      {
+        "name": "restWidth",
+        "type": "number",
+        "default": "34",
+        "description": "Slat Width prop."
+      },
+      {
+        "name": "restHeight",
+        "type": "number",
+        "default": "150",
+        "description": "Slat Height prop."
+      },
+      {
+        "name": "gap",
+        "type": "number",
+        "default": "12",
+        "description": "Gap prop."
+      },
+      {
+        "name": "cornerRadius",
+        "type": "number",
+        "default": "14",
+        "description": "Corner Radius prop."
+      },
+      {
+        "name": "widthFalloffDecay",
+        "type": "number",
+        "default": "0.16",
+        "description": "Width Decay prop."
+      },
+      {
+        "name": "heightFalloffDecay",
+        "type": "number",
+        "default": "0.74",
+        "description": "Height Decay prop."
+      },
+      {
+        "name": "falloffRange",
+        "type": "number",
+        "default": "6",
+        "description": "Falloff Range prop."
+      },
+      {
+        "name": "neighborInfluence",
+        "type": "number",
+        "default": "1",
+        "description": "Neighbor Influence prop."
+      },
+      {
+        "name": "loop",
+        "type": "boolean",
+        "default": "true",
+        "description": "Loop prop."
+      },
+      {
+        "name": "showArrows",
+        "type": "boolean",
+        "default": "true",
+        "description": "Arrows prop."
+      },
+      {
+        "name": "arrowColor",
+        "type": "color",
+        "default": "\"#ffffff\"",
+        "description": "Arrow Color prop."
+      },
+      {
+        "name": "arrowBackground",
+        "type": "color",
+        "default": "\"rgba(255,255,255,0.12)\"",
+        "description": "Arrow BG prop."
+      },
+      {
+        "name": "arrowSize",
+        "type": "number",
+        "default": "56",
+        "description": "Arrow Size prop."
+      },
+      {
+        "name": "edgeFade",
+        "type": "number",
+        "default": "90",
+        "description": "Edge Fade prop."
+      },
+      {
+        "name": "drag",
+        "type": "boolean",
+        "default": "true",
+        "description": "Drag prop."
+      },
+      {
+        "name": "autoplay",
+        "type": "boolean",
+        "default": "false",
+        "description": "Autoplay prop."
+      },
+      {
+        "name": "autoplayInterval",
+        "type": "number",
+        "default": "3",
+        "description": "Interval prop."
+      },
+      {
+        "name": "startIndex",
+        "type": "number",
+        "default": "0",
+        "description": "Start Index prop."
+      },
+      {
+        "name": "reflection",
+        "type": "boolean",
+        "default": "false",
+        "description": "Reflection prop."
+      },
+      {
+        "name": "backgroundColor",
+        "type": "color",
+        "default": "\"#0a0a0a\"",
+        "description": "Background prop."
+      },
+      {
+        "name": "stiffness",
+        "type": "number",
+        "default": "300",
+        "description": "Stiffness prop."
+      },
+      {
+        "name": "damping",
+        "type": "number",
+        "default": "32",
+        "description": "Damping prop."
+      },
+      {
+        "name": "mass",
+        "type": "number",
+        "default": "1",
+        "description": "Mass prop."
+      },
+      {
+        "name": "width",
+        "type": "number",
+        "default": "800",
+        "description": "Width prop."
+      },
+      {
+        "name": "height",
+        "type": "number",
+        "default": "460",
+        "description": "Height prop."
+      },
+      {
+        "name": "className",
+        "type": "string",
+        "default": "\"\"",
+        "description": "Class Name prop."
+      }
+    ],
+    "usage": "import Coverflow from \"./coverflow\"\n\n<Coverflow />",
+    "copyCount": 0
+  },
+  {
+    "name": "light-rays",
+    "displayName": "Light Rays",
+    "category": "animation",
+    "description": "Animated volumetric light-ray background rendered on the GPU.",
+    "tags": [
+      "background",
+      "animation",
+      "webgl",
+      "light",
+      "rays"
+    ],
+    "dependencies": [],
+    "tweakSchema": [
+      {
+        "key": "color",
+        "label": "Color",
+        "type": "color",
+        "default": "#7fb0ff"
+      },
+      {
+        "key": "background",
+        "label": "Background",
+        "type": "color",
+        "default": "#04060c"
+      },
+      {
+        "key": "animation",
+        "label": "Animation",
+        "type": "number",
+        "default": 8,
+        "min": 0,
+        "max": 40,
+        "step": 1
+      },
+      {
+        "key": "intensity",
+        "label": "Intensity",
+        "type": "number",
+        "default": 55,
+        "min": 0,
+        "max": 100,
+        "step": 1
+      },
+      {
+        "key": "rays",
+        "label": "Rays",
+        "type": "number",
+        "default": 22,
+        "min": 2,
+        "max": 100,
+        "step": 1
+      },
+      {
+        "key": "reach",
+        "label": "Reach",
+        "type": "number",
+        "default": 60,
+        "min": 0,
+        "max": 100,
+        "step": 1
+      },
+      {
+        "key": "position",
+        "label": "Position",
+        "type": "number",
+        "default": 50,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "%"
+      },
+      {
+        "key": "radius",
+        "label": "Radius",
+        "type": "number",
+        "default": 0,
+        "min": 0,
+        "max": 80,
+        "step": 1,
+        "unit": "px"
+      }
+    ],
+    "variants": [
+      "framer"
+    ],
+    "premium": false,
+    "sourcePath": "packages/library/src/components/light-rays.tsx",
+    "previewAccent": "#38bdf8",
+    "previewLayout": "full",
+    "thumbnail": "/thumbnails/light-rays.png",
+    "framerModuleUrl": "https://framer.com/m/LightRays-YcOKgm.js@wXAiSUPElkydGSZ7S1Mm",
+    "props": [
+      {
+        "name": "color",
+        "type": "color",
+        "default": "\"#7fb0ff\"",
+        "description": "Color prop."
+      },
+      {
+        "name": "background",
+        "type": "color",
+        "default": "\"#04060c\"",
+        "description": "Background prop."
+      },
+      {
+        "name": "animation",
+        "type": "number",
+        "default": "8",
+        "description": "Animation prop."
+      },
+      {
+        "name": "intensity",
+        "type": "number",
+        "default": "55",
+        "description": "Intensity prop."
+      },
+      {
+        "name": "rays",
+        "type": "number",
+        "default": "22",
+        "description": "Rays prop."
+      },
+      {
+        "name": "reach",
+        "type": "number",
+        "default": "60",
+        "description": "Reach prop."
+      },
+      {
+        "name": "position",
+        "type": "number",
+        "default": "50",
+        "description": "Position prop."
+      },
+      {
+        "name": "radius",
+        "type": "number",
+        "default": "0",
+        "description": "Radius prop."
+      }
+    ],
+    "usage": "import LightRays from \"./light-rays\"\n\n<LightRays />",
+    "copyCount": 0
+  },
+  {
+    "name": "pixel-card",
+    "displayName": "Pixel Card",
+    "category": "cards",
+    "description": "Card with an animated pixel-grid reveal that lights up on hover.",
+    "tags": [
+      "card",
+      "animation",
+      "pixel",
+      "hover",
+      "grid"
+    ],
+    "dependencies": [],
+    "tweakSchema": [
+      {
+        "key": "color",
+        "label": "Color",
+        "type": "color",
+        "default": "#fda4af"
+      },
+      {
+        "key": "gap",
+        "label": "Gap",
+        "type": "number",
+        "default": 6,
+        "min": 1,
+        "max": 30,
+        "step": 1
+      },
+      {
+        "key": "speed",
+        "label": "Speed",
+        "type": "number",
+        "default": 80,
+        "min": 0,
+        "max": 100,
+        "step": 1
+      },
+      {
+        "key": "noFocus",
+        "label": "No Focus",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "borderColor",
+        "label": "Border",
+        "type": "color",
+        "default": "#27272a"
+      },
+      {
+        "key": "radius",
+        "label": "Radius",
+        "type": "number",
+        "default": 25,
+        "min": 0,
+        "max": 60,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "label",
+        "label": "Label",
+        "type": "string",
+        "default": ""
+      },
+      {
+        "key": "labelColor",
+        "label": "Label Color",
+        "type": "color",
+        "default": "#ffffff"
+      }
+    ],
+    "variants": [
+      "framer"
+    ],
+    "premium": false,
+    "sourcePath": "packages/library/src/components/pixel-card.tsx",
+    "previewAccent": "#22d3ee",
+    "previewLayout": "centered",
+    "thumbnail": "/thumbnails/pixel-card.png",
+    "framerModuleUrl": "https://framer.com/m/PixelCard-1DNjuR.js@ympeaEd1IHGrEQ9pV1Rq",
+    "props": [
+      {
+        "name": "color",
+        "type": "color",
+        "default": "\"#fda4af\"",
+        "description": "Color prop."
+      },
+      {
+        "name": "gap",
+        "type": "number",
+        "default": "6",
+        "description": "Gap prop."
+      },
+      {
+        "name": "speed",
+        "type": "number",
+        "default": "80",
+        "description": "Speed prop."
+      },
+      {
+        "name": "noFocus",
+        "type": "boolean",
+        "default": "true",
+        "description": "No Focus prop."
+      },
+      {
+        "name": "borderColor",
+        "type": "color",
+        "default": "\"#27272a\"",
+        "description": "Border prop."
+      },
+      {
+        "name": "radius",
+        "type": "number",
+        "default": "25",
+        "description": "Radius prop."
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "default": "\"\"",
+        "description": "Label prop."
+      },
+      {
+        "name": "labelColor",
+        "type": "color",
+        "default": "\"#ffffff\"",
+        "description": "Label Color prop."
+      }
+    ],
+    "usage": "import PixelCard from \"./pixel-card\"\n\n<PixelCard />",
+    "copyCount": 0
+  },
+  {
+    "name": "shiny-button",
+    "displayName": "Shiny Button",
+    "category": "animation",
+    "description": "Button with an animated specular shine sweep and gradient sheen on hover.",
+    "tags": [
+      "button",
+      "animation",
+      "hover",
+      "shine",
+      "gradient"
+    ],
+    "dependencies": [
+      "framer-motion"
+    ],
+    "tweakSchema": [
+      {
+        "key": "label",
+        "label": "Label",
+        "type": "string",
+        "default": "Get Started"
+      },
+      {
+        "key": "fontSize",
+        "label": "Size",
+        "type": "number",
+        "default": 16,
+        "min": 8,
+        "max": 80,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "fontWeight",
+        "label": "Weight",
+        "type": "number",
+        "default": 600,
+        "min": 100,
+        "max": 900,
+        "step": 50
+      },
+      {
+        "key": "textColor",
+        "label": "Text",
+        "type": "color",
+        "default": "#FFFFFF"
+      },
+      {
+        "key": "baseColor",
+        "label": "Base",
+        "type": "color",
+        "default": "#2E323A"
+      },
+      {
+        "key": "glossColor",
+        "label": "Gloss",
+        "type": "color",
+        "default": "#FFFFFF"
+      },
+      {
+        "key": "glossOpacity",
+        "label": "Gloss Opacity",
+        "type": "number",
+        "default": 0.28,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      {
+        "key": "highlightColor",
+        "label": "Highlight",
+        "type": "color",
+        "default": "#FFFFFF"
+      },
+      {
+        "key": "highlightSize",
+        "label": "Highlight Size",
+        "type": "number",
+        "default": 90,
+        "min": 10,
+        "max": 400,
+        "step": 5,
+        "unit": "px"
+      },
+      {
+        "key": "highlightOpacity",
+        "label": "Highlight Opacity",
+        "type": "number",
+        "default": 0.5,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      {
+        "key": "cornerRadius",
+        "label": "Radius",
+        "type": "number",
+        "default": 14,
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "paddingX",
+        "label": "Padding X",
+        "type": "number",
+        "default": 24,
+        "min": 0,
+        "max": 120,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "paddingY",
+        "label": "Padding Y",
+        "type": "number",
+        "default": 16,
+        "min": 0,
+        "max": 120,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "shadow",
+        "label": "Drop Shadow",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "shadowColor",
+        "label": "Shadow Color",
+        "type": "color",
+        "default": "#000000"
+      },
+      {
+        "key": "shadowOpacity",
+        "label": "Shadow Opacity",
+        "type": "number",
+        "default": 0.3,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      {
+        "key": "openInNewTab",
+        "label": "New Tab",
+        "type": "boolean",
+        "default": false
+      },
+      {
+        "key": "followStiffness",
+        "label": "Follow Stiffness",
+        "type": "number",
+        "default": 170,
+        "min": 10,
+        "max": 2000,
+        "step": 10
+      },
+      {
+        "key": "followDamping",
+        "label": "Follow Damping",
+        "type": "number",
+        "default": 26,
+        "min": 1,
+        "max": 100,
+        "step": 1
+      },
+      {
+        "key": "width",
+        "label": "Width",
+        "type": "string",
+        "default": "auto"
+      },
+      {
+        "key": "height",
+        "label": "Height",
+        "type": "string",
+        "default": "auto"
+      }
+    ],
+    "variants": [
+      "framer"
+    ],
+    "premium": false,
+    "sourcePath": "packages/library/src/components/shiny-button.tsx",
+    "previewAccent": "#7c3aed",
+    "previewLayout": "centered",
+    "thumbnail": "/thumbnails/shiny-button.png",
+    "framerModuleUrl": "https://framer.com/m/ShinyButton-BpoGgd.js@eO8YPxhOFebsIzxyxjHt",
+    "props": [
+      {
+        "name": "label",
+        "type": "string",
+        "default": "\"Get Started\"",
+        "description": "Label prop."
+      },
+      {
+        "name": "fontSize",
+        "type": "number",
+        "default": "16",
+        "description": "Size prop."
+      },
+      {
+        "name": "fontWeight",
+        "type": "number",
+        "default": "600",
+        "description": "Weight prop."
+      },
+      {
+        "name": "textColor",
+        "type": "color",
+        "default": "\"#FFFFFF\"",
+        "description": "Text prop."
+      },
+      {
+        "name": "baseColor",
+        "type": "color",
+        "default": "\"#2E323A\"",
+        "description": "Base prop."
+      },
+      {
+        "name": "glossColor",
+        "type": "color",
+        "default": "\"#FFFFFF\"",
+        "description": "Gloss prop."
+      },
+      {
+        "name": "glossOpacity",
+        "type": "number",
+        "default": "0.28",
+        "description": "Gloss Opacity prop."
+      },
+      {
+        "name": "highlightColor",
+        "type": "color",
+        "default": "\"#FFFFFF\"",
+        "description": "Highlight prop."
+      },
+      {
+        "name": "highlightSize",
+        "type": "number",
+        "default": "90",
+        "description": "Highlight Size prop."
+      },
+      {
+        "name": "highlightOpacity",
+        "type": "number",
+        "default": "0.5",
+        "description": "Highlight Opacity prop."
+      },
+      {
+        "name": "cornerRadius",
+        "type": "number",
+        "default": "14",
+        "description": "Radius prop."
+      },
+      {
+        "name": "paddingX",
+        "type": "number",
+        "default": "24",
+        "description": "Padding X prop."
+      },
+      {
+        "name": "paddingY",
+        "type": "number",
+        "default": "16",
+        "description": "Padding Y prop."
+      },
+      {
+        "name": "shadow",
+        "type": "boolean",
+        "default": "true",
+        "description": "Drop Shadow prop."
+      },
+      {
+        "name": "shadowColor",
+        "type": "color",
+        "default": "\"#000000\"",
+        "description": "Shadow Color prop."
+      },
+      {
+        "name": "shadowOpacity",
+        "type": "number",
+        "default": "0.3",
+        "description": "Shadow Opacity prop."
+      },
+      {
+        "name": "openInNewTab",
+        "type": "boolean",
+        "default": "false",
+        "description": "New Tab prop."
+      },
+      {
+        "name": "followStiffness",
+        "type": "number",
+        "default": "170",
+        "description": "Follow Stiffness prop."
+      },
+      {
+        "name": "followDamping",
+        "type": "number",
+        "default": "26",
+        "description": "Follow Damping prop."
+      },
+      {
+        "name": "width",
+        "type": "string",
+        "default": "\"auto\"",
+        "description": "Width prop."
+      },
+      {
+        "name": "height",
+        "type": "string",
+        "default": "\"auto\"",
+        "description": "Height prop."
+      }
+    ],
+    "usage": "import ShinyButton from \"./shiny-button\"\n\n<ShinyButton />",
+    "copyCount": 0
+  },
+  {
+    "name": "text-lift",
+    "displayName": "Text Lift",
+    "category": "animation",
+    "description": "Headline that lifts and reveals its characters with a staggered spring on view.",
+    "tags": [
+      "typography",
+      "animation",
+      "text",
+      "reveal",
+      "stagger"
+    ],
+    "dependencies": [
+      "framer-motion"
+    ],
+    "tweakSchema": [
+      {
+        "key": "text",
+        "label": "Text",
+        "type": "string",
+        "default": "LIFT"
+      },
+      {
+        "key": "direction",
+        "label": "Push",
+        "type": "enum",
+        "default": "bottomLeft",
+        "options": [
+          "topRight",
+          "right",
+          "bottomRight",
+          "bottom",
+          "bottomLeft",
+          "left",
+          "topLeft",
+          "top"
+        ]
+      },
+      {
+        "key": "depth",
+        "label": "Layers",
+        "type": "number",
+        "default": 6,
+        "min": 2,
+        "max": 16,
+        "step": 1
+      },
+      {
+        "key": "spread",
+        "label": "Rest Spread",
+        "type": "number",
+        "default": 5,
+        "min": 0,
+        "max": 20,
+        "step": 0.5,
+        "unit": "px"
+      },
+      {
+        "key": "expand",
+        "label": "Hover Spread",
+        "type": "number",
+        "default": 10,
+        "min": 0,
+        "max": 40,
+        "step": 0.5,
+        "unit": "px"
+      },
+      {
+        "key": "lift",
+        "label": "Lift",
+        "type": "number",
+        "default": 8,
+        "min": 0,
+        "max": 60,
+        "step": 1,
+        "unit": "px"
+      },
+      {
+        "key": "fade",
+        "label": "Fade Depth",
+        "type": "boolean",
+        "default": false
+      },
+      {
+        "key": "filled",
+        "label": "Filled",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "key": "stroke",
+        "label": "Stroke",
+        "type": "number",
+        "default": 2,
+        "min": 0,
+        "max": 8,
+        "step": 0.5,
+        "unit": "px"
+      },
+      {
+        "key": "strokeColor",
+        "label": "Stroke Color",
+        "type": "color",
+        "default": "#ffffff"
+      },
+      {
+        "key": "frontColor",
+        "label": "Front Fill",
+        "type": "color",
+        "default": "#ffffff"
+      },
+      {
+        "key": "depthColor",
+        "label": "Depth Fill",
+        "type": "color",
+        "default": "#888888"
+      },
+      {
+        "key": "fontSize",
+        "label": "Font Size",
+        "type": "number",
+        "default": 72,
+        "min": 12,
+        "max": 200,
+        "step": 1,
+        "unit": "px"
+      }
+    ],
+    "variants": [
+      "framer"
+    ],
+    "premium": false,
+    "sourcePath": "packages/library/src/components/text-lift.tsx",
+    "previewAccent": "#f59e0b",
+    "previewLayout": "centered",
+    "thumbnail": "/thumbnails/text-lift.png",
+    "framerModuleUrl": "https://framer.com/m/TextLift-o83Q7T.js@LOx9CpbSUnrSHxnOvA66",
+    "props": [
+      {
+        "name": "text",
+        "type": "string",
+        "default": "\"LIFT\"",
+        "description": "Text prop."
+      },
+      {
+        "name": "direction",
+        "type": "\"topRight\" | \"right\" | \"bottomRight\" | \"bottom\" | \"bottomLeft\" | \"left\" | \"topLeft\" | \"top\"",
+        "default": "\"bottomLeft\"",
+        "description": "Push prop."
+      },
+      {
+        "name": "depth",
+        "type": "number",
+        "default": "6",
+        "description": "Layers prop."
+      },
+      {
+        "name": "spread",
+        "type": "number",
+        "default": "5",
+        "description": "Rest Spread prop."
+      },
+      {
+        "name": "expand",
+        "type": "number",
+        "default": "10",
+        "description": "Hover Spread prop."
+      },
+      {
+        "name": "lift",
+        "type": "number",
+        "default": "8",
+        "description": "Lift prop."
+      },
+      {
+        "name": "fade",
+        "type": "boolean",
+        "default": "false",
+        "description": "Fade Depth prop."
+      },
+      {
+        "name": "filled",
+        "type": "boolean",
+        "default": "true",
+        "description": "Filled prop."
+      },
+      {
+        "name": "stroke",
+        "type": "number",
+        "default": "2",
+        "description": "Stroke prop."
+      },
+      {
+        "name": "strokeColor",
+        "type": "color",
+        "default": "\"#ffffff\"",
+        "description": "Stroke Color prop."
+      },
+      {
+        "name": "frontColor",
+        "type": "color",
+        "default": "\"#ffffff\"",
+        "description": "Front Fill prop."
+      },
+      {
+        "name": "depthColor",
+        "type": "color",
+        "default": "\"#888888\"",
+        "description": "Depth Fill prop."
+      },
+      {
+        "name": "fontSize",
+        "type": "number",
+        "default": "72",
+        "description": "Font Size prop."
+      }
+    ],
+    "usage": "import TextLift from \"./text-lift\"\n\n<TextLift />",
+    "copyCount": 0
+  }
+]

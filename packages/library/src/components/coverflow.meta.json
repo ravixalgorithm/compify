@@ -1,0 +1,11 @@
+{
+  "displayName": "Coverflow",
+  "category": "animation",
+  "description": "3D cover-flow image carousel with depth, rotation, and drag-to-browse.",
+  "tags": ["image", "carousel", "3d", "coverflow", "drag"],
+  "previewAccent": "#ec4899",
+  "previewLayout": "full",
+  "premium": false,
+  "variants": ["framer"],
+  "framerModuleUrl": "https://framer.com/m/CoverflowCarousel-yiUAi5.js@QIH5LwV8iMCLDDTqh5jw"
+}

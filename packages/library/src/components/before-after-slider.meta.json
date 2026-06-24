@@ -1,0 +1,34 @@
+{
+  "displayName": "Before / After Slider",
+  "category": "animation",
+  "description": "Drag-to-reveal image comparison slider with a divider handle, click-to-jump, and keyboard control.",
+  "tags": [
+    "animation",
+    "image",
+    "interaction",
+    "comparison",
+    "slider"
+  ],
+  "previewAccent": "#ffffff",
+  "previewLayout": "full",
+  "premium": false,
+  "related": [
+    "repeat-image-hover",
+    "snowfall"
+  ],
+  "keyFeatures": [
+    "Side-by-side before and after images with a draggable reveal divider.",
+    "Click anywhere on the frame to jump the handle position.",
+    "Keyboard accessible — arrow keys nudge the divider in 2% steps.",
+    "Customizable divider, handle size, colours, corner radius, and initial position.",
+    "Touch-friendly pointer events with a circular drag handle."
+  ],
+  "descriptionParagraphs": [
+    "Drag the handle to reveal the two images. Click anywhere to jump the divider, or focus and use the arrow keys.",
+    "Swap before and after images, tune handle styling, and set the starting reveal position from the controls panel."
+  ],
+  "variants": [
+    "framer"
+  ],
+  "framerModuleUrl": "https://framer.com/m/BeforeAfterSlider-Hkftq8.js@unSPGg5ZHdYNkCi2k4lM"
+}

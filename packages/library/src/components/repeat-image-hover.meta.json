@@ -1,0 +1,35 @@
+{
+  "displayName": "Repeat Image Hover",
+  "category": "animation",
+  "description": "Image pill that fans out into concentric echo rings on hover, then collapses back to a single filled image.",
+  "tags": [
+    "animation",
+    "hover",
+    "image",
+    "interaction",
+    "css"
+  ],
+  "previewAccent": "#9aa8bc",
+  "previewLayout": "centered",
+  "usage": "import RepeatImageHover from \"./repeat-image-hover\"\n\n<RepeatImageHover layers={4} borderRadius={180} />",
+  "premium": false,
+  "related": [
+    "lightning",
+    "animatedbars"
+  ],
+  "keyFeatures": [
+    "Rests as one clean image; on hover echoed copies fan into faded concentric rings.",
+    "Configurable layer count, pill radius, front scale, and scale step.",
+    "Overlay tint, fade strength, duration, stagger, and easing curves.",
+    "Invert behaviour with Effect On: hover vs rest.",
+    "Static preview pins the expanded trail for marketplace thumbnails."
+  ],
+  "descriptionParagraphs": [
+    "Repeat Image Hover stacks multiple copies of the same image and animates them into a pill-shaped echo trail.",
+    "Tune geometry, tint, and motion from the controls panel — or flip Effect On to show the trail at rest."
+  ],
+  "variants": [
+    "framer"
+  ],
+  "framerModuleUrl": "https://framer.com/m/RepeatImageHover-4LVbGn.js@v5afXAa1pktuy7pPGut3"
+}

@@ -1,0 +1,11 @@
+{
+  "displayName": "Shiny Button",
+  "category": "animation",
+  "description": "Button with an animated specular shine sweep and gradient sheen on hover.",
+  "tags": ["button", "animation", "hover", "shine", "gradient"],
+  "previewAccent": "#7c3aed",
+  "previewLayout": "centered",
+  "premium": false,
+  "variants": ["framer"],
+  "framerModuleUrl": "https://framer.com/m/ShinyButton-BpoGgd.js@eO8YPxhOFebsIzxyxjHt"
+}

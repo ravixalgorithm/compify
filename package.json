@@ -1,0 +1,30 @@
+{
+  "name": "compify-ui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Compify UI — component marketplace + MCP delivery layer for Framer builders and React developers.",
+  "license": "UNLICENSED",
+  "packageManager": "pnpm@10.8.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @compify/web --filter @compify/mcp-server dev",
+    "dev:web": "pnpm --filter @compify/web dev",
+    "dev:mcp": "pnpm --filter @compify/mcp-server dev",
+    "build": "pnpm -r --filter=!compify-ui build",
+    "build:web": "pnpm --filter @compify/web build",
+    "build:mcp": "pnpm --filter @compify/mcp-server build",
+    "start:mcp": "pnpm --filter @compify/mcp-server start",
+    "typecheck": "pnpm -r --filter=!compify-ui typecheck",
+    "lint": "pnpm -r --filter=!compify-ui lint",
+    "clean": "pnpm -r exec rm -rf dist .next node_modules",
+    "registry:sync": "tsx scripts/sync-registry.ts",
+    "registry:sync:dry": "tsx scripts/sync-registry.ts --dry-run"
+  },
+  "devDependencies": {
+    "@compify/shared": "workspace:*",
+    "tsx": "^4.19.1",
+    "typescript": "^5.5.4"
+  }
+}

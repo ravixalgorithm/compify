@@ -1,0 +1,41 @@
+{
+  "displayName": "Lightning",
+  "category": "animation",
+  "description": "Animated WebGL lightning-bolt background with fbm-distorted glow. Drop it behind content as a full-bleed background.",
+  "tags": [
+    "animation",
+    "webgl",
+    "shader",
+    "background",
+    "glow"
+  ],
+  "previewAccent": "#3b5bff",
+  "usage": "import Lightning from \"./lightning\"\r\n\r\n<Lightning color=\"#3b5bff\" speed={0.2} intensity={1} />",
+  "premium": false,
+  "related": [
+    "repeat-image-hover",
+    "animatedbars"
+  ],
+  "keyFeatures": [
+    "Procedural lightning glow rendered entirely on the GPU via WebGL shaders.",
+    "Smooth float and distortion loops driven by configurable speed and intensity.",
+    "Full control over bolt color",
+    "horizontal offset",
+    "size",
+    "and rotation angle.",
+    "Toggle live animation or freeze a single frame for static export.",
+    "Editor preview mode renders one frame in the Framer canvas without burning GPU cycles."
+  ],
+  "descriptionParagraphs": [
+    "Animated WebGL lightning-bolt background with fbm-distorted glow.",
+    "Customize color",
+    "motion",
+    "intensity",
+    "and angle through the controls panel — or use it as a static backdrop in the Framer editor."
+  ],
+  "thumbnail": "/thumbnails/lightning.png",
+  "variants": [
+    "framer"
+  ],
+  "framerModuleUrl": "https://framer.com/m/Lightning-10c6x9.js@avOeNNbE6z34Pcl6d6nd"
+}

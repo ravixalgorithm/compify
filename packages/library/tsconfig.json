@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    // Component sources are pulled verbatim from Framer (looser TS config), so
+    // don't fail the build on their untyped params/destructures.
+    "noImplicitAny": false,
+    "types": ["react", "react-dom"],
+    "paths": {
+      "framer": ["./src/framer-shim.ts"]
+    }
+  },
+  "include": ["src/**/*", "framer.d.ts"]
+}

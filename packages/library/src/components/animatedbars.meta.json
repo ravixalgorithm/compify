@@ -1,0 +1,30 @@
+{
+  "displayName": "Animated Bar",
+  "category": "animation",
+  "description": "Single scroll-triggered progress bar with animated fill and counter.",
+  "tags": [
+    "animation",
+    "progress",
+    "scroll",
+    "framer-motion"
+  ],
+  "previewAccent": "#7C3AED",
+  "premium": false,
+  "related": [
+    "lightning",
+    "repeat-image-hover"
+  ],
+  "keyFeatures": [
+    "Scroll-triggered fill animation with animated percentage counter.",
+    "Configurable colors, bar height, radius, and duration.",
+    "Optional replay when re-entering the viewport."
+  ],
+  "descriptionParagraphs": [
+    "A single animated progress bar that fills and counts up when scrolled into view."
+  ],
+  "thumbnail": "/thumbnails/animatedbars.jpg",
+  "variants": [
+    "framer"
+  ],
+  "framerModuleUrl": "https://framer.com/m/AnimatedBars-1jbJyK.js@jV6bBTAZ7l7a10YW8PKY"
+}

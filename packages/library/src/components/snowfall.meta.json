@@ -1,0 +1,34 @@
+{
+  "displayName": "Snowfall",
+  "category": "animation",
+  "description": "Customizable canvas snowfall with density, wind drift, flake size, opacity, and fall direction.",
+  "tags": [
+    "animation",
+    "canvas",
+    "background",
+    "winter",
+    "snow"
+  ],
+  "previewAccent": "#c8e6ff",
+  "previewLayout": "full",
+  "premium": false,
+  "related": [
+    "lightning",
+    "repeat-image-hover"
+  ],
+  "keyFeatures": [
+    "Canvas-rendered snowflakes with configurable density and speed ranges.",
+    "Per-flake wind drift with swaying motion and wrap-around edges.",
+    "Control flake radius, opacity, colour, and fall direction (down or up).",
+    "Optional backdrop colour with smooth transition timing.",
+    "Preview toggle for live animation vs a static canvas frame."
+  ],
+  "descriptionParagraphs": [
+    "A customizable canvas snowfall: density, randomized speed, per-flake wind drift, size and opacity ranges, fall direction, colour and an optional backdrop.",
+    "Toggle Preview for live snow vs a static scene on the canvas."
+  ],
+  "variants": [
+    "framer"
+  ],
+  "framerModuleUrl": "https://framer.com/m/Snowfall-tnWkHX.js@H0f0R6JUsDYLMR9CavzE"
+}

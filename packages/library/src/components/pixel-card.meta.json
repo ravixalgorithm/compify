@@ -1,0 +1,11 @@
+{
+  "displayName": "Pixel Card",
+  "category": "cards",
+  "description": "Card with an animated pixel-grid reveal that lights up on hover.",
+  "tags": ["card", "animation", "pixel", "hover", "grid"],
+  "previewAccent": "#22d3ee",
+  "previewLayout": "centered",
+  "premium": false,
+  "variants": ["framer"],
+  "framerModuleUrl": "https://framer.com/m/PixelCard-1DNjuR.js@ympeaEd1IHGrEQ9pV1Rq"
+}

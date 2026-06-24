@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm --filter @compify/mcp-server typecheck && pnpm --filter @compify/mcp-server build:vercel",
+  "functions": {
+    "src/index.ts": {
+      "includeFiles": "bundle/**",
+      "maxDuration": 60
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "displayName": "Text Lift",
+  "category": "animation",
+  "description": "Headline that lifts and reveals its characters with a staggered spring on view.",
+  "tags": ["typography", "animation", "text", "reveal", "stagger"],
+  "previewAccent": "#f59e0b",
+  "previewLayout": "centered",
+  "premium": false,
+  "variants": ["framer"],
+  "framerModuleUrl": "https://framer.com/m/TextLift-o83Q7T.js@LOx9CpbSUnrSHxnOvA66"
+}
