@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { findEntry, loadRegistry, readComponentSource } from "./registry-source.js";
+import { getComponent, listComponents } from "./registry-source.js";
 import { transformComponent } from "./transform.js";
 import { incrementCopy } from "./stats.js";
 
@@ -30,7 +30,7 @@ export function createCompifyServer(): McpServer {
       inputSchema: { category: z.string().optional() },
     },
     async ({ category }) => {
-      const all = loadRegistry();
+      const all = await listComponents();
       const filtered = category ? all.filter((c) => c.category === category) : all;
       const index = filtered.map((c) => ({
         name: c.name,
@@ -61,13 +61,13 @@ export function createCompifyServer(): McpServer {
       },
     },
     async ({ name, stack, styling, typescript, tweaks }) => {
-      const entry = findEntry(name);
-      if (!entry) {
-        const names = loadRegistry().map((c) => c.name).join(", ");
+      const found = await getComponent(name);
+      if (!found) {
+        const names = (await listComponents()).map((c) => c.name).join(", ");
         return text(`No component named "${name}". Available: ${names}`);
       }
+      const { entry, source } = found;
       void incrementCopy(entry.name); // count MCP deliveries toward "used by"
-      const source = readComponentSource(entry);
       const code = transformComponent(source, { stack, styling, typescript, tweaks });
       const meta = {
         name: entry.name,

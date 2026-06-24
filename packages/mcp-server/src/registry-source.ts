@@ -1,74 +1,77 @@
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import type { RegistryEntry } from "@compify/shared/types";
+import { getSupabase } from "./supabase.js";
 
-const here = dirname(fileURLToPath(import.meta.url));
+/**
+ * Component data for the MCP server, read from the Supabase `components` table
+ * (the same source the website renders from). Replaces the old registry.json +
+ * filesystem .tsx reads, so MCP works in serverless deploys with no bundled
+ * files. Results are cached briefly so repeated tool calls don't hammer the DB.
+ */
 
-/** Locate registry.json in dev, Vercel serverless, or explicit override. */
-export function resolveRepoRoot(): string {
-  if (process.env.COMPIFY_REPO_ROOT) {
-    return process.env.COMPIFY_REPO_ROOT;
-  }
-
-  const bundleRoot = resolve(here, "..", "bundle");
-  const candidates = [
-    bundleRoot,
-    resolve(here, "..", "..", ".."),
-    resolve(process.cwd()),
-    resolve(process.cwd(), "..", ".."),
-    "/var/task",
-    resolve("/var/task", ".."),
-  ];
-
-  for (const root of candidates) {
-    if (existsSync(join(root, "registry.json"))) return root;
-  }
-
+function notConfigured(): never {
   throw new Error(
-    `registry.json not found (cwd=${process.cwd()}, here=${here}). Set COMPIFY_REPO_ROOT or bundle registry.json with the serverless function.`,
+    "Supabase is not configured for the MCP server. Set SUPABASE_URL and a key (SUPABASE_SERVICE_ROLE_KEY or a publishable key).",
   );
 }
 
-let repoRoot: string | null = null;
-
-/** Repo root — resolved lazily so serverless cold starts can find bundled files. */
-export function getRepoRoot(): string {
-  if (!repoRoot) repoRoot = resolveRepoRoot();
-  return repoRoot;
+function rowToEntry(row: Record<string, any>): RegistryEntry {
+  return {
+    name: row.slug,
+    displayName: row.display_name,
+    category: row.category,
+    description: row.description ?? "",
+    descriptionParagraphs: row.description_paragraphs?.length ? row.description_paragraphs : undefined,
+    keyFeatures: row.key_features?.length ? row.key_features : undefined,
+    tags: row.tags ?? [],
+    dependencies: row.dependencies ?? [],
+    tweakSchema: row.tweak_schema ?? [],
+    variants: row.variants ?? ["framer"],
+    premium: row.premium ?? false,
+    sourcePath: "",
+    previewAccent: row.preview_accent ?? "#7C3AED",
+    previewLayout: row.preview_layout?.mode ?? "full",
+    thumbnail: row.thumbnail_url ?? undefined,
+    framerModuleUrl: row.framer_module_url ?? undefined,
+    props: row.props ?? [],
+    usage: row.usage ?? undefined,
+    related: row.related?.length ? row.related : undefined,
+    copyCount: row.copy_count ?? 0,
+    compiledModuleUrl: row.compiled_module_url ?? undefined,
+  };
 }
 
-/**
- * Loads the registry directly from disk so the MCP server has no runtime
- * dependency on bundler JSON-import behavior. Re-read lazily and cached.
- */
-let cached: RegistryEntry[] | null = null;
-export function loadRegistry(): RegistryEntry[] {
-  if (cached) return cached;
-  const raw = readFileSync(join(getRepoRoot(), "registry.json"), "utf8");
-  cached = JSON.parse(raw) as RegistryEntry[];
-  return cached;
+const TTL_MS = 60_000;
+let cache: { at: number; entries: RegistryEntry[] } | null = null;
+function now(): number {
+  return Date.now();
 }
 
-export function findEntry(name: string): RegistryEntry | undefined {
-  return loadRegistry().find((c) => c.name === name);
+/** All published components (cached ~60s). Used by list_components. */
+export async function listComponents(): Promise<RegistryEntry[]> {
+  if (cache && now() - cache.at < TTL_MS) return cache.entries;
+  const supabase = getSupabase() ?? notConfigured();
+  const { data, error } = await supabase
+    .from("components")
+    .select("*")
+    .eq("status", "published")
+    .order("copy_count", { ascending: false });
+  if (error) throw new Error(`Failed to load components: ${error.message}`);
+  const entries = (data ?? []).map(rowToEntry);
+  cache = { at: now(), entries };
+  return entries;
 }
 
-/** Map registry sourcePath to on-disk location (monorepo vs staged bundle). */
-function resolveSourcePath(entry: RegistryEntry): string {
-  const root = getRepoRoot();
-  const bundlePrefix = "packages/library/src/components/";
-  if (
-    entry.sourcePath.startsWith(bundlePrefix) &&
-    existsSync(join(root, "components"))
-  ) {
-    const rel = entry.sourcePath.slice(bundlePrefix.length).replace(/\.tsx$/, ".source");
-    return join(root, "components", rel);
-  }
-  return join(root, entry.sourcePath);
-}
-
-/** Returns the raw `.tsx` source text for a registry entry. */
-export function readComponentSource(entry: RegistryEntry): string {
-  return readFileSync(resolveSourcePath(entry), "utf8");
+/** One published component + its raw .tsx source. Used by get_component. */
+export async function getComponent(
+  name: string,
+): Promise<{ entry: RegistryEntry; source: string } | undefined> {
+  const supabase = getSupabase() ?? notConfigured();
+  const { data, error } = await supabase
+    .from("components")
+    .select("*")
+    .eq("slug", name)
+    .eq("status", "published")
+    .maybeSingle();
+  if (error || !data) return undefined;
+  return { entry: rowToEntry(data), source: data.source ?? "" };
 }

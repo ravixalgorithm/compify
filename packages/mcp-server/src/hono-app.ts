@@ -2,7 +2,7 @@ import { StreamableHTTPTransport } from "@hono/mcp";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { authRequired, extractApiKey, verifyApiKey } from "./auth.js";
-import { loadRegistry } from "./registry-source.js";
+import { listComponents } from "./registry-source.js";
 import { createCompifyServer } from "./server.js";
 
 /** Shared Hono app — used by local Node server and Vercel serverless. */
@@ -10,8 +10,13 @@ export function createApp() {
   const app = new Hono<{ Variables: { userId: string } }>();
   app.use("*", cors());
 
-  app.get("/", (c) => {
-    const registry = loadRegistry();
+  app.get("/", async (c) => {
+    let componentCount = 0;
+    try {
+      componentCount = (await listComponents()).length;
+    } catch {
+      /* DB unavailable — still serve metadata */
+    }
     return c.json({
       name: "compify-ui-mcp",
       version: "1.0.0",
@@ -19,7 +24,7 @@ export function createApp() {
         "Compify UI MCP server — stack-aware delivery of Framer-safe components.",
       endpoint: "/mcp",
       tools: ["list_components", "get_component"],
-      components: registry.length,
+      components: componentCount,
       authRequired: authRequired(),
       connect: {
         claudeCode:
