@@ -116,7 +116,7 @@ function SurfaceControls({
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border border-stroke bg-surface px-3 py-2 text-[11px]">
       <div className="flex items-center gap-1">
         <span className="mr-1 uppercase tracking-[0.1em] text-muted-foreground">Fit</span>
-        {(["auto", "center", "fill"] as const).map((opt) => (
+        {(["auto", "center", "fill", "fit"] as const).map((opt) => (
           <button
             key={opt}
             type="button"

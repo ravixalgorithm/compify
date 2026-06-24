@@ -116,8 +116,11 @@ export interface RegistryEntry {
 export type PreviewSurfaceName = "gallery" | "detail" | "variant";
 
 export interface PreviewSurfaceLayout {
-  /** "center" = show at natural size, centered; "fill" = stretch to the stage. */
-  fit?: "auto" | "center" | "fill";
+  /**
+   * "center" = natural size, centered; "fill" = stretch to fill the stage
+   * (centered); "fit" = scale the whole component down to fit, centered.
+   */
+  fit?: "auto" | "center" | "fill" | "fit";
   /** Stage/card preview height in px. */
   minHeight?: number;
   /** Cap the component width in px (applies when centered). */

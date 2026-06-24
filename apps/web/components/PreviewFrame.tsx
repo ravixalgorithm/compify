@@ -4,6 +4,7 @@ import { Component, useRef } from "react";
 import type { PreviewLayout, PreviewSurfaceLayout, TweakState } from "@compify/shared";
 import { getLibraryComponent } from "@compify/library";
 import { DynamicComponent } from "./DynamicComponent";
+import { ScaleToFit } from "./ScaleToFit";
 import { cn } from "@/lib/cn";
 import {
   DETAIL_PREVIEW_PADDING,
@@ -51,37 +52,40 @@ function PreviewContent({
   componentProps,
   fill,
   center = false,
+  contain = false,
   moduleUrl,
 }: {
   name: string;
   componentProps: TweakState;
   fill: boolean;
   center?: boolean;
+  contain?: boolean;
   moduleUrl?: string;
 }) {
   // DB-backed path: render the runtime-compiled module. Filesystem path
   // (no moduleUrl): render the bundled library component (unchanged behavior).
   const LibraryComponent = moduleUrl ? undefined : getLibraryComponent(name);
+  // fill now CENTERS its content, so intrinsic-size components (buttons) sit in
+  // the middle instead of pinned top-left, while size-full components still fill.
   const wrapperClass = cn(
-    fill && "size-full min-h-0",
+    fill && "flex size-full min-h-0 items-center justify-center",
     !fill && center && "flex w-full items-center justify-center",
     !fill && !center && "inline-flex max-w-full justify-center",
   );
+  const inner = moduleUrl ? (
+    <DynamicComponent moduleUrl={moduleUrl} componentProps={componentProps} />
+  ) : LibraryComponent ? (
+    <LibraryComponent key={componentProps.preview ? `${name}-showcase` : name} {...componentProps} />
+  ) : null;
 
   return (
     <PreviewErrorBoundary key={moduleUrl ?? name}>
-      {moduleUrl ? (
-        <div className={wrapperClass}>
-          <DynamicComponent moduleUrl={moduleUrl} componentProps={componentProps} />
-        </div>
-      ) : LibraryComponent ? (
-        <div className={wrapperClass}>
-          <LibraryComponent
-            key={componentProps.preview ? `${name}-showcase` : name}
-            {...componentProps}
-          />
-        </div>
+      {inner === null ? null : contain ? (
+        <ScaleToFit>{inner}</ScaleToFit>
       ) : (
+        <div className={wrapperClass}>{inner}</div>
+      )}
+      {inner === null ? (
         <div
           style={{
             padding: 24,
@@ -92,7 +96,7 @@ function PreviewContent({
         >
           Unknown component: {name}
         </div>
-      )}
+      ) : null}
     </PreviewErrorBoundary>
   );
 }
@@ -125,8 +129,29 @@ export function PreviewFrame({
   const componentProps = previewPropsForSurface(name, state, "detail");
   // Admin-controlled stage height + vertical alignment.
   const stageMinHeight = surfaceLayout?.minHeight ?? DETAIL_STAGE_MIN_HEIGHT;
+  const contain = frame.contain ?? false;
   const alignItems =
     frame.align === "top" ? "items-start" : frame.align === "bottom" ? "items-end" : "items-center";
+
+  // "Fit": scale the whole component down to fit the stage, centered.
+  if (contain) {
+    return (
+      <div
+        className="relative w-full shrink-0"
+        style={{ ...stagePad, ...stageStyle, minHeight: stageMinHeight }}
+      >
+        <div className="absolute inset-0 p-3">
+          <PreviewContent
+            name={name}
+            componentProps={componentProps}
+            fill={false}
+            contain
+            moduleUrl={moduleUrl}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (fixed) {
     return (

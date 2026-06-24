@@ -59,7 +59,7 @@ function surfacesFromLayout(layout: unknown): RegistryEntry["previewSurfaces"] {
     const s = (layout as Record<string, any>)[surface];
     if (s && typeof s === "object") {
       out[surface] = {
-        fit: s.fit === "center" || s.fit === "fill" ? s.fit : "auto",
+        fit: ["center", "fill", "fit"].includes(s.fit) ? s.fit : "auto",
         minHeight: typeof s.minHeight === "number" ? s.minHeight : undefined,
         maxWidth: typeof s.maxWidth === "number" ? s.maxWidth : undefined,
         padding: typeof s.padding === "number" ? s.padding : undefined,

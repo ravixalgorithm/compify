@@ -28,6 +28,8 @@ export type PreviewFrameConfig = {
   clip?: boolean;
   /** Vertical alignment of content within the stage (admin override). */
   align?: "top" | "center" | "bottom";
+  /** Scale the whole component down to fit the stage, centered ("fit" mode). */
+  contain?: boolean;
 };
 
 type PreviewPropsFn = (state: TweakState) => TweakState;
@@ -187,8 +189,11 @@ const COMPONENT_PREVIEW: Record<string, ComponentPreviewSpec> = {
   },
 };
 
-const DEFAULT_FRAME: PreviewFrameConfig = { minHeight: 200 };
-const DEFAULT_DETAIL_FRAME: PreviewFrameConfig = { minHeight: 200, center: true };
+// Unknown components (DB uploads with no admin override): fill the stage. Fill
+// now CENTERS its content, so intrinsic-size components (buttons) sit centered
+// while size-full components (canvas/WebGL) actually fill — both render.
+const DEFAULT_FRAME: PreviewFrameConfig = { minHeight: 220, fill: true };
+const DEFAULT_DETAIL_FRAME: PreviewFrameConfig = { minHeight: 220, fill: true };
 
 function stripRepeatDims(
   state: TweakState,
@@ -283,10 +288,18 @@ export function previewSurfaceConfig(
   if (override!.fit === "fill") {
     merged.fill = true;
     merged.center = false;
+    merged.contain = false;
   } else if (override!.fit === "center") {
     merged.center = true;
     merged.fill = false;
+    merged.contain = false;
     // Centering implies natural size, so drop a forced aspect ratio.
+    merged.aspectRatio = undefined;
+  } else if (override!.fit === "fit") {
+    // Scale the whole component down to fit, centered.
+    merged.contain = true;
+    merged.center = true;
+    merged.fill = false;
     merged.aspectRatio = undefined;
   }
   if (override!.minHeight != null) merged.minHeight = override!.minHeight;

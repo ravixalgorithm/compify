@@ -4,6 +4,7 @@ import { Component, useEffect, useMemo } from "react";
 import type { RegistryEntry } from "@compify/shared";
 import { getLibraryComponent } from "@compify/library";
 import { DynamicComponent } from "./DynamicComponent";
+import { ScaleToFit } from "./ScaleToFit";
 import { cn } from "@/lib/cn";
 import {
   galleryPreviewProps,
@@ -72,6 +73,7 @@ export function GalleryInlinePreview({
     <LibraryComponent {...componentProps} />
   ) : null;
   const frame = previewSurfaceConfig(entry.name, surface, entry.previewSurfaces?.[surface]);
+  const contain = frame.contain ?? false;
   const fixed = frame.width != null && frame.height != null;
   const fill = frame.fill ?? Boolean(frame.aspectRatio || fixed);
   const stagePad = stagePaddingStyle(frame, 0);
@@ -132,7 +134,17 @@ export function GalleryInlinePreview({
                   }
             }
           >
-            {fill ? <div className="size-full">{rendered}</div> : rendered}
+            {contain ? (
+              <div className="relative w-full" style={{ height: frame.minHeight ?? 220 }}>
+                <div className="absolute inset-0">
+                  <ScaleToFit>{rendered}</ScaleToFit>
+                </div>
+              </div>
+            ) : fill ? (
+              <div className="flex size-full items-center justify-center">{rendered}</div>
+            ) : (
+              rendered
+            )}
           </div>
         </div>
       </PreviewErrorBoundary>
