@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   RiArrowDownSLine,
   RiFeedbackLine,
-  RiFileList2Line,
   RiSettingsLine,
 } from "@remixicon/react";
 import { useUser } from "./AuthProvider";
@@ -13,9 +12,6 @@ import { ProfileSettingsModal } from "./profile/ProfileSettingsModal";
 import { FeedbackModal } from "./FeedbackModal";
 import { microTransition } from "@/lib/motion";
 import { cn } from "@/lib/cn";
-
-// Wire to a real destination when available.
-const UPDATES_URL = "https://compify.ui/changelog";
 
 function FooterItem({
   icon,
@@ -114,7 +110,7 @@ export function UserMenu() {
         </button>
       </div>
 
-      {/* Expandable menu — Share Feedback / Check Updates */}
+      {/* Expandable menu — Share Feedback */}
       <AnimatePresence initial={false}>
         {expanded ? (
           <motion.div
@@ -129,14 +125,6 @@ export function UserMenu() {
               label="Share Feedback"
               onClick={() => {
                 setFeedbackOpen(true);
-                setExpanded(false);
-              }}
-            />
-            <FooterItem
-              icon={<RiFileList2Line size={18} />}
-              label="Check Updates"
-              onClick={() => {
-                window.open(UPDATES_URL, "_blank", "noopener,noreferrer");
                 setExpanded(false);
               }}
             />
