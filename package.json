@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@compify/shared": "workspace:*",
+    "esbuild": "^0.28.1",
     "tsx": "^4.19.1",
     "typescript": "^5.5.4"
   }

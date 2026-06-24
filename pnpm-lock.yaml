@@ -11,6 +11,9 @@ importers:
       '@compify/shared':
         specifier: workspace:*
         version: link:packages/shared
+      esbuild:
+        specifier: ^0.28.1
+        version: 0.28.1
       tsx:
         specifier: ^4.19.1
         version: 4.22.4

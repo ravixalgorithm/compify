@@ -119,20 +119,38 @@ Instant, always current, no compiled module involved.
 
 ---
 
-## Dependency strategy (the fiddly part) — recommended: bundle-all-except-React
+## Dependency strategy (PROVEN in Spike 1) — share host deps via globals
 
-esbuild marks `react`, `react-dom`, `react/jsx-runtime` **external** (resolved
-at runtime to the host's single React instance via import map). Everything else
-(framer-motion, three, etc.) is **bundled into the module**.
+esbuild compiles each component to a self-contained ESM module, with one twist:
+**every dependency the host app already ships is resolved at runtime to the
+host's single instance via `globalThis.__compifyGlobals`, not bundled.** A tiny
+esbuild plugin rewrites those imports to read from the global; everything else
+(deps the host does NOT ship) is bundled into the module.
 
-Why not esm.sh / CDN externalize: it puts a third-party CDN in the critical
-render path. The founder explicitly values control. Bundling deps keeps modules
-self-contained and fully under our control; modules are immutable + CDN-cached,
-so size is paid once. Trade: three.js-heavy components produce larger modules
-(mitigation: size budget + warn at compile).
+Shared via global (host already bundles these): `react`, `react-dom`,
+`react/jsx-runtime`, `framer-motion`. Bundled into the module: anything else a
+component imports (e.g. the no-op `framer` shim; any self-contained helper).
 
-The one hard rule: **React is never bundled into a component module.** Two React
-copies = "invalid hook call." A CI/compile check must assert no bundled React.
+Why this shape:
+- **No second React** -> hooks work. Two React copies = "invalid hook call" and
+  the whole approach fails. The #1 landmine, retired in Spike 1.
+- **One framer-motion instance** -> its motion context works across host + component.
+- **Tiny modules.** Sharing framer-motion dropped the motion components ~14x
+  (shiny-button 314KB -> 22KB; full table in Spike results). Bundling a copy per
+  module would duplicate ~280KB into every motion component.
+- **No import map needed.** The module reads deps from `globalThis` rather than
+  bare `import "react"`, so it has zero external imports -> sidesteps Next's
+  import-map ordering constraint entirely.
+- **No third-party CDN in the render path** (founder values control): modules
+  are self-hosted in Supabase Storage; shared deps come from our own host bundle.
+
+The compile plugin enumerates each shared module's real export names from the
+host's installed version, so the shim always matches the shipped
+React/framer-motion (a missing name fails loudly at compile, never silently).
+
+Compile guardrail: assert via esbuild's metafile that no `node_modules/react`,
+`react-dom`, or `scheduler` file is among the bundle inputs -> fails the publish
+if a second React would ship.
 
 ---
 
@@ -154,15 +172,35 @@ copies = "invalid hook call." A CI/compile check must assert no bundled React.
 
 ---
 
-## Spikes (do first, before building the CMS)
+## Spikes — RESULTS
 
-- **SPIKE 1 — runtime loader + React sharing (BLOCKING, ~1 day / CC ~1-2h).**
-  Compile ONE existing component with esbuild (react external). Load it via
-  import map + dynamic `import()` into the Next app. Render with live tweak
-  props. Confirm hooks + framer-motion work on the shared host React. If this
-  is not clean, D is in question — reconsider before spending more.
-- **SPIKE 2 — dependency externalization (~0.5 day).** Verify a three.js-based
-  component (`lightning`) compiles bundle-all-except-react and runs.
+- **SPIKE 1 — runtime loader + React sharing — PASS.**
+  `scripts/spike-compile.mjs` compiles `shiny-button.tsx` (hooks + framer-motion)
+  to a self-contained ESM module reading react/framer-motion from
+  `globalThis.__compifyGlobals`. `apps/web/app/spike/page.tsx` dynamic-imports it
+  (`import(/* webpackIgnore: true */ url)`) into the live React tree. Verified in
+  a real browser: button renders at full quality, shared-React identity check
+  PASS, framer-motion cursor-follow + press animation work, live color/label/size
+  tweaks re-render instantly, NO "invalid hook call", clean console. The Next
+  import-map trap is avoided (module reads globals, zero bare imports).
+
+- **SPIKE 2 — compile the whole library — PASS.** All 10 components compile,
+  all leak-checks PASS. Sizes with shared react+framer-motion:
+
+  | component | KB | | component | KB |
+  |---|---|---|---|---|
+  | snowfall | 8.2 | | text-lift | 14.1 |
+  | before-after-slider | 9.2 | | animatedbars | 14.8 |
+  | light-rays | 9.9 | | pixel-card | 15.2 |
+  | repeat-image-hover | 10.6 | | shiny-button | 21.9 |
+  | lightning | 11.4 | | coverflow | 34.9 |
+
+  No component pulls a heavy npm dep (the WebGL ones are raw canvas/shader, deps:
+  []), so the dependency-externalization concern is small for the current
+  library. Largest module is 35KB. Size budget + compile warning still worth
+  keeping for future heavy deps.
+
+**Conclusion: Strategy D is viable. Proceed to Phase 1.**
 
 ## Build phases
 
