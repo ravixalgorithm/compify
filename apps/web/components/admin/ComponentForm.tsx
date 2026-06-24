@@ -718,7 +718,7 @@ export function ComponentForm({
                         onChange={(p) => setSurfaceLayout("gallery", p)}
                       />
                       <div className="mx-auto w-full max-w-[340px] overflow-hidden border border-stroke bg-black">
-                        <GalleryInlinePreview key={`gallery-${previewModuleUrl}`} entry={previewEntry} surface="gallery" />
+                        <GalleryInlinePreview key={`gallery-${previewModuleUrl}`} entry={previewEntry} surface="gallery" state={previewState} />
                       </div>
                     </section>
                     <section className="space-y-2">
@@ -729,8 +729,8 @@ export function ComponentForm({
                         layout={previewLayoutObj.variant}
                         onChange={(p) => setSurfaceLayout("variant", p)}
                       />
-                      <div className="flex h-[180px] w-full max-w-[260px] items-center justify-center overflow-hidden border border-stroke bg-black">
-                        <GalleryInlinePreview key={`variant-${previewModuleUrl}`} entry={previewEntry} surface="variant" />
+                      <div className="flex min-h-[180px] w-full max-w-[260px] items-center justify-center overflow-hidden border border-stroke bg-black">
+                        <GalleryInlinePreview key={`variant-${previewModuleUrl}`} entry={previewEntry} surface="variant" state={previewState} />
                       </div>
                     </section>
                   </div>

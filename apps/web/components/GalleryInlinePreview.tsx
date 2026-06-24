@@ -48,17 +48,20 @@ export function GalleryInlinePreview({
   entry,
   onReady,
   surface = "gallery",
+  state,
 }: {
   entry: RegistryEntry;
   onReady?: () => void;
   surface?: PreviewSurface;
+  /** Live tweak state. When omitted (live site), the component's defaults are used. */
+  state?: Record<string, unknown>;
 }) {
   const defaults = useMemo(
     () => Object.fromEntries(entry.tweakSchema.map((control) => [control.key, control.default])),
     [entry],
   );
 
-  const componentProps = propsForSurface(entry, defaults, surface);
+  const componentProps = propsForSurface(entry, state ?? defaults, surface);
   // DB-backed entries render their compiled module; others use the bundle.
   const moduleUrl = entry.compiledModuleUrl;
   const LibraryComponent = moduleUrl ? undefined : getLibraryComponent(entry.name);
