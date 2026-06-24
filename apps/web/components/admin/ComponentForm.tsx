@@ -12,11 +12,12 @@ import {
 } from "@compify/shared";
 import { TweakPanel } from "@/components/TweakPanel";
 import { PreviewFrame } from "@/components/PreviewFrame";
+import { GalleryInlinePreview } from "@/components/GalleryInlinePreview";
 import { resolvePreviewLayout } from "@/lib/preview";
 import { cn } from "@/lib/cn";
 import { parsePropertyControls } from "@/lib/parsePropertyControls";
-import { componentThumbnail } from "@/lib/thumbnails";
 import {
+  draftToRegistryEntry,
   slugify,
   tweakDefaults,
   type EditorDraft,
@@ -190,10 +191,6 @@ export function ComponentForm({
       : emptyDraft(),
   );
   const [previewState, setPreviewState] = useState<TweakState>({});
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
-    initialEntry ? componentThumbnail(initialEntry) : null,
-  );
   const [componentFileName, setComponentFileName] = useState<string | null>(
     initialEntry ? `${initialEntry.name}.tsx` : null,
   );
@@ -221,16 +218,16 @@ export function ComponentForm({
       return "";
     }
   }, [draft.previewLayout]);
+  // Synthetic entry carrying the compiled module, so the gallery/variant
+  // previews render the uploaded component just like the live site.
+  const previewEntry = useMemo<RegistryEntry>(
+    () => ({ ...draftToRegistryEntry(draft), compiledModuleUrl: previewModuleUrl ?? undefined }),
+    [draft, previewModuleUrl],
+  );
 
   useEffect(() => {
     setPreviewState(defaults);
   }, [defaults]);
-
-  useEffect(() => {
-    return () => {
-      if (thumbnailPreview?.startsWith("blob:")) URL.revokeObjectURL(thumbnailPreview);
-    };
-  }, [thumbnailPreview]);
 
   function updateDraft(patch: Partial<EditorDraft>) {
     setDraft((prev) => ({ ...prev, ...patch }));
@@ -315,12 +312,6 @@ export function ComponentForm({
     }));
   }
 
-  function handleThumbnailFile(file: File) {
-    if (thumbnailPreview?.startsWith("blob:")) URL.revokeObjectURL(thumbnailPreview);
-    setThumbnailFile(file);
-    setThumbnailPreview(URL.createObjectURL(file));
-  }
-
   async function handlePublish() {
     setPublishing(true);
     setError(null);
@@ -347,7 +338,6 @@ export function ComponentForm({
       form.append("usage", draft.usage);
       form.append("premium", String(draft.premium));
       form.append("framerModuleUrl", draft.framerModuleUrl ?? "");
-      if (thumbnailFile) form.append("thumbnail", thumbnailFile);
 
       if (draft.previewLayout) form.append("previewLayout", draft.previewLayout);
 
@@ -587,17 +577,45 @@ export function ComponentForm({
                   <Loader2 size={16} className="animate-spin" /> Compiling preview…
                 </div>
               ) : (
-                <PreviewFrame
-                  name={previewSlug}
-                  state={previewState}
-                  previewAccent={draft.previewAccent}
-                  moduleUrl={previewModuleUrl}
-                  previewLayout={resolvePreviewLayout({
-                    name: previewSlug,
-                    category: draft.category,
-                    previewLayout: initialEntry?.previewLayout,
-                  })}
-                />
+                <div className="space-y-6">
+                  <section className="space-y-2">
+                    <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
+                      Detail page
+                    </p>
+                    <div className="overflow-hidden border border-stroke">
+                      <PreviewFrame
+                        name={previewSlug}
+                        state={previewState}
+                        previewAccent={draft.previewAccent}
+                        moduleUrl={previewModuleUrl}
+                        previewLayout={resolvePreviewLayout({
+                          name: previewSlug,
+                          category: draft.category,
+                          previewLayout: initialEntry?.previewLayout,
+                        })}
+                      />
+                    </div>
+                  </section>
+
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <section className="space-y-2">
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
+                        Main page · gallery card
+                      </p>
+                      <div className="mx-auto w-full max-w-[340px] overflow-hidden border border-stroke bg-black">
+                        <GalleryInlinePreview key={`gallery-${previewModuleUrl}`} entry={previewEntry} surface="gallery" />
+                      </div>
+                    </section>
+                    <section className="space-y-2">
+                      <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
+                        Variants grid
+                      </p>
+                      <div className="flex h-[180px] w-full max-w-[260px] items-center justify-center overflow-hidden border border-stroke bg-black">
+                        <GalleryInlinePreview key={`variant-${previewModuleUrl}`} entry={previewEntry} surface="variant" />
+                      </div>
+                    </section>
+                  </div>
+                </div>
               )}
             </div>
             {tweakableControls.length ? (
