@@ -1,15 +1,14 @@
 import { notFound } from "next/navigation";
-import { getDbComponent, listDbComponents } from "@/lib/db-components";
+import { getDbComponent } from "@/lib/db-components";
 import { ComponentWorkspace } from "@/components/ComponentWorkspace";
 
-export async function generateStaticParams() {
-  try {
-    const all = await listDbComponents();
-    return all.map((c) => ({ name: c.entry.name }));
-  } catch {
-    return [];
-  }
-}
+// Always render on demand. db-components reads Supabase with `cache: "no-store"`
+// (live reads), which is incompatible with static generation: pairing it with
+// `generateStaticParams` made Next try to statically render the page and then
+// throw "Page changed from static to dynamic at runtime" → 500 on every
+// component page in production. force-dynamic matches the live-reads design and
+// the sibling /db/[name] route.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: { name: string } }) {
   const data = await getDbComponent(params.name);
