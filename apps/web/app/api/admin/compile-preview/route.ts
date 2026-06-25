@@ -26,10 +26,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Source is required." }, { status: 400 });
   }
 
-  const compiled = await compileComponent({ source, slug: body.slug || "preview" });
-  if (!compiled.ok) {
-    return NextResponse.json({ ok: false, error: compiled.error }, { status: 200 });
+  try {
+    const compiled = await compileComponent({ source, slug: body.slug || "preview" });
+    if (!compiled.ok) {
+      return NextResponse.json({ ok: false, error: compiled.error }, { status: 200 });
+    }
+    return NextResponse.json({ ok: true, code: compiled.code, warnings: compiled.warnings });
+  } catch (err) {
+    // Surface the real reason (e.g. esbuild binary/init) instead of a blank 500.
+    const message = err instanceof Error ? err.message : "Compile failed.";
+    console.error("[compile-preview]", err);
+    return NextResponse.json({ ok: false, error: message }, { status: 200 });
   }
-
-  return NextResponse.json({ ok: true, code: compiled.code, warnings: compiled.warnings });
 }

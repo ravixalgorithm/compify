@@ -13,15 +13,17 @@
 
 import esbuild from "esbuild";
 import { createHash } from "node:crypto";
+// Imported statically (not via runtime import()) so the export names are read
+// from the bundle — a webpackIgnore'd dynamic import isn't resolvable in the
+// Vercel serverless function and 500s the admin compile routes in production.
+import * as HostReact from "react";
+import * as HostReactDOM from "react-dom";
+import * as HostJsxRuntime from "react/jsx-runtime";
+import * as HostFramerMotion from "framer-motion";
 
 export type CompileResult =
   | { ok: true; code: string; bytes: number; hash: string; warnings: string[] }
   | { ok: false; error: string; warnings: string[] };
-
-// Deps the HOST app already ships — share its single instance via a global
-// rather than bundling a copy into every module. Keeps modules tiny and
-// guarantees one framer-motion instance (its motion context needs that).
-const SHARED_SPECIFIERS = ["react", "react-dom", "react/jsx-runtime", "framer-motion"] as const;
 
 const IDENT = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
 
@@ -37,20 +39,21 @@ export const RenderTarget = {
 export function useIsStaticRenderer() { return false; }
 `;
 
-// Enumerate the real export names of the shared modules from the host's
-// installed versions, so the generated shim always matches the shipped
-// React/framer-motion (a missing name fails loudly at compile, never silently).
-// Cached after first call.
+// Enumerate the real export names of the shared modules from the statically
+// imported (bundled) host versions, so the generated shim always matches the
+// shipped React/framer-motion. Static imports keep this resolvable inside the
+// Vercel serverless function (a runtime dynamic import is not).
 let sharedExportsCache: Record<string, string[]> | null = null;
-async function sharedExports(): Promise<Record<string, string[]>> {
+function sharedExports(): Record<string, string[]> {
   if (sharedExportsCache) return sharedExportsCache;
-  const mods = await Promise.all(SHARED_SPECIFIERS.map((s) => import(/* webpackIgnore: true */ s)));
-  const out: Record<string, string[]> = {};
-  SHARED_SPECIFIERS.forEach((spec, i) => {
-    out[spec] = Object.keys(mods[i]).filter((k) => k !== "default" && IDENT.test(k));
-  });
-  sharedExportsCache = out;
-  return out;
+  const names = (m: object) => Object.keys(m).filter((k) => k !== "default" && IDENT.test(k));
+  sharedExportsCache = {
+    "react": names(HostReact),
+    "react-dom": names(HostReactDOM),
+    "react/jsx-runtime": names(HostJsxRuntime),
+    "framer-motion": names(HostFramerMotion),
+  };
+  return sharedExportsCache;
 }
 
 function makeGlobalShim(spec: string, names: string[]): string {
@@ -63,7 +66,7 @@ function makeGlobalShim(spec: string, names: string[]): string {
 }
 
 export async function compileComponent(input: { source: string; slug: string }): Promise<CompileResult> {
-  const exportsMap = await sharedExports();
+  const exportsMap = sharedExports();
   const sharedFilter = /^(react|react-dom|react\/jsx-runtime|framer-motion)$/;
 
   const plugin: esbuild.Plugin = {
