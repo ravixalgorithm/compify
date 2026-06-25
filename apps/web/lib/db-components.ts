@@ -1,19 +1,23 @@
-import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import type { RegistryEntry } from "@compify/shared";
 
-/** Cache tag for all component reads. Revalidated on admin publish/delete. */
+/** Cache tag kept for the admin revalidate calls (no-op now reads are live). */
 export const COMPONENTS_TAG = "components";
 
 /**
  * Public (anon) read client for the components table. Published rows are
  * publicly readable via RLS, so no session is needed. Server-side use.
+ * Reads are forced live (no-store) so the gallery always reflects the DB —
+ * including direct edits/wipes — instead of serving a stale cached list.
  */
 function readClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) throw new Error("Supabase public env vars are not set.");
-  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }) },
+  });
 }
 
 export interface DbComponent {
@@ -98,15 +102,9 @@ async function fetchAll(): Promise<DbComponent[]> {
   return data.map(toDbComponent);
 }
 
-// ISR: results are cached and only refreshed when COMPONENTS_TAG is revalidated
-// (on admin publish/delete) or after the fallback window. unstable_cache keys
-// by keyParts + arguments, so getDbComponent caches per slug.
-export const getDbComponent = unstable_cache(fetchOne, ["db-component"], {
-  tags: [COMPONENTS_TAG],
-  revalidate: 3600,
-});
-
-export const listDbComponents = unstable_cache(fetchAll, ["db-components-list"], {
-  tags: [COMPONENTS_TAG],
-  revalidate: 3600,
-});
+// Live reads — the gallery/sidebar always reflect the current DB. The component
+// table is tiny (one row per component) and trending/pins are already read live,
+// so per-request reads are cheap and avoid stale-cache surprises after direct
+// DB edits or wipes.
+export const getDbComponent = fetchOne;
+export const listDbComponents = fetchAll;
