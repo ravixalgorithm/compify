@@ -39,28 +39,44 @@ export const RenderTarget = {
 export function useIsStaticRenderer() { return false; }
 `;
 
-// Enumerate the real export names of the shared modules from the statically
-// imported (bundled) host versions, so the generated shim always matches the
-// shipped React/framer-motion. Static imports keep this resolvable inside the
-// Vercel serverless function (a runtime dynamic import is not).
+// Well-known named exports of the CJS host modules. The webpack server bundle
+// doesn't reliably enumerate these via Object.keys on a `import * as` namespace
+// (or its `.default`), so we hardcode the stable public API and union it with
+// whatever IS enumerable at runtime — guaranteeing hooks like useState/useEffect
+// are present in the generated shim. framer-motion is ESM and enumerates fine.
+const KNOWN_EXPORTS: Record<string, string[]> = {
+  react: [
+    "Children", "Component", "Fragment", "Profiler", "PureComponent", "StrictMode",
+    "Suspense", "cloneElement", "createContext", "createElement", "createFactory",
+    "createRef", "forwardRef", "isValidElement", "lazy", "memo", "startTransition",
+    "useCallback", "useContext", "useDebugValue", "useDeferredValue", "useEffect",
+    "useId", "useImperativeHandle", "useInsertionEffect", "useLayoutEffect",
+    "useMemo", "useReducer", "useRef", "useState", "useSyncExternalStore",
+    "useTransition", "version",
+  ],
+  "react/jsx-runtime": ["Fragment", "jsx", "jsxs", "jsxDEV"],
+  "react-dom": [
+    "createPortal", "flushSync", "findDOMNode", "hydrate", "render",
+    "unmountComponentAtNode", "unstable_batchedUpdates", "version",
+  ],
+};
+
 let sharedExportsCache: Record<string, string[]> | null = null;
 function sharedExports(): Record<string, string[]> {
   if (sharedExportsCache) return sharedExportsCache;
-  // CJS modules (react, react/jsx-runtime, react-dom) put their real exports on
-  // `.default` when statically imported via `import * as`; enumerate both the
-  // namespace and its default so hooks like useState/useEffect are included.
-  const names = (m: any): string[] => {
-    const keys = new Set<string>(Object.keys(m ?? {}));
+  const names = (m: any, spec: string): string[] => {
+    const keys = new Set<string>(KNOWN_EXPORTS[spec] ?? []);
+    for (const k of Object.keys(m ?? {})) keys.add(k);
     if (m?.default && typeof m.default === "object") {
       for (const k of Object.keys(m.default)) keys.add(k);
     }
     return [...keys].filter((k) => k !== "default" && IDENT.test(k));
   };
   sharedExportsCache = {
-    "react": names(HostReact),
-    "react-dom": names(HostReactDOM),
-    "react/jsx-runtime": names(HostJsxRuntime),
-    "framer-motion": names(HostFramerMotion),
+    "react": names(HostReact, "react"),
+    "react-dom": names(HostReactDOM, "react-dom"),
+    "react/jsx-runtime": names(HostJsxRuntime, "react/jsx-runtime"),
+    "framer-motion": names(HostFramerMotion, "framer-motion"),
   };
   return sharedExportsCache;
 }
