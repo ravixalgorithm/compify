@@ -15,6 +15,3 @@ export function hasFramerModule(entry: RegistryEntry): boolean {
 export function isValidFramerModuleUrl(url: string): boolean {
   return FRAMER_MODULE_RE.test(url.trim());
 }
-
-/** Example URL shape shown in docs before components are published. */
-export const FRAMER_MODULE_URL_EXAMPLE = "https://framer.com/m/pricing-three-tier-abc12";

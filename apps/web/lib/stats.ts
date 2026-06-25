@@ -11,7 +11,23 @@ function toStats(row: StatsRow): ComponentStats | null {
   return { views: Number(row.views), copies: Number(row.copies) };
 }
 
-/** Increments a component's view count (one per page load) and returns the new totals. */
+/** Reads a component's current view/copy totals without mutating them. */
+export async function fetchStats(slug: string): Promise<ComponentStats | null> {
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("component_stats")
+      .select("views, copies")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) return null;
+    return toStats(data as StatsRow);
+  } catch {
+    return null;
+  }
+}
+
+/** Increments a component's view count (counted once per deliberate selection). */
 export async function incrementView(slug: string): Promise<ComponentStats | null> {
   try {
     const supabase = createClient();

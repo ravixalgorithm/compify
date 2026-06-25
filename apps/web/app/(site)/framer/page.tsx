@@ -3,7 +3,7 @@ import { FramerDocs } from "@/components/FramerDocs";
 export const metadata = {
   title: "Framer · Compify UI",
   description:
-    "Insert Compify UI components on the Framer canvas with hosted module URLs. Copy, paste, customize with property controls.",
+    "Add Compify UI components to the Framer canvas. Copy any component, paste it as a code component, and customize with property controls.",
 };
 
 export default function FramerPage() {

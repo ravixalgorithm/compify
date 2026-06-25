@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1075.0",
     "@compify/library": "workspace:*",
     "@compify/shared": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.17",

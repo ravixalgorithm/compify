@@ -55,7 +55,7 @@ export function FeedbackModal({ open, onClose }: { open: boolean; onClose: () =>
             <Modal.Title className="text-[20px] font-normal leading-normal tracking-[-0.6px] text-white">
               Share Feedback
             </Modal.Title>
-            <Modal.Description className="w-[392px] max-w-full text-[14px] font-normal leading-normal tracking-[-0.42px] text-[#999]">
+            <Modal.Description className="w-[392px] max-w-full text-[14px] font-normal leading-normal tracking-[-0.42px] text-[#b8b8b8]">
               Share your thoughts, ideas, or report an issue.
             </Modal.Description>
           </div>
@@ -63,7 +63,7 @@ export function FeedbackModal({ open, onClose }: { open: boolean; onClose: () =>
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="ui-press ui-micro flex shrink-0 items-center justify-center rounded-[6px] p-[2px] text-[#999] hover:text-white"
+            className="ui-press ui-micro flex shrink-0 items-center justify-center rounded-[6px] p-[2px] text-[#b8b8b8] hover:text-white"
           >
             <RiCloseLine size={20} />
           </button>
@@ -93,7 +93,7 @@ export function FeedbackModal({ open, onClose }: { open: boolean; onClose: () =>
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Share your feedback..."
                 autoFocus
-                className="h-[121px] w-full resize-none bg-[#2b2b2b] py-[8px] pl-[12px] pr-[10px] text-[14px] leading-[20px] tracking-[-0.42px] text-white shadow-[0px_1px_2px_0px_rgba(10,13,20,0.03)] outline-none placeholder:text-[#999]"
+                className="h-[121px] w-full resize-none bg-[#2b2b2b] py-[8px] pl-[12px] pr-[10px] text-[14px] leading-[20px] tracking-[-0.42px] text-white shadow-[0px_1px_2px_0px_rgba(10,13,20,0.03)] outline-none placeholder:text-[#b8b8b8]"
               />
               {error ? <p className="text-[13px] text-[#ff6b6b]">{error}</p> : null}
             </div>

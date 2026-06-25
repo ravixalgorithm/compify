@@ -18,6 +18,9 @@ export interface EditorDraft {
   usage: string;
   /** JSON string of per-surface preview layout overrides (admin-edited). */
   previewLayout?: string;
+  /** Existing uploaded gallery/variant thumbnail media URLs (edit mode). */
+  galleryMedia?: string;
+  variantMedia?: string;
 }
 
 export function slugify(value: string): string {

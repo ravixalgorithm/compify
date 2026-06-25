@@ -5,6 +5,7 @@ import { getAdminUser } from "@/lib/server/require-admin";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { compileComponent } from "@/lib/server/compile-component";
 import { deriveComponentRow } from "@/lib/server/component-row";
+import { uploadToR2, r2Configured, r2KeyFromUrl, deleteFromR2 } from "@/lib/server/r2";
 import { COMPONENTS_TAG } from "@/lib/db-components";
 
 // esbuild needs the Node runtime (native binary), not the Edge runtime.
@@ -17,6 +18,17 @@ const THUMB_TYPES = new Map([
   ["image/png", "png"],
   ["image/jpeg", "jpg"],
   ["image/webp", "webp"],
+]);
+
+// Gallery / variant thumbnail media — image or video.
+const MEDIA_TYPES = new Map([
+  ["image/png", "png"],
+  ["image/jpeg", "jpg"],
+  ["image/webp", "webp"],
+  ["image/gif", "gif"],
+  ["video/mp4", "mp4"],
+  ["video/webm", "webm"],
+  ["video/quicktime", "mov"],
 ]);
 
 function parseStringList(raw: string | null): string[] {
@@ -97,6 +109,36 @@ export async function POST(request: Request) {
       thumbnailUrl = db.storage.from(THUMBS_BUCKET).getPublicUrl(thumbPath).data.publicUrl;
     }
 
+    // 3b. Optional gallery / variant thumbnail media (image or video) — stored on
+    //     Cloudflare R2 (S3-compatible). Each uses a stable per-surface key so
+    //     re-uploads overwrite; a per-save token cache-busts the public URL.
+    const mediaToken = Date.now().toString(36);
+    async function uploadMedia(
+      field: "galleryMedia" | "variantMedia",
+    ): Promise<{ url?: string; cleared?: boolean; error?: string }> {
+      if (form.get(`${field}Clear`) === "true") return { cleared: true };
+      const file = form.get(field);
+      if (!(file instanceof File) || file.size === 0) return {};
+      const ext = MEDIA_TYPES.get(file.type);
+      if (!ext) return { error: "Thumbnail media must be an image (PNG/JPEG/WebP/GIF) or video (MP4/WebM/MOV)." };
+      if (!r2Configured()) {
+        return { error: "Media storage (Cloudflare R2) is not configured on the server." };
+      }
+      const key = `components/${slug}-${field === "galleryMedia" ? "gallery" : "variant"}.${ext}`;
+      try {
+        const url = await uploadToR2(key, new Uint8Array(await file.arrayBuffer()), file.type);
+        return { url: `${url}?v=${mediaToken}` };
+      } catch (e) {
+        return { error: e instanceof Error ? e.message : "Media upload to R2 failed." };
+      }
+    }
+
+    const galleryMedia = await uploadMedia("galleryMedia");
+    const variantMedia = await uploadMedia("variantMedia");
+    for (const m of [galleryMedia, variantMedia]) {
+      if (m.error) return NextResponse.json({ error: m.error, stage: "upload" }, { status: 400 });
+    }
+
     // 4. Derive metadata from source + form, then upsert the row.
     const row = deriveComponentRow({
       slug,
@@ -128,6 +170,10 @@ export async function POST(request: Request) {
       created_by: admin.id,
     };
     if (thumbnailUrl) payload.thumbnail_url = thumbnailUrl;
+    if (galleryMedia.url) payload.gallery_media_url = galleryMedia.url;
+    else if (galleryMedia.cleared) payload.gallery_media_url = null;
+    if (variantMedia.url) payload.variant_media_url = variantMedia.url;
+    else if (variantMedia.cleared) payload.variant_media_url = null;
     if (previewLayoutRaw) {
       try {
         payload.preview_layout = JSON.parse(previewLayoutRaw);
@@ -170,6 +216,13 @@ export async function DELETE(request: Request) {
 
   const db = createAdminClient();
 
+  // Grab the R2 media URLs before the row is gone so we can clean them up.
+  const { data: existing } = await db
+    .from("components")
+    .select("gallery_media_url, variant_media_url")
+    .eq("slug", slug)
+    .maybeSingle();
+
   const { error } = await db.from("components").delete().eq("slug", slug);
   if (error) {
     return NextResponse.json({ error: `Delete failed: ${error.message}` }, { status: 500 });
@@ -181,6 +234,12 @@ export async function DELETE(request: Request) {
     await db.storage.from(MODULES_BUCKET).remove(mods.data.map((f) => `${slug}/${f.name}`));
   }
   await db.storage.from(THUMBS_BUCKET).remove([`${slug}.png`, `${slug}.jpg`, `${slug}.webp`]);
+
+  // Remove gallery/variant media from R2 (keys derived from the stored URLs).
+  for (const url of [existing?.gallery_media_url, existing?.variant_media_url]) {
+    const key = r2KeyFromUrl(url);
+    if (key) await deleteFromR2(key);
+  }
 
   revalidateTag(COMPONENTS_TAG);
 

@@ -46,7 +46,7 @@ function NavItem({
       onClick={onClick}
       className={cn(
         "ui-micro flex w-full items-center gap-[8px] px-[12px] py-[9px] text-left",
-        active ? "bg-[#242424] text-white" : "bg-transparent text-[#999] hover:text-white",
+        active ? "bg-[#242424] text-white" : "bg-transparent text-[#b8b8b8] hover:text-white",
       )}
     >
       <span className="flex shrink-0 items-center justify-center">{icon}</span>
@@ -219,7 +219,7 @@ export function ProfileSettingsModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="ui-press ui-micro absolute right-[12px] top-[6px] z-10 flex items-center justify-center bg-[#252525] p-[2px] text-[#999] hover:text-white"
+            className="ui-press ui-micro absolute right-[12px] top-[6px] z-10 flex items-center justify-center bg-[#252525] p-[2px] text-[#b8b8b8] hover:text-white"
           >
             <RiCloseLine size={20} />
           </button>

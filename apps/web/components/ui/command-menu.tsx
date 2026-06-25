@@ -116,7 +116,7 @@ const CommandInput = React.forwardRef<
 
         "w-full min-w-0 flex-1 bg-transparent text-[16px] font-normal leading-[16px] tracking-[-0.48px] text-white outline-none",
 
-        "placeholder:font-normal placeholder:text-[#999]",
+        "placeholder:font-normal placeholder:text-[#b8b8b8]",
 
         "focus:outline-none",
 
@@ -192,7 +192,7 @@ const CommandGroup = React.forwardRef<
 
         "[&_[cmdk-group-heading]]:mb-[10px] [&_[cmdk-group-heading]]:px-[8px]",
 
-        "[&_[cmdk-group-heading]]:text-[12px] [&_[cmdk-group-heading]]:font-normal [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:leading-normal [&_[cmdk-group-heading]]:tracking-[-0.24px] [&_[cmdk-group-heading]]:text-[#999]",
+        "[&_[cmdk-group-heading]]:text-[12px] [&_[cmdk-group-heading]]:font-normal [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:leading-normal [&_[cmdk-group-heading]]:tracking-[-0.24px] [&_[cmdk-group-heading]]:text-[#b8b8b8]",
 
         className,
 
@@ -280,7 +280,7 @@ function CommandEmpty({
 
     <Command.Empty
 
-      className={cn("px-[8px] py-[10px] text-[14px] font-normal tracking-[-0.42px] text-[#999]", className)}
+      className={cn("px-[8px] py-[10px] text-[14px] font-normal tracking-[-0.42px] text-[#b8b8b8]", className)}
 
       {...rest}
 

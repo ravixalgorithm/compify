@@ -270,7 +270,7 @@ export function SignInModal({ open, onClose }: { open: boolean; onClose: () => v
                 >
                   Let&apos;s get started.
                 </Modal.Title>
-                <Modal.Description className="text-[14px] font-normal leading-[1.5] tracking-[-0.42px] text-[#999]">
+                <Modal.Description className="text-[14px] font-normal leading-[1.5] tracking-[-0.42px] text-[#b8b8b8]">
                   Sign in or create new account
                 </Modal.Description>
               </div>
@@ -292,7 +292,7 @@ export function SignInModal({ open, onClose }: { open: boolean; onClose: () => v
 
                   <div className="flex h-[16px] w-full items-center">
                     <div className="h-px min-w-px flex-1 border-t border-[#4e4e4e]" />
-                    <span className="shrink-0 px-[8px] pb-[0.5px] text-[12px] font-normal tracking-[-0.36px] text-[#999]">
+                    <span className="shrink-0 px-[8px] pb-[0.5px] text-[12px] font-normal tracking-[-0.36px] text-[#b8b8b8]">
                       OR
                     </span>
                     <div className="h-px min-w-px flex-1 border-t border-[#4e4e4e]" />

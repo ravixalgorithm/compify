@@ -4,6 +4,10 @@ const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      screens: {
+        // Large / 4K-class monitors — used to scale up sidebar text.
+        "3xl": "1920px",
+      },
       colors: {
         bg: "#111111",
         surface: "#151414",
@@ -11,13 +15,18 @@ const config: Config = {
         stroke: "#212121",
         "stroke-hover": "#2e2e2e",
         divider: "rgba(43,43,43,0.5)",
+        // Control panel (tweak panel) surfaces
+        panel: "#232324",
+        "panel-line": "#333333",
+        field: "#414143",
+        track: "#3d3d3d",
         ink: "#020202",
         accent: {
           DEFAULT: "#fa7319",
           soft: "#ff8a3d",
         },
         muted: {
-          DEFAULT: "#999999",
+          DEFAULT: "#b8b8b8",
           foreground: "#6b6b6b",
         },
         foreground: "#ffffff",

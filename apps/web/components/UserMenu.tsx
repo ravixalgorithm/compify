@@ -33,7 +33,7 @@ function FooterItem({
       <span
         className={cn(
           "ui-micro flex shrink-0 items-center",
-          active ? "text-white" : "text-[#999] group-hover:text-white",
+          active ? "text-white" : "text-[#b8b8b8] group-hover:text-white",
         )}
       >
         {icon}
@@ -41,7 +41,7 @@ function FooterItem({
       <span
         className={cn(
           "ui-micro whitespace-nowrap text-[14px] tracking-[-0.42px]",
-          active ? "text-white" : "text-[#999] group-hover:text-white",
+          active ? "text-white" : "text-[#b8b8b8] group-hover:text-white",
         )}
       >
         {label}
@@ -90,9 +90,9 @@ export function UserMenu() {
         >
           <RiSettingsLine
             size={18}
-            className="ui-micro shrink-0 text-[#999] group-hover:text-white"
+            className="ui-micro shrink-0 text-[#b8b8b8] group-hover:text-white"
           />
-          <span className="ui-micro truncate text-[14px] tracking-[-0.42px] text-[#999] group-hover:text-white">
+          <span className="ui-micro truncate text-[14px] tracking-[-0.42px] text-[#b8b8b8] group-hover:text-white">
             Account Setting
           </span>
         </button>
@@ -101,7 +101,7 @@ export function UserMenu() {
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
           aria-label={expanded ? "Hide account menu" : "Show account menu"}
-          className="ui-micro flex shrink-0 items-center justify-center p-[2px] text-[#999] hover:text-white"
+          className="ui-micro flex shrink-0 items-center justify-center p-[2px] text-[#b8b8b8] hover:text-white"
         >
           <RiArrowDownSLine
             size={16}

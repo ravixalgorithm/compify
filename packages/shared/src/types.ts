@@ -4,7 +4,8 @@
  * library, the marketplace website, and the MCP delivery layer.
  */
 
-export type ComponentCategory =
+/** The built-in categories shipped with the app. */
+export type KnownComponentCategory =
   | "hero"
   | "navbar"
   | "pricing"
@@ -12,6 +13,13 @@ export type ComponentCategory =
   | "forms"
   | "animation"
   | "data";
+
+/**
+ * A component's category. Built-in categories give editor autocomplete, but
+ * admins can also create custom categories (any slug), so this accepts any
+ * string. Use `categoryLabel()` to render a display label for either kind.
+ */
+export type ComponentCategory = KnownComponentCategory | (string & {});
 
 export type StackName = "framer" | "react" | "nextjs" | "vite";
 export type StylingName = "css" | "tailwind" | "cssmodules";
@@ -85,6 +93,12 @@ export interface RegistryEntry {
   sourcePath: string;
   /** Public path to a static gallery thumbnail, e.g. "/thumbnails/hero.png". */
   thumbnail?: string;
+  /** Uploaded media (image or video URL) shown on the gallery card in place of
+   *  the live preview. Rendered full-width; height follows its aspect ratio. */
+  galleryMedia?: string;
+  /** Uploaded media (image or video URL) shown on the variant tile in place of
+   *  the live preview. Rendered full-width; height follows its aspect ratio. */
+  variantMedia?: string;
   /** Hosted Framer module URL — paste on canvas to insert, e.g. "https://framer.com/m/…". */
   framerModuleUrl?: string;
   /** Accent color used when a thumbnail image is missing. */
@@ -129,6 +143,9 @@ export interface PreviewSurfaceLayout {
   padding?: number;
   /** Vertical alignment of the component within the stage. */
   align?: "top" | "center" | "bottom";
+  /** Scale multiplier for the component (1 = 100%). Useful for sizing small
+   *  intrinsic components like buttons; ignored when covering. */
+  scale?: number;
 }
 
 export interface PropDoc {

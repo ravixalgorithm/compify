@@ -40,6 +40,8 @@ function rowToEntry(row: Record<string, any>): RegistryEntry {
     previewAccent: row.preview_accent ?? "#7C3AED",
     previewLayout: row.preview_layout?.mode ?? "full",
     thumbnail: row.thumbnail_url ?? undefined,
+    galleryMedia: row.gallery_media_url ?? undefined,
+    variantMedia: row.variant_media_url ?? undefined,
     framerModuleUrl: row.framer_module_url ?? undefined,
     props: row.props ?? [],
     usage: row.usage ?? undefined,
@@ -64,6 +66,7 @@ function surfacesFromLayout(layout: unknown): RegistryEntry["previewSurfaces"] {
         maxWidth: typeof s.maxWidth === "number" ? s.maxWidth : undefined,
         padding: typeof s.padding === "number" ? s.padding : undefined,
         align: s.align === "top" || s.align === "bottom" ? s.align : undefined,
+        scale: typeof s.scale === "number" ? s.scale : undefined,
       };
     }
   }

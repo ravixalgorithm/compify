@@ -12,7 +12,7 @@ import { toastError } from "./ui/sonner";
 export function MobileGate() {
   return (
     <div className="flex min-h-screen flex-col bg-bg">
-      <header className="sticky top-0 z-10 flex items-center border-b border-stroke bg-bg">
+      <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center border-b border-stroke bg-bg px-2 shadow-[0_1px_0_rgba(0,0,0,0.4)]">
         <Logo />
       </header>
       <div className="flex-1">

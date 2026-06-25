@@ -73,7 +73,7 @@ function McpSetupInfo() {
           role="button"
           tabIndex={0}
           aria-label="MCP setup requirements"
-          className="ui-micro inline-flex shrink-0 cursor-help text-[#999] hover:text-white"
+          className="ui-micro inline-flex shrink-0 cursor-help text-[#b8b8b8] hover:text-white"
           onClick={(e) => e.stopPropagation()}
           onPointerDown={(e) => e.stopPropagation()}
           onKeyDown={(e) => {
@@ -101,8 +101,8 @@ function McpSetupInfo() {
 function WorkflowInfoBanner({ children }: { children: ReactNode }) {
   return (
     <div className="flex items-center gap-[8px] overflow-hidden rounded-[8px] bg-[#292929] p-[8px]">
-      <RiInformationFill size={16} className="shrink-0 text-[#999]" />
-      <p className="min-w-0 text-[12px] font-normal leading-normal tracking-[-0.36px] text-[#999]">
+      <RiInformationFill size={16} className="shrink-0 text-[#b8b8b8]" />
+      <p className="min-w-0 text-[12px] font-normal leading-normal tracking-[-0.36px] text-[#b8b8b8]">
         {children}
       </p>
     </div>
@@ -144,7 +144,7 @@ function WorkflowCard({
       <span
         className={cn(
           "ui-micro flex size-[40px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1a1a1a]",
-          selected ? "text-white" : "text-[#999]",
+          selected ? "text-white" : "text-[#b8b8b8]",
         )}
       >
         {icon}
@@ -156,7 +156,7 @@ function WorkflowCard({
           </span>
           {titleExtra}
         </span>
-        <span className="text-[12px] font-normal leading-normal tracking-[-0.36px] text-[#999]">
+        <span className="text-[12px] font-normal leading-normal tracking-[-0.36px] text-[#b8b8b8]">
           {description}
         </span>
       </span>
@@ -217,14 +217,14 @@ export function GetComponentModal({
             >
               Get this component
             </Modal.Title>
-            <Modal.Description className="w-[392px] max-w-full text-[14px] font-normal leading-normal tracking-[-0.42px] text-[#999]">
+            <Modal.Description className="w-[392px] max-w-full text-[14px] font-normal leading-normal tracking-[-0.42px] text-[#b8b8b8]">
               Choose your preferred workflow to instantly use this component in your project.
             </Modal.Description>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="ui-press ui-micro flex shrink-0 items-center justify-center overflow-hidden rounded-[6px] p-[2px] text-[#999] hover:text-white"
+            className="ui-press ui-micro flex shrink-0 items-center justify-center overflow-hidden rounded-[6px] p-[2px] text-[#b8b8b8] hover:text-white"
             aria-label="Close"
           >
             <RiCloseLine size={20} />

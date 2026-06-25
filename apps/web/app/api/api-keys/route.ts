@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/utils/supabase/server";
-import { generateApiKey } from "@/lib/api-keys";
+import { decryptApiKey, encryptApiKey, generateApiKey } from "@/lib/api-keys";
 
-// Columns returned to the owner. Includes the plaintext `key` so it can be
-// copied at any time; the hash is never returned.
+// Columns returned to the owner. `key` is stored encrypted and decrypted here so
+// it can be copied at any time; the hash is never returned.
 const PUBLIC_COLUMNS = "id, name, prefix, key, last_used_at, revoked_at, created_at";
 
 async function getUserAndClient() {
@@ -26,7 +26,12 @@ export async function GET() {
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ data });
+
+  const decrypted = (data ?? []).map((row) => ({
+    ...row,
+    key: decryptApiKey(row.key as string | null),
+  }));
+  return NextResponse.json({ data: decrypted });
 }
 
 export async function POST(request: Request) {
@@ -57,13 +62,13 @@ export async function POST(request: Request) {
 
   const { data, error } = await supabase
     .from("api_keys")
-    .insert({ user_id: user.id, name, prefix, key, key_hash: keyHash })
+    .insert({ user_id: user.id, name, prefix, key: encryptApiKey(key), key_hash: keyHash })
     .select(PUBLIC_COLUMNS)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // `key` is returned exactly once and never stored in plaintext.
+  // Return the freshly generated plaintext `key` (the row stores it encrypted).
   return NextResponse.json({
     data: { ...data, key, replacedKeyId: active?.[0]?.id ?? null },
   });

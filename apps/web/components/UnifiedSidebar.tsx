@@ -59,7 +59,7 @@ export function UnifiedSidebar({
     : [];
 
   return (
-    <aside className="sticky top-0 z-30 flex h-screen w-[290px] shrink-0 flex-col bg-bg">
+    <aside className="sticky top-0 z-30 flex h-screen w-[290px] shrink-0 flex-col bg-bg 3xl:w-[400px]">
       <div className="absolute inset-y-0 right-0 z-10 flex">
           <div className="h-full w-px bg-divider" />
         </div>
@@ -77,7 +77,7 @@ export function UnifiedSidebar({
             className="ui-press ui-micro flex w-full shrink-0 items-center gap-[8px] border border-stroke bg-surface px-[12px] py-[10px] text-left hover:border-stroke/80 hover:bg-surface/80"
           >
             <RiSearchLine size={18} className="shrink-0 text-muted" />
-            <span className="text-[14px] tracking-[-0.42px] text-muted">Search Components...</span>
+            <span className="text-sm tracking-[-0.42px] text-muted 3xl:text-base">Search Components...</span>
           </button>
 
           <div className="relative min-h-0 flex-1 overflow-hidden">

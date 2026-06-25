@@ -3,21 +3,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, ChevronDown, Loader2, Upload } from "lucide-react";
+import { Check, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
-  CATEGORIES,
+  categoryLabel,
   tweakableSchema,
   type RegistryEntry,
   type TweakState,
 } from "@compify/shared";
 import { TweakPanel } from "@/components/TweakPanel";
 import { PreviewFrame } from "@/components/PreviewFrame";
-import { GalleryInlinePreview } from "@/components/GalleryInlinePreview";
 import { resolvePreviewLayout } from "@/lib/preview";
+import { isVideoUrl } from "@/components/MediaThumb";
+import type { CategoryOption } from "@/lib/categories";
 import { cn } from "@/lib/cn";
 import { parsePropertyControls } from "@/lib/parsePropertyControls";
 import {
-  draftToRegistryEntry,
   slugify,
   tweakDefaults,
   type EditorDraft,
@@ -42,8 +43,33 @@ function draftFromEntry(entry: RegistryEntry, source: string): EditorDraft {
     tweakSchema: entry.tweakSchema.map((c) => ({ ...c })),
     usage: entry.usage,
     framerModuleUrl: entry.framerModuleUrl ?? "",
-    previewLayout: entry.previewLayout ? JSON.stringify({ mode: entry.previewLayout }) : undefined,
+    previewLayout: previewLayoutJson(entry),
+    galleryMedia: entry.galleryMedia,
+    variantMedia: entry.variantMedia,
   };
+}
+
+/**
+ * Rebuild the stored preview_layout JSON ({ mode?, gallery?, detail?, variant? })
+ * from an entry so the admin's saved per-surface presets (fit/align/height/…)
+ * load back into the form instead of resetting to defaults on edit.
+ */
+function previewLayoutJson(entry: RegistryEntry): string | undefined {
+  const layout: Record<string, unknown> = {};
+  if (entry.previewLayout) layout.mode = entry.previewLayout;
+  for (const surface of ["gallery", "detail", "variant"] as const) {
+    const s = entry.previewSurfaces?.[surface];
+    if (!s) continue;
+    const cleaned: Record<string, unknown> = {};
+    if (s.fit && s.fit !== "auto") cleaned.fit = s.fit;
+    if (typeof s.minHeight === "number") cleaned.minHeight = s.minHeight;
+    if (typeof s.maxWidth === "number") cleaned.maxWidth = s.maxWidth;
+    if (typeof s.padding === "number") cleaned.padding = s.padding;
+    if (s.align) cleaned.align = s.align;
+    if (typeof s.scale === "number" && s.scale !== 1) cleaned.scale = s.scale;
+    if (Object.keys(cleaned).length) layout[surface] = cleaned;
+  }
+  return Object.keys(layout).length ? JSON.stringify(layout) : undefined;
 }
 
 function emptyDraft(): EditorDraft {
@@ -67,7 +93,7 @@ function emptyDraft(): EditorDraft {
 }
 
 const inputClass =
-  "w-full border border-stroke bg-black px-3 py-2.5 text-[14px] text-white outline-none placeholder:text-muted-foreground focus:border-stroke-hover";
+  "w-full border border-field bg-field px-3 py-2.5 text-[14px] text-white outline-none placeholder:text-muted-foreground focus:border-muted-foreground";
 
 function Field({
   label,
@@ -80,10 +106,35 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="text-[12px] uppercase tracking-[-0.24px] text-muted">{label}</span>
-      {hint ? <span className="text-[12px] leading-snug text-muted-foreground">{hint}</span> : null}
+      <span className="flex flex-col gap-0.5">
+        <span className="text-[12px] font-medium uppercase tracking-[-0.24px] text-white">{label}</span>
+        {hint ? <span className="text-[12px] leading-snug text-muted-foreground">{hint}</span> : null}
+      </span>
       {children}
     </label>
+  );
+}
+
+/** Grouped section card for the form — a titled panel on the dark page. */
+function FormCard({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-5 border border-stroke bg-surface p-5">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-[13px] font-medium tracking-[-0.2px] text-white">{title}</h2>
+        {description ? (
+          <p className="text-[12px] leading-snug text-muted-foreground">{description}</p>
+        ) : null}
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -93,87 +144,189 @@ type SurfaceLayoutValue = {
   maxWidth?: number;
   padding?: number;
   align?: string;
+  scale?: number;
 };
 
 const numCtrlClass =
-  "w-[68px] border border-stroke bg-black px-2 py-1 text-[12px] text-white outline-none focus:border-stroke-hover";
+  "w-[68px] border border-field bg-field px-2 py-1 text-[12px] text-white outline-none focus:border-muted-foreground";
 
 function num(v: string): number | undefined {
   const n = parseInt(v, 10);
   return Number.isFinite(n) ? n : undefined;
 }
 
-/** Per-surface framing controls: fit, height, max width, padding, alignment. */
+/** Per-surface framing controls: fit, height, padding, alignment. */
 function SurfaceControls({
   layout,
   onChange,
+  measuredHeight,
 }: {
   layout?: SurfaceLayoutValue;
   onChange: (patch: SurfaceLayoutValue) => void;
+  /** Actual rendered height of the frame, shown when no explicit override. */
+  measuredHeight?: number;
 }) {
   const l = layout ?? {};
+  // DB components default to fill (cover); toggling off explicitly centers so the
+  // Size/Height controls take effect.
+  const cover = (l.fit ?? "fill") === "fill";
+  const heightValue =
+    l.minHeight ?? (measuredHeight != null ? Math.round(measuredHeight) : "");
+  const padding = l.padding ?? 0;
+  const sizePct = Math.round((l.scale ?? 1) * 100);
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border border-stroke bg-surface px-3 py-2 text-[11px]">
-      <div className="flex items-center gap-1">
-        <span className="mr-1 uppercase tracking-[0.1em] text-muted-foreground">Fit</span>
-        {(["auto", "center", "fill", "fit"] as const).map((opt) => (
+    <div className="flex flex-col gap-3 border border-stroke bg-surface px-4 py-3 text-[12px]">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        {/* Cover: stretch the component to the full preview width; height follows
+            its aspect ratio. Off = centered at natural size. */}
+        <label className="flex items-center gap-2 text-muted">
           <button
-            key={opt}
             type="button"
-            onClick={() => onChange({ fit: opt })}
+            role="switch"
+            aria-checked={cover}
+            onClick={() => onChange({ fit: cover ? "center" : "fill" })}
             className={cn(
-              "border px-2 py-0.5 capitalize transition",
-              (l.fit ?? "auto") === opt
-                ? "border-white text-white"
-                : "border-stroke text-muted hover:text-white",
+              "relative h-[18px] w-[32px] shrink-0 rounded-full transition-colors",
+              cover ? "bg-white" : "bg-field",
             )}
           >
-            {opt}
+            <span
+              className={cn(
+                "absolute top-[2px] size-[14px] rounded-full transition-[left]",
+                cover ? "left-[16px] bg-black" : "left-[2px] bg-muted",
+              )}
+            />
           </button>
-        ))}
+          <span className={cn(cover && "text-white")}>Cover</span>
+        </label>
+
+        <label className="flex items-center gap-2 text-muted">
+          Height
+          <input
+            type="number"
+            className={numCtrlClass}
+            placeholder="auto"
+            value={heightValue}
+            onChange={(e) => onChange({ minHeight: num(e.target.value) })}
+          />
+          {l.minHeight != null ? (
+            <button
+              type="button"
+              onClick={() => onChange({ minHeight: undefined })}
+              className="text-muted-foreground transition hover:text-white"
+            >
+              auto
+            </button>
+          ) : null}
+        </label>
       </div>
-      <label className="flex items-center gap-1.5 text-muted">
-        Height
+
+      <label className="flex items-center gap-3 text-muted">
+        <span className="w-[52px] shrink-0">Size</span>
         <input
-          type="number"
-          className={numCtrlClass}
-          placeholder="auto"
-          value={l.minHeight ?? ""}
-          onChange={(e) => onChange({ minHeight: num(e.target.value) })}
+          type="range"
+          min={25}
+          max={250}
+          step={5}
+          value={sizePct}
+          onChange={(e) => {
+            const pct = Number(e.target.value);
+            onChange({ scale: pct === 100 ? undefined : pct / 100 });
+          }}
+          className="h-[4px] flex-1 cursor-pointer accent-white"
         />
+        <span className="w-[40px] shrink-0 text-right tabular-nums text-white">{sizePct}%</span>
       </label>
-      <label className="flex items-center gap-1.5 text-muted">
-        Max width
+
+      <label className="flex items-center gap-3 text-muted">
+        <span className="w-[52px] shrink-0">Padding</span>
         <input
-          type="number"
-          className={numCtrlClass}
-          placeholder="auto"
-          value={l.maxWidth ?? ""}
-          onChange={(e) => onChange({ maxWidth: num(e.target.value) })}
+          type="range"
+          min={0}
+          max={120}
+          step={2}
+          value={padding}
+          onChange={(e) => onChange({ padding: Number(e.target.value) })}
+          className="h-[4px] flex-1 cursor-pointer accent-white"
         />
+        <span className="w-[40px] shrink-0 text-right tabular-nums text-white">{padding}px</span>
       </label>
-      <label className="flex items-center gap-1.5 text-muted">
-        Padding
-        <input
-          type="number"
-          className={numCtrlClass}
-          placeholder="0"
-          value={l.padding ?? ""}
-          onChange={(e) => onChange({ padding: num(e.target.value) })}
-        />
-      </label>
-      <label className="flex items-center gap-1.5 text-muted">
-        Align
-        <select
-          className="border border-stroke bg-black px-2 py-1 text-[12px] text-white outline-none focus:border-stroke-hover"
-          value={l.align ?? "center"}
-          onChange={(e) => onChange({ align: e.target.value })}
+    </div>
+  );
+}
+
+/** Thumbnail media upload (image or video) — fills the fixed surface width and
+ *  shows the media at its natural aspect ratio, matching the live card/tile. */
+function MediaUploadField({
+  label,
+  hint,
+  src,
+  isVideo,
+  onFile,
+  onClear,
+}: {
+  label: string;
+  hint: string;
+  src: string | null;
+  isVideo: boolean;
+  onFile: (file: File) => void;
+  onClear: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="flex flex-col gap-0.5">
+        <span className="text-[12px] font-medium uppercase tracking-[-0.24px] text-white">{label}</span>
+        <span className="text-[12px] leading-snug text-muted-foreground">{hint}</span>
+      </span>
+
+      {src ? (
+        <div className="relative w-full overflow-hidden border border-stroke bg-black">
+          {isVideo ? (
+            <video src={src} className="block h-auto w-full" muted loop autoPlay playsInline />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={src} alt="" className="block h-auto w-full" />
+          )}
+          <div className="absolute right-2 top-2 flex gap-1">
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              className="bg-bg/85 px-2 py-1 text-[12px] text-white backdrop-blur transition hover:bg-bg"
+            >
+              Replace
+            </button>
+            <button
+              type="button"
+              onClick={onClear}
+              className="bg-bg/85 px-2 py-1 text-[12px] text-red-400 backdrop-blur transition hover:bg-bg hover:text-red-300"
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="flex w-full flex-col items-center justify-center gap-2 border border-dashed border-panel-line bg-field/30 px-4 py-8 text-center text-muted transition hover:border-stroke-hover hover:text-white"
         >
-          <option value="top">Top</option>
-          <option value="center">Center</option>
-          <option value="bottom">Bottom</option>
-        </select>
-      </label>
+          <Upload size={18} />
+          <span className="text-[13px]">Upload image or video</span>
+        </button>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*,video/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onFile(file);
+          e.target.value = "";
+        }}
+      />
     </div>
   );
 }
@@ -196,7 +349,7 @@ function UploadZone({
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="border border-dashed border-stroke bg-black/40 p-6 text-center">
+    <div className="border border-dashed border-panel-line bg-field/30 p-6 text-center">
       <div className="mx-auto mb-3 flex size-10 items-center justify-center bg-elevated text-muted">
         {icon}
       </div>
@@ -269,10 +422,13 @@ export function ComponentForm({
   mode,
   initialEntry,
   initialSource,
+  categoryOptions = [],
 }: {
   mode: "create" | "edit";
   initialEntry?: RegistryEntry;
   initialSource?: string;
+  /** Built-in + existing custom categories, suggested in the category field. */
+  categoryOptions?: CategoryOption[];
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("details");
@@ -285,7 +441,6 @@ export function ComponentForm({
   const [componentFileName, setComponentFileName] = useState<string | null>(
     initialEntry ? `${initialEntry.name}.tsx` : null,
   );
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Live preview of the uploaded source, compiled on demand to a blob module.
@@ -293,6 +448,92 @@ export function ComponentForm({
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [compilingPreview, setCompilingPreview] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  // Categories created in this session (added to the dropdown immediately; they
+  // persist for future once a component using them is saved).
+  const [extraCategories, setExtraCategories] = useState<CategoryOption[]>([]);
+  const [creatingCategory, setCreatingCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+  // Gallery / variant thumbnail media: a freshly chosen file (preview via object
+  // URL) or, in edit mode, the existing uploaded URL on the draft. A cleared
+  // flag removes the existing one on save.
+  const [galleryMediaFile, setGalleryMediaFile] = useState<File | null>(null);
+  const [variantMediaFile, setVariantMediaFile] = useState<File | null>(null);
+  const [galleryMediaCleared, setGalleryMediaCleared] = useState(false);
+  const [variantMediaCleared, setVariantMediaCleared] = useState(false);
+  // Actual rendered height of the detail preview stage, shown in the Height
+  // control so the admin sees the real number instead of "auto".
+  const [detailPreviewHeight, setDetailPreviewHeight] = useState<number | null>(null);
+  const previewMeasureRef = useRef<HTMLDivElement>(null);
+
+  const galleryFileUrl = useMemo(
+    () => (galleryMediaFile ? URL.createObjectURL(galleryMediaFile) : null),
+    [galleryMediaFile],
+  );
+  const variantFileUrl = useMemo(
+    () => (variantMediaFile ? URL.createObjectURL(variantMediaFile) : null),
+    [variantMediaFile],
+  );
+  useEffect(
+    () => () => {
+      if (galleryFileUrl) URL.revokeObjectURL(galleryFileUrl);
+    },
+    [galleryFileUrl],
+  );
+  useEffect(
+    () => () => {
+      if (variantFileUrl) URL.revokeObjectURL(variantFileUrl);
+    },
+    [variantFileUrl],
+  );
+
+  // Measure the live detail preview height so the Height control can show the
+  // real number. Re-attaches when the compiled preview (re)mounts.
+  useEffect(() => {
+    const el = previewMeasureRef.current;
+    if (!el) return;
+    const measure = () => setDetailPreviewHeight(el.getBoundingClientRect().height);
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    measure();
+    return () => ro.disconnect();
+  }, [previewModuleUrl, tab, previewState]);
+
+  const galleryMediaSrc = galleryFileUrl ?? (galleryMediaCleared ? null : draft.galleryMedia ?? null);
+  const variantMediaSrc = variantFileUrl ?? (variantMediaCleared ? null : draft.variantMedia ?? null);
+  const galleryIsVideo = galleryMediaFile
+    ? galleryMediaFile.type.startsWith("video/")
+    : galleryMediaSrc
+      ? isVideoUrl(galleryMediaSrc)
+      : false;
+  const variantIsVideo = variantMediaFile
+    ? variantMediaFile.type.startsWith("video/")
+    : variantMediaSrc
+      ? isVideoUrl(variantMediaSrc)
+      : false;
+
+  // Dropdown options: built-in + existing custom + session-created, plus the
+  // current draft category (so editing a one-off category still shows it).
+  const categorySelectOptions = useMemo(() => {
+    const map = new Map<string, CategoryOption>();
+    for (const c of categoryOptions) map.set(c.id, c);
+    for (const c of extraCategories) if (!map.has(c.id)) map.set(c.id, c);
+    if (draft.category && !map.has(draft.category)) {
+      map.set(draft.category, { id: draft.category, label: categoryLabel(draft.category) });
+    }
+    return [...map.values()].sort((a, b) => a.label.localeCompare(b.label));
+  }, [categoryOptions, extraCategories, draft.category]);
+
+  function addCategory() {
+    const id = slugify(newCategory);
+    if (!id) return;
+    setExtraCategories((prev) =>
+      prev.some((c) => c.id === id) ? prev : [...prev, { id, label: categoryLabel(id) }],
+    );
+    updateDraft({ category: id });
+    setNewCategory("");
+    setCreatingCategory(false);
+  }
 
   const defaults = useMemo(() => tweakDefaults(draft.tweakSchema), [draft.tweakSchema]);
   const previewSlug = mode === "edit" ? draft.name : draft.name || draft.templateSlug;
@@ -312,13 +553,21 @@ export function ComponentForm({
     }
   }, [draft.previewLayout]);
 
+  // Only the detail surface is previewed now; the gallery card and variant tile
+  // use uploaded thumbnail/video instead, so they no longer need a live preview.
   const previewSurfaces = useMemo<RegistryEntry["previewSurfaces"]>(() => {
-    const out: NonNullable<RegistryEntry["previewSurfaces"]> = {};
-    (["gallery", "detail", "variant"] as const).forEach((s) => {
-      const v = previewLayoutObj[s];
-      if (v && typeof v === "object") out[s] = { fit: v.fit ?? "auto", minHeight: v.minHeight };
-    });
-    return Object.keys(out).length ? out : undefined;
+    const v = previewLayoutObj.detail;
+    if (v && typeof v === "object") {
+      return {
+        detail: {
+          fit: v.fit ?? "auto",
+          minHeight: v.minHeight,
+          padding: v.padding,
+          scale: v.scale,
+        },
+      };
+    }
+    return undefined;
   }, [previewLayoutObj]);
 
   function setSurfaceLayout(
@@ -339,17 +588,6 @@ export function ComponentForm({
     else delete next[surface];
     updateDraft({ previewLayout: Object.keys(next).length ? JSON.stringify(next) : undefined });
   }
-
-  // Synthetic entry carrying the compiled module + per-surface framing, so the
-  // admin previews render exactly like the live site.
-  const previewEntry = useMemo<RegistryEntry>(
-    () => ({
-      ...draftToRegistryEntry(draft),
-      compiledModuleUrl: previewModuleUrl ?? undefined,
-      previewSurfaces,
-    }),
-    [draft, previewModuleUrl, previewSurfaces],
-  );
 
   useEffect(() => {
     setPreviewState(defaults);
@@ -404,9 +642,7 @@ export function ComponentForm({
 
   async function handleDelete() {
     if (mode !== "edit") return;
-    if (!window.confirm(`Delete "${draft.displayName}"? This removes it from the marketplace and cannot be undone.`)) {
-      return;
-    }
+    setConfirmDelete(false);
     setDeleting(true);
     setError(null);
     try {
@@ -454,7 +690,9 @@ export function ComponentForm({
       form.append("slug", draft.name);
       form.append("source", draft.source);
       form.append("displayName", draft.displayName);
-      form.append("category", draft.category);
+      // Normalise the category to a slug so a typed label ("My Widgets") becomes
+      // a clean id ("my-widgets"); known categories pass through unchanged.
+      form.append("category", slugify(draft.category) || "cards");
       form.append("description", draft.description);
       form.append("descriptionParagraphs", draft.descriptionParagraphs);
       form.append("keyFeatures", draft.keyFeatures);
@@ -466,6 +704,13 @@ export function ComponentForm({
       form.append("framerModuleUrl", draft.framerModuleUrl ?? "");
 
       if (draft.previewLayout) form.append("previewLayout", draft.previewLayout);
+
+      // Gallery / variant thumbnail media: send new files, or a clear flag when
+      // an existing one was removed.
+      if (galleryMediaFile) form.append("galleryMedia", galleryMediaFile);
+      else if (galleryMediaCleared) form.append("galleryMediaClear", "true");
+      if (variantMediaFile) form.append("variantMedia", variantMediaFile);
+      else if (variantMediaCleared) form.append("variantMediaClear", "true");
 
       const res = await fetch("/api/admin/components", { method: "POST", body: form });
       const data = (await res.json()) as { error?: string; stage?: string; component?: { slug: string } };
@@ -528,10 +773,10 @@ export function ComponentForm({
             type="button"
             onClick={() => setTab(t.id)}
             className={cn(
-              "px-4 py-3 text-[13px] transition",
+              "-mb-px border-b-2 px-4 py-3 text-[13px] font-medium transition",
               tab === t.id
-                ? "border-b border-white text-white"
-                : "text-muted hover:text-white"
+                ? "border-white text-white"
+                : "border-transparent text-muted hover:text-white",
             )}
           >
             {t.label}
@@ -541,126 +786,209 @@ export function ComponentForm({
 
       {tab === "details" ? (
         <div className="flex items-start gap-6">
-          <div className="grid min-w-0 flex-1 max-w-2xl gap-5">
-          <Field label="Display name" hint="Shown on the marketplace card and detail page.">
-            <input
-              className={inputClass}
-              value={draft.displayName}
-              onChange={(e) => updateDraft({ displayName: e.target.value })}
-              placeholder="Contact Form"
-            />
-          </Field>
-
-          <Field
-            label="Component ID"
-            hint={mode === "edit" ? "Cannot change after publishing." : "Used in the page URL."}
-          >
-            <input
-              className={cn(inputClass, mode === "edit" && "opacity-60")}
-              value={draft.name}
-              disabled={mode === "edit"}
-              onChange={(e) => updateDraft({ name: slugify(e.target.value) })}
-              placeholder="contact-form"
-            />
-          </Field>
-
-          <Field label="Category">
-            <select
-              className={inputClass}
-              value={draft.category}
-              onChange={(e) =>
-                updateDraft({ category: e.target.value as EditorDraft["category"] })
-              }
+          <div className="flex min-w-0 max-w-2xl flex-1 flex-col gap-5">
+            <FormCard
+              title="Basics"
+              description="How the component is identified across the marketplace."
             >
-              {CATEGORIES.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="Short description" hint="One line summary for the gallery.">
-            <textarea
-              className={cn(inputClass, "min-h-[88px] resize-y")}
-              value={draft.description}
-              onChange={(e) => updateDraft({ description: e.target.value })}
-            />
-          </Field>
-
-          <Field label="Tags" hint="Comma-separated, e.g. form, dark, framer-motion">
-            <input
-              className={inputClass}
-              value={draft.tags}
-              onChange={(e) => updateDraft({ tags: e.target.value })}
-            />
-          </Field>
-
-          <Field
-            label="Framer module URL"
-            hint="After hosting on Framer, paste the framer.com/m/… link for Copy Framer URL."
-          >
-            <input
-              className={inputClass}
-              value={draft.framerModuleUrl}
-              onChange={(e) => updateDraft({ framerModuleUrl: e.target.value })}
-              placeholder="https://framer.com/m/pricing-three-tier-abc12"
-            />
-          </Field>
-
-          <Field label="Key features" hint="One per line — shown on the component page.">
-            <textarea
-              className={cn(inputClass, "min-h-[100px] resize-y")}
-              value={draft.keyFeatures}
-              onChange={(e) => updateDraft({ keyFeatures: e.target.value })}
-              placeholder={"Animated success state\nLight and dark themes\nFramer-safe"}
-            />
-          </Field>
-
-          <label className="flex items-center gap-2 text-[14px] text-muted">
-            <input
-              type="checkbox"
-              checked={draft.premium}
-              onChange={(e) => updateDraft({ premium: e.target.checked })}
-            />
-            Mark as featured / premium
-          </label>
-
-          <button
-            type="button"
-            onClick={() => setShowAdvanced((v) => !v)}
-            className="flex items-center gap-1 text-[13px] text-muted transition hover:text-white"
-          >
-            <ChevronDown size={14} className={cn("transition", showAdvanced && "rotate-180")} />
-            More options
-          </button>
-
-          {showAdvanced ? (
-            <div className="grid gap-4 border border-stroke bg-surface p-4">
-              <Field label="Extra description lines" hint="One per line.">
-                <textarea
-                  className={cn(inputClass, "min-h-[72px] resize-y")}
-                  value={draft.descriptionParagraphs}
-                  onChange={(e) => updateDraft({ descriptionParagraphs: e.target.value })}
-                />
-              </Field>
-              <Field label="Related components" hint="Comma-separated IDs.">
+              <Field label="Display name" hint="Shown on the marketplace card and detail page.">
                 <input
                   className={inputClass}
-                  value={draft.related}
-                  onChange={(e) => updateDraft({ related: e.target.value })}
+                  value={draft.displayName}
+                  onChange={(e) => updateDraft({ displayName: e.target.value })}
+                  placeholder="Contact Form"
                 />
               </Field>
-            </div>
-          ) : null}
 
-          <button
-            type="button"
-            onClick={() => setTab("preview")}
-            className="h-10 w-fit bg-white px-5 text-[14px] font-medium text-black"
-          >
-            Continue to preview
-          </button>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Field
+                  label="Component ID"
+                  hint={mode === "edit" ? "Locked after publishing." : "Used in the page URL."}
+                >
+                  <input
+                    className={cn(inputClass, mode === "edit" && "opacity-60")}
+                    value={draft.name}
+                    disabled={mode === "edit"}
+                    onChange={(e) => updateDraft({ name: slugify(e.target.value) })}
+                    placeholder="contact-form"
+                  />
+                </Field>
+
+                <Field label="Category">
+                  <select
+                    className={inputClass}
+                    value={draft.category}
+                    onChange={(e) =>
+                      updateDraft({ category: e.target.value as EditorDraft["category"] })
+                    }
+                  >
+                    {categorySelectOptions.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {creatingCategory ? (
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        autoFocus
+                        className={inputClass}
+                        value={newCategory}
+                        onChange={(e) => setNewCategory(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addCategory();
+                          } else if (e.key === "Escape") {
+                            setCreatingCategory(false);
+                            setNewCategory("");
+                          }
+                        }}
+                        placeholder="New category name"
+                      />
+                      <button
+                        type="button"
+                        onClick={addCategory}
+                        disabled={!slugify(newCategory)}
+                        className="flex h-[42px] shrink-0 items-center justify-center bg-white px-3 text-black transition hover:bg-white/90 disabled:opacity-40"
+                        aria-label="Add category"
+                      >
+                        <Check size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setCreatingCategory(false);
+                          setNewCategory("");
+                        }}
+                        aria-label="Cancel"
+                        className="flex h-[42px] shrink-0 items-center justify-center border border-stroke px-3 text-muted transition hover:text-white"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setCreatingCategory(true)}
+                      className="mt-2 flex w-fit items-center gap-1 text-[12px] text-muted transition hover:text-white"
+                    >
+                      <Plus size={13} /> New category
+                    </button>
+                  )}
+                </Field>
+              </div>
+
+              <Field label="Short description" hint="One-line summary for the gallery card.">
+                <textarea
+                  className={cn(inputClass, "min-h-[80px] resize-y")}
+                  value={draft.description}
+                  onChange={(e) => updateDraft({ description: e.target.value })}
+                />
+              </Field>
+            </FormCard>
+
+            <FormCard
+              title="Listing content"
+              description="Tags and highlights shown on the component page."
+            >
+              <Field label="Tags" hint="Comma-separated, e.g. form, dark, framer-motion">
+                <input
+                  className={inputClass}
+                  value={draft.tags}
+                  onChange={(e) => updateDraft({ tags: e.target.value })}
+                />
+              </Field>
+
+              <Field label="Key features" hint="One per line — shown on the component page.">
+                <textarea
+                  className={cn(inputClass, "min-h-[100px] resize-y")}
+                  value={draft.keyFeatures}
+                  onChange={(e) => updateDraft({ keyFeatures: e.target.value })}
+                  placeholder={"Animated success state\nLight and dark themes\nFramer-safe"}
+                />
+              </Field>
+            </FormCard>
+
+            <FormCard
+              title="Thumbnails"
+              description="Image or video shown on the gallery card and variant tile, instead of the live preview. Each fills the surface width; height follows the media's aspect ratio."
+            >
+              <MediaUploadField
+                label="Main page (gallery card)"
+                hint="Shown on the home grid."
+                src={galleryMediaSrc}
+                isVideo={galleryIsVideo}
+                onFile={(f) => {
+                  setGalleryMediaFile(f);
+                  setGalleryMediaCleared(false);
+                }}
+                onClear={() => {
+                  setGalleryMediaFile(null);
+                  setGalleryMediaCleared(true);
+                }}
+              />
+              <MediaUploadField
+                label="Variant tab (sidebar tile)"
+                hint="Shown in the component's variant grid."
+                src={variantMediaSrc}
+                isVideo={variantIsVideo}
+                onFile={(f) => {
+                  setVariantMediaFile(f);
+                  setVariantMediaCleared(false);
+                }}
+                onClear={() => {
+                  setVariantMediaFile(null);
+                  setVariantMediaCleared(true);
+                }}
+              />
+            </FormCard>
+
+            <FormCard title="Distribution">
+              <Field
+                label="Framer module URL"
+                hint="After hosting on Framer, paste the framer.com/m/… link for Copy Framer URL."
+              >
+                <input
+                  className={inputClass}
+                  value={draft.framerModuleUrl}
+                  onChange={(e) => updateDraft({ framerModuleUrl: e.target.value })}
+                  placeholder="https://framer.com/m/pricing-three-tier-abc12"
+                />
+              </Field>
+
+              <button
+                type="button"
+                onClick={() => updateDraft({ premium: !draft.premium })}
+                className="flex items-center justify-between gap-3 border border-stroke bg-bg px-4 py-3 text-left transition hover:border-stroke-hover"
+              >
+                <span className="flex flex-col gap-0.5">
+                  <span className="text-[14px] text-white">Featured / premium</span>
+                  <span className="text-[12px] text-muted-foreground">
+                    Highlight this component in the featured sort.
+                  </span>
+                </span>
+                <span
+                  className={cn(
+                    "flex size-[20px] shrink-0 items-center justify-center border transition",
+                    draft.premium
+                      ? "border-white bg-white text-black"
+                      : "border-stroke text-transparent",
+                  )}
+                >
+                  <Check size={14} />
+                </span>
+              </button>
+            </FormCard>
+
+            <button
+              type="button"
+              onClick={() => setTab("preview")}
+              className="ui-press flex h-11 w-fit items-center bg-white px-6 text-[14px] font-medium text-black transition hover:bg-white/90"
+            >
+              Continue to preview
+            </button>
           </div>
           {filesSidebar}
         </div>
@@ -668,77 +996,57 @@ export function ComponentForm({
 
       {tab === "preview" ? (
         <div className="space-y-6">
-          <div className="flex min-h-[480px] gap-4 border border-stroke bg-bg p-4">
+          {/* Mirrors the live detail layout (ComponentWorkspace): the preview
+              stage fills the column at the same width the component has on the
+              real site, with the tweak panel as the side rail. Only the detail
+              surface is previewed — gallery card and variant tile use uploaded
+              thumbnail/video. */}
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-start 3xl:mx-auto 3xl:max-w-[1560px]">
             <div className="min-w-0 flex-1">
               {!canPreview ? (
-                <div className="flex h-full min-h-[320px] items-center justify-center text-[14px] text-muted">
+                <div className="flex min-h-[480px] items-center justify-center border border-stroke bg-bg text-[14px] text-muted">
                   Upload a component file to see the live preview.
                 </div>
               ) : previewError ? (
-                <div className="flex h-full min-h-[320px] items-center justify-center p-6 text-center font-mono text-[12px] leading-relaxed text-red-400">
+                <div className="flex min-h-[480px] items-center justify-center border border-stroke bg-bg p-6 text-center font-mono text-[12px] leading-relaxed text-red-400">
                   {previewError}
                 </div>
               ) : !previewModuleUrl ? (
-                <div className="flex h-full min-h-[320px] items-center justify-center gap-2 text-[14px] text-muted">
+                <div className="flex min-h-[480px] items-center justify-center gap-2 border border-stroke bg-bg text-[14px] text-muted">
                   <Loader2 size={16} className="animate-spin" /> Compiling preview…
                 </div>
               ) : (
-                <div className="space-y-6">
-                  <section className="space-y-2">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
                     <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
-                      Detail page
+                      Detail preview · live width
                     </p>
-                    <SurfaceControls
-                      layout={previewLayoutObj.detail}
-                      onChange={(p) => setSurfaceLayout("detail", p)}
-                    />
-                    <div className="overflow-hidden border border-stroke">
-                      <PreviewFrame
-                        name={previewSlug}
-                        state={previewState}
-                        previewAccent={draft.previewAccent}
-                        moduleUrl={previewModuleUrl}
-                        surfaceLayout={previewSurfaces?.detail}
-                        previewLayout={resolvePreviewLayout({
-                          name: previewSlug,
-                          category: draft.category,
-                          previewLayout: initialEntry?.previewLayout,
-                        })}
-                      />
-                    </div>
-                  </section>
-
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <section className="space-y-2">
-                      <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
-                        Main page · gallery card
-                      </p>
-                      <SurfaceControls
-                        layout={previewLayoutObj.gallery}
-                        onChange={(p) => setSurfaceLayout("gallery", p)}
-                      />
-                      <div className="mx-auto w-full max-w-[340px] overflow-hidden border border-stroke bg-black">
-                        <GalleryInlinePreview key={`gallery-${previewModuleUrl}`} entry={previewEntry} surface="gallery" state={previewState} />
-                      </div>
-                    </section>
-                    <section className="space-y-2">
-                      <p className="text-[11px] uppercase tracking-[0.12em] text-muted">
-                        Variants grid
-                      </p>
-                      <SurfaceControls
-                        layout={previewLayoutObj.variant}
-                        onChange={(p) => setSurfaceLayout("variant", p)}
-                      />
-                      <div className="flex min-h-[180px] w-full max-w-[260px] items-center justify-center overflow-hidden border border-stroke bg-black">
-                        <GalleryInlinePreview key={`variant-${previewModuleUrl}`} entry={previewEntry} surface="variant" state={previewState} />
-                      </div>
-                    </section>
                   </div>
+                  <div ref={previewMeasureRef}>
+                    <PreviewFrame
+                      name={previewSlug}
+                      state={previewState}
+                      previewAccent={draft.previewAccent}
+                      moduleUrl={previewModuleUrl}
+                      surfaceLayout={previewSurfaces?.detail}
+                      previewLayout={resolvePreviewLayout({
+                        name: previewSlug,
+                        category: draft.category,
+                        previewLayout: initialEntry?.previewLayout,
+                      })}
+                    />
+                  </div>
+                  {/* Preview editing options sit below the stage (room to grow). */}
+                  <SurfaceControls
+                    layout={previewLayoutObj.detail}
+                    onChange={(p) => setSurfaceLayout("detail", p)}
+                    measuredHeight={detailPreviewHeight ?? undefined}
+                  />
                 </div>
               )}
             </div>
             {tweakableControls.length ? (
-              <aside className="w-[300px] shrink-0">
+              <aside className="h-[70vh] w-full shrink-0 overflow-hidden xl:sticky xl:top-8 xl:h-[calc(100vh-120px)] xl:w-[325px] 3xl:w-[500px]">
                 <TweakPanel
                   schema={tweakableControls}
                   state={previewState}
@@ -775,7 +1083,7 @@ export function ComponentForm({
             {mode === "edit" ? (
               <button
                 type="button"
-                onClick={handleDelete}
+                onClick={() => setConfirmDelete(true)}
                 disabled={deleting || publishing}
                 className="flex h-10 items-center justify-center gap-2 border border-red-500/40 text-[13px] text-red-400 transition hover:bg-red-500/10 disabled:opacity-40"
               >
@@ -786,6 +1094,23 @@ export function ComponentForm({
           </div>
         </div>
       ) : null}
+
+      <ConfirmDialog
+        open={confirmDelete}
+        onOpenChange={(open) => !open && setConfirmDelete(false)}
+        onConfirm={() => void handleDelete()}
+        destructive
+        icon={<Trash2 size={20} />}
+        title="Delete component?"
+        description={
+          <>
+            <span className="text-white">{draft.displayName}</span> will be removed from the
+            marketplace. This cannot be undone.
+          </>
+        }
+        confirmLabel={deleting ? "Deleting…" : "Delete"}
+        loading={deleting}
+      />
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
 } from "@remixicon/react";
 import type { RegistryEntry } from "@compify/shared";
 import { Logo } from "./Logo";
+import { ViewIntentLink } from "./ViewIntentLink";
 import { SectionDivider } from "./SectionDivider";
 import { SignInModal } from "./SignInModal";
 import { SearchModal } from "./SearchModal";
@@ -102,16 +103,16 @@ function NavItem({
           <motion.span
             className="shrink-0 [&_svg]:size-[18px]"
             initial={false}
-            animate={{ color: active ? "#ffffff" : "#999999" }}
+            animate={{ color: active ? "#ffffff" : "#b8b8b8" }}
             transition={microTransition}
           >
             {icon}
           </motion.span>
           <motion.span
-            className="truncate whitespace-nowrap text-[14px] tracking-[-0.42px]"
+            className="truncate whitespace-nowrap text-sm tracking-[-0.42px] 3xl:text-base"
             initial={false}
             animate={{
-              color: active ? "#ffffff" : "#999999",
+              color: active ? "#ffffff" : "#b8b8b8",
               fontWeight: active ? 500 : 400,
             }}
             transition={microTransition}
@@ -302,7 +303,7 @@ export function Sidebar({
             className="ui-press ui-micro flex w-full shrink-0 items-center gap-[8px] border border-stroke bg-surface px-[12px] py-[10px] text-left hover:border-stroke/80 hover:bg-surface/80"
           >
             <RiSearchLine size={18} className="shrink-0 text-muted" />
-            <span className="text-[14px] tracking-[-0.42px] text-muted">Search Components...</span>
+            <span className="text-sm tracking-[-0.42px] 3xl:text-base text-muted">Search Components...</span>
           </button>
 
           <div className="flex min-h-0 w-full flex-1 flex-col justify-between">
@@ -361,7 +362,7 @@ function Section({
   return (
     <div className="relative flex w-full shrink-0 flex-col gap-[14px]">
       <div className="flex items-center pl-[14px]">
-        <p className="text-[12px] uppercase tracking-[-0.24px] text-white">{label}</p>
+        <p className="text-xs uppercase tracking-[-0.24px] text-white 3xl:text-sm">{label}</p>
       </div>
       <div className="flex w-full flex-col gap-[2px]">{children}</div>
     </div>
@@ -396,10 +397,10 @@ function LibraryRow({
     <>
       <ActiveBg active={active} />
       <motion.span
-        className="relative z-10 truncate text-[14px] tracking-[-0.42px]"
+        className="relative z-10 truncate text-sm tracking-[-0.42px] 3xl:text-base"
         initial={false}
         animate={{
-          color: active ? "#ffffff" : "#999999",
+          color: active ? "#ffffff" : "#b8b8b8",
           fontWeight: active ? 500 : 400,
         }}
         transition={microTransition}
@@ -411,9 +412,9 @@ function LibraryRow({
           <ActiveDot active={active} />
         </span>
         <motion.span
-          className="text-[14px] tracking-[-0.42px]"
+          className="text-sm tracking-[-0.42px] 3xl:text-base"
           initial={false}
-          animate={{ color: active ? "#ffffff" : "#999999" }}
+          animate={{ color: active ? "#ffffff" : "#b8b8b8" }}
           transition={microTransition}
         >
           {count}
@@ -446,7 +447,8 @@ function ComponentRow({
   active: boolean;
 }) {
   return (
-    <Link
+    <ViewIntentLink
+      slug={name}
       href={`/components/${name}`}
       prefetch
       className={cn(
@@ -456,16 +458,16 @@ function ComponentRow({
     >
       <ActiveBg active={active} />
       <motion.span
-        className="relative z-10 truncate text-[14px] tracking-[-0.42px]"
+        className="relative z-10 truncate text-sm tracking-[-0.42px] 3xl:text-base"
         initial={false}
         animate={{
-          color: active ? "#ffffff" : "#999999",
+          color: active ? "#ffffff" : "#b8b8b8",
           fontWeight: active ? 500 : 400,
         }}
         transition={microTransition}
       >
         {label}
       </motion.span>
-    </Link>
+    </ViewIntentLink>
   );
 }

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import type { RegistryEntry } from "@compify/shared";
-import { componentThumbnail } from "@/lib/thumbnails";
+import { categoryLabel, type RegistryEntry } from "@compify/shared";
+import { GalleryCardMedia } from "@/components/GalleryCardMedia";
 
 export function AdminDashboard({ entries }: { entries: RegistryEntry[] }) {
   return (
@@ -24,33 +24,22 @@ export function AdminDashboard({ entries }: { entries: RegistryEntry[] }) {
         </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 items-start gap-[14px] sm:grid-cols-2 xl:grid-cols-3">
         {entries.map((entry) => (
           <Link
             key={entry.name}
             href={`/admin/components/${entry.name}`}
-            className="group border border-stroke bg-surface transition hover:border-stroke-hover"
+            className="group flex h-fit w-full flex-col overflow-hidden border border-stroke bg-surface transition hover:border-stroke-hover"
           >
-            <div
-              className="aspect-[4/3] w-full"
-              style={{
-                background: `linear-gradient(135deg, ${entry.previewAccent}33, #111 70%)`,
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={componentThumbnail(entry)}
-                alt=""
-                className="size-full object-cover opacity-80 transition group-hover:opacity-100"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
+            {/* Actual gallery media (uploaded image/video) or the live preview —
+                the same thing the marketplace card shows. */}
+            <div className="w-full overflow-hidden bg-bg">
+              <GalleryCardMedia entry={entry} alt={`${entry.displayName} preview`} />
             </div>
             <div className="space-y-1 p-4">
               <p className="text-[15px] text-white">{entry.displayName}</p>
               <p className="line-clamp-2 text-[12px] text-muted">{entry.description}</p>
-              <p className="text-[11px] capitalize text-muted-foreground">{entry.category}</p>
+              <p className="text-[11px] text-muted-foreground">{categoryLabel(entry.category)}</p>
             </div>
           </Link>
         ))}

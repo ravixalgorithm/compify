@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { RiArrowDownSLine } from "@remixicon/react";
+import { RiArrowDownSLine, RiCheckLine, RiFileCopyLine } from "@remixicon/react";
 import type { TweakControl, TweakState } from "@compify/shared";
 import { isTweakableControl } from "@compify/shared";
 import { cn } from "@/lib/cn";
@@ -26,7 +26,7 @@ function controlGroup(control: TweakControl): string {
 
 function ControlLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="w-[125px] shrink-0 text-[14px] tracking-[-0.42px] text-muted">
+    <span className="w-[125px] shrink-0 text-sm tracking-[-0.42px] text-muted">
       {children}
     </span>
   );
@@ -70,7 +70,7 @@ function ValueBox({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "w-[40px] shrink-0 border border-black bg-black px-[6px] py-[4px] text-center font-mono text-[11px] text-[#aaa] outline-none",
+          "w-[40px] shrink-0 border border-field bg-field px-[6px] py-[4px] text-center font-mono text-2xs text-[#aaa] outline-none",
           className
         )}
       />
@@ -79,11 +79,11 @@ function ValueBox({
   return (
     <div
       className={cn(
-        "flex w-[40px] shrink-0 items-start justify-center border border-black bg-black px-[6px] py-[4px]",
+        "flex w-[40px] shrink-0 items-start justify-center border border-field bg-field px-[6px] py-[4px]",
         className
       )}
     >
-      <span className="font-mono text-[11px] text-[#aaa]">{value}</span>
+      <span className="font-mono text-2xs text-[#aaa]">{value}</span>
     </div>
   );
 }
@@ -106,7 +106,7 @@ function FigmaSlider({
   return (
     <div className="flex flex-1 items-center gap-[12px]">
       <div className="relative h-[12px] min-w-0 flex-1">
-        <div className="absolute left-0 right-0 top-[calc(50%+1px)] h-[4px] -translate-y-1/2 bg-[#2a2a2a]" />
+        <div className="absolute left-0 right-0 top-[calc(50%+1px)] h-[4px] -translate-y-1/2 bg-track" />
         <div
           className="absolute left-0 top-[calc(50%+1px)] h-[4px] -translate-y-1/2 bg-white transition-[width] duration-micro ease-micro"
           style={{ width: `${pct}%` }}
@@ -179,8 +179,11 @@ function ColorControl({
       const r = el.getBoundingClientRect();
       const center = r.left + r.width / 2;
       const left = Math.max(8, Math.min(center - PICKER_W / 2, window.innerWidth - PICKER_W - 8));
-      const below = r.bottom + 10 + PICKER_H <= window.innerHeight;
-      const top = below ? r.bottom + 10 : Math.max(8, r.top - 10 - PICKER_H);
+      // Gap between the swatch and the picker body. The caret pokes ~6px toward
+      // the swatch on top of this, so keep it small to sit close to the click.
+      const GAP = 4;
+      const below = r.bottom + GAP + PICKER_H <= window.innerHeight;
+      const top = below ? r.bottom + GAP : Math.max(8, r.top - GAP - PICKER_H);
       const caretLeft = Math.max(12, Math.min(center - left, PICKER_W - 12));
       setPos({ top, left, caretSide: below ? "top" : "bottom", caretLeft });
     };
@@ -211,7 +214,7 @@ function ColorControl({
         ref={swatchRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="relative size-[18px] shrink-0 border border-[#222]"
+        className="relative size-[18px] shrink-0"
         aria-label="Open color picker"
         aria-expanded={open}
       >
@@ -221,7 +224,7 @@ function ColorControl({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="min-w-0 w-0 flex-1 border border-black bg-black py-[4px] pl-2 pr-2 font-mono text-[13px] uppercase text-[#aaa] outline-none"
+        className="min-w-0 w-0 flex-1 border border-field bg-field py-[4px] pl-2 pr-2 font-mono text-xsm uppercase text-[#aaa] outline-none"
       />
       {open && pos && typeof document !== "undefined"
         ? createPortal(
@@ -244,6 +247,16 @@ function ColorControl({
   );
 }
 
+/** True for values that look like an image/asset URL or path worth copying. */
+function looksLikeUrl(value: string): boolean {
+  const v = value.trim();
+  return (
+    /^(https?:)?\/\//i.test(v) ||
+    v.startsWith("/") ||
+    /\.(png|jpe?g|gif|webp|svg|avif)(\?|#|$)/i.test(v)
+  );
+}
+
 function TextControl({
   value,
   onChange,
@@ -251,13 +264,41 @@ function TextControl({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const [copied, setCopied] = useState(false);
+  const showCopy = looksLikeUrl(value);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* ignore */
+    }
+  }
+
   return (
-    <input
-      type="text"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full border border-black bg-black py-[4px] pl-[6px] pr-[3px] font-mono text-[13px] text-[#aaa] outline-none ui-micro"
-    />
+    <div className="relative w-full">
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={cn(
+          "w-full border border-field bg-field py-[4px] pl-[6px] font-mono text-xsm text-[#aaa] outline-none ui-micro",
+          showCopy ? "pr-[26px]" : "pr-[3px]",
+        )}
+      />
+      {showCopy ? (
+        <button
+          type="button"
+          onClick={copy}
+          aria-label="Copy URL"
+          className="ui-press absolute right-[5px] top-1/2 flex -translate-y-1/2 items-center text-[#888] hover:text-white"
+        >
+          {copied ? <RiCheckLine size={14} /> : <RiFileCopyLine size={14} />}
+        </button>
+      ) : null}
+    </div>
   );
 }
 
@@ -288,7 +329,7 @@ function NumberFieldControl({
           max != null ? Math.min(max, Math.max(min, next)) : Math.max(min, next);
         onChange(clamped);
       }}
-      className="w-full border border-black bg-black py-[4px] pl-[6px] pr-[3px] font-mono text-[13px] text-[#aaa] outline-none ui-micro"
+      className="w-full border border-field bg-field py-[4px] pl-[6px] pr-[3px] font-mono text-xsm text-[#aaa] outline-none ui-micro"
     />
   );
 }
@@ -340,11 +381,11 @@ function YesNoControl({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <div className="relative flex w-full items-stretch bg-black">
+    <div className="relative flex w-full items-stretch bg-[#171717]">
       <span
         aria-hidden
         className={cn(
-          "pointer-events-none absolute -top-px -bottom-px w-[calc(50%+2px)] border border-stroke bg-elevated",
+          "pointer-events-none absolute -top-px -bottom-px w-[calc(50%+2px)] border border-field bg-field",
           "transition-[left] duration-micro ease-micro",
           value ? "-left-px" : "left-[calc(50%-1px)]",
         )}
@@ -353,7 +394,7 @@ function YesNoControl({
         type="button"
         onClick={() => onChange(true)}
         className={cn(
-          "ui-press relative z-10 flex flex-1 items-center justify-center p-1 text-[13px] ui-micro",
+          "ui-press relative z-10 flex flex-1 items-center justify-center p-1 text-xsm ui-micro",
           value ? "text-white" : "text-[#aaa]",
         )}
       >
@@ -363,7 +404,7 @@ function YesNoControl({
         type="button"
         onClick={() => onChange(false)}
         className={cn(
-          "ui-press relative z-10 flex flex-1 items-center justify-center p-1 text-[13px] ui-micro",
+          "ui-press relative z-10 flex flex-1 items-center justify-center p-1 text-xsm ui-micro",
           !value ? "text-white" : "text-[#aaa]",
         )}
       >
@@ -390,7 +431,7 @@ function SectionHeader({
       onClick={onToggle}
       className={cn(
         "flex h-8 w-full items-center gap-2 px-[14px] py-2 ui-micro",
-        bordered && "border-t border-stroke",
+        bordered && "border-t border-panel-line",
       )}
     >
       <RiArrowDownSLine
@@ -400,7 +441,7 @@ function SectionHeader({
           collapsed && "-rotate-90"
         )}
       />
-      <span className="text-[12px] uppercase tracking-[-0.24px] text-white">
+      <span className="text-xs uppercase tracking-[-0.24px] text-white">
         {title}
       </span>
     </button>
@@ -496,18 +537,18 @@ export function TweakPanel({
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   return (
-    <div className="flex h-full w-full shrink-0 overflow-hidden border border-stroke xl:w-[325px]">
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border border-stroke bg-surface">
-        <div className="shrink-0 border-b border-stroke">
+    <div className="flex h-full w-full shrink-0 overflow-hidden border border-stroke xl:w-[325px] 3xl:w-[500px]">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden border border-panel-line bg-panel">
+        <div className="shrink-0 border-b border-panel-line">
           <div className="flex h-[48px] items-center px-4">
-            <p className="text-[14px] capitalize tracking-[-0.28px] text-white">
+            <p className="text-sm capitalize tracking-[-0.28px] text-white">
               Controls
             </p>
           </div>
         </div>
 
         <div className="relative min-h-0 flex-1 overflow-hidden">
-          <div className="no-scrollbar h-full overflow-x-hidden overflow-y-auto pb-6">
+          <div className="no-scrollbar h-full overflow-x-hidden overflow-y-auto pb-10">
             {groups.map(([group, controls], index) => {
               const isCollapsed = collapsed[group] ?? false;
               return (
@@ -548,7 +589,7 @@ export function TweakPanel({
             })}
           </div>
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[65px] bg-gradient-to-b from-transparent to-surface"
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[65px] bg-gradient-to-b from-transparent to-panel"
             aria-hidden
           />
         </div>
@@ -556,7 +597,7 @@ export function TweakPanel({
         <button
           type="button"
           onClick={onReset}
-          className="ui-micro ui-press flex w-full shrink-0 items-center justify-center border-t border-stroke bg-bg px-[14px] pt-[10px] pb-[14px] text-[14px] font-medium tracking-[-0.28px] text-muted hover:text-white"
+          className="ui-micro ui-press flex w-full shrink-0 items-center justify-center border-t border-panel-line bg-[#343434] px-[14px] pt-[10px] pb-[14px] text-sm font-medium tracking-[-0.28px] text-[#ff6b6b] hover:text-[#ff8585]"
         >
           Reset All Settings
         </button>

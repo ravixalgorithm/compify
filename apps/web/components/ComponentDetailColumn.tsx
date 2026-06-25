@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { RiEyeLine } from "@remixicon/react";
 import type { RegistryEntry, TweakState } from "@compify/shared";
 import { resolvePreviewLayout } from "@/lib/preview";
-import { incrementView, type ComponentStats } from "@/lib/stats";
+import { fetchStats, incrementView, type ComponentStats } from "@/lib/stats";
+import { consumeViewIntent } from "@/lib/view-intent";
 import { PreviewFrame } from "./PreviewFrame";
 import { CopyDropdown } from "./CopyDropdown";
 import { ComponentDocumentation } from "./ComponentDocumentation";
@@ -23,10 +24,13 @@ export function ComponentDetailColumn({
 }) {
   const [stats, setStats] = useState<ComponentStats | null>(null);
 
-  // +1 view on every page load/refresh; live-bump uses when a copy fires.
+  // Count a view only when this component was deliberately chosen (a click that
+  // set a view intent); a plain refresh or pasted URL just reads current totals
+  // so the view count can't outpace copies. Live-bumps copies when one fires.
   useEffect(() => {
     let active = true;
-    void incrementView(entry.name).then((next) => {
+    const chosen = consumeViewIntent(entry.name);
+    void (chosen ? incrementView(entry.name) : fetchStats(entry.name)).then((next) => {
       if (active && next) setStats(next);
     });
 
@@ -51,18 +55,18 @@ export function ComponentDetailColumn({
       {/* Figma 154:870 — title, view stats, copy split button */}
       <header className="flex h-[54px] shrink-0 items-center justify-between pr-[2px]">
         <div className="flex flex-col gap-[6px]">
-          <h1 className="text-[20px] font-medium leading-[28px] tracking-[-1.2px] text-white">
+          <h1 className="text-xl font-medium leading-[28px] tracking-[-1.2px] text-white">
             {entry.displayName}
           </h1>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-[6px]">
-              <RiEyeLine size={14} className="text-[#999]" />
-              <span className="text-[14px] leading-5 tracking-[-0.14px] text-[#999]">
+              <RiEyeLine size={14} className="text-[#b8b8b8]" />
+              <span className="text-sm leading-5 tracking-[-0.14px] text-[#b8b8b8]">
                 {views.toLocaleString()}
               </span>
             </div>
-            <span className="size-1 bg-[#999]" />
-            <span className="text-[14px] leading-5 tracking-[-0.14px] text-[#999]">
+            <span className="size-1 bg-[#b8b8b8]" />
+            <span className="text-sm leading-5 tracking-[-0.14px] text-[#b8b8b8]">
               Used by {usedBy.toLocaleString()}
             </span>
           </div>

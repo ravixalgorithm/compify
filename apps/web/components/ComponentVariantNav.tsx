@@ -8,7 +8,8 @@ import {
   RiLayoutGridLine,
   RiListUnordered,
 } from "@remixicon/react";
-import type { RegistryEntry } from "@compify/shared";
+import { CATEGORIES, type RegistryEntry } from "@compify/shared";
+import { ViewIntentLink } from "./ViewIntentLink";
 import { SectionDivider } from "./SectionDivider";
 import { DetailVariantPreview } from "./DetailVariantPreview";
 import { sortComponentsAlphabetically } from "./Sidebar";
@@ -35,7 +36,8 @@ function VariantListRow({
   active: boolean;
 }) {
   return (
-    <Link
+    <ViewIntentLink
+      slug={variant.name}
       href={`/components/${variant.name}`}
       prefetch
       className={cn(
@@ -45,10 +47,10 @@ function VariantListRow({
     >
       <ActiveBg active={active} />
       <motion.span
-        className="relative z-10 truncate text-[14px] tracking-[-0.42px]"
+        className="relative z-10 truncate text-sm tracking-[-0.42px] 3xl:text-base"
         initial={false}
         animate={{
-          color: active ? "#ffffff" : "#999999",
+          color: active ? "#ffffff" : "#b8b8b8",
           fontWeight: active ? 500 : 400,
         }}
         transition={microTransition}
@@ -58,7 +60,7 @@ function VariantListRow({
       <span className="relative z-10 flex size-[4px] shrink-0 items-center justify-center">
         <ActiveDot active={active} />
       </span>
-    </Link>
+    </ViewIntentLink>
   );
 }
 
@@ -70,7 +72,8 @@ function VariantGridCard({
   active: boolean;
 }) {
   return (
-    <Link
+    <ViewIntentLink
+      slug={variant.name}
       href={`/components/${variant.name}`}
       prefetch
       className={cn(
@@ -88,14 +91,14 @@ function VariantGridCard({
         <DetailVariantPreview entry={variant} />
       </div>
       <motion.span
-        className="relative z-10 text-[14px] font-medium tracking-[-0.42px]"
+        className="relative z-10 text-sm font-medium tracking-[-0.42px] 3xl:text-base"
         initial={false}
-        animate={{ color: active ? "#ffffff" : "#999999" }}
+        animate={{ color: active ? "#ffffff" : "#b8b8b8" }}
         transition={microTransition}
       >
         {variant.displayName}
       </motion.span>
-    </Link>
+    </ViewIntentLink>
   );
 }
 
@@ -108,6 +111,9 @@ export function ComponentVariantNav({
   variants: RegistryEntry[];
 }) {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+
+  const categoryLabel =
+    CATEGORIES.find((c) => c.id === entry.category)?.label ?? entry.category;
 
   const sortedVariants = useMemo(
     () => sortComponentsAlphabetically(variants),
@@ -135,8 +141,8 @@ export function ComponentVariantNav({
           className="ui-micro flex w-full items-center gap-[8px] px-[12px] py-[9px] hover:bg-elevated/40"
         >
           <RiArrowLeftSLine size={16} className="shrink-0 text-white" />
-          <span className="text-[14px] font-medium uppercase tracking-[-0.42px] text-white">
-            All Components
+          <span className="text-sm font-medium uppercase tracking-[-0.42px] text-white 3xl:text-base">
+            {categoryLabel}
           </span>
         </Link>
         <SectionDivider />
@@ -180,7 +186,7 @@ export function ComponentVariantNav({
           <div ref={listRef} className="w-1/2 shrink-0">
             <div className="flex w-full flex-col gap-[14px]">
               <div className="flex items-center pl-[14px]">
-                <p className="text-[12px] uppercase tracking-[-0.24px] text-white">Variants</p>
+                <p className="text-xs uppercase tracking-[-0.24px] text-white 3xl:text-sm">Variants</p>
               </div>
               <div className="flex w-full flex-col gap-[2px]">
                 <LayoutGroup id="variant-list">

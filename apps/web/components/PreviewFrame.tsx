@@ -9,12 +9,11 @@ import { cn } from "@/lib/cn";
 import {
   DETAIL_PREVIEW_PADDING,
   DETAIL_STAGE_MIN_HEIGHT,
+  PREVIEW_FIXED_WIDTH,
   previewPropsForSurface,
   previewSurfaceConfig,
   stageBackground,
   stagePaddingStyle,
-  STAGE_PADDING_X,
-  STAGE_PADDING_Y,
 } from "@/lib/preview";
 
 class PreviewErrorBoundary extends Component<
@@ -53,6 +52,8 @@ function PreviewContent({
   fill,
   center = false,
   contain = false,
+  cover = false,
+  scale = 1,
   moduleUrl,
 }: {
   name: string;
@@ -60,6 +61,10 @@ function PreviewContent({
   fill: boolean;
   center?: boolean;
   contain?: boolean;
+  /** Stretch the component to the full stage width (height stays intrinsic). */
+  cover?: boolean;
+  /** Scale multiplier for the component (1 = 100%). */
+  scale?: number;
   moduleUrl?: string;
 }) {
   // DB-backed path: render the runtime-compiled module. Filesystem path
@@ -68,9 +73,10 @@ function PreviewContent({
   // fill now CENTERS its content, so intrinsic-size components (buttons) sit in
   // the middle instead of pinned top-left, while size-full components still fill.
   const wrapperClass = cn(
-    fill && "flex size-full min-h-0 items-center justify-center",
-    !fill && center && "flex w-full items-center justify-center",
-    !fill && !center && "inline-flex max-w-full justify-center",
+    cover && "block w-full [&>*]:!w-full",
+    !cover && fill && "flex size-full min-h-0 items-center justify-center",
+    !cover && !fill && center && "flex w-full items-center justify-center",
+    !cover && !fill && !center && "inline-flex max-w-full justify-center",
   );
   const inner = moduleUrl ? (
     <DynamicComponent moduleUrl={moduleUrl} componentProps={componentProps} />
@@ -78,12 +84,18 @@ function PreviewContent({
     <LibraryComponent key={componentProps.preview ? `${name}-showcase` : name} {...componentProps} />
   ) : null;
 
+  // Size slider — scale the component about its center (no effect when covering).
+  const scaleStyle =
+    !cover && scale !== 1
+      ? { transform: `scale(${scale})`, transformOrigin: "center center" }
+      : undefined;
+
   return (
     <PreviewErrorBoundary key={moduleUrl ?? name}>
       {inner === null ? null : contain ? (
         <ScaleToFit>{inner}</ScaleToFit>
       ) : (
-        <div className={wrapperClass}>{inner}</div>
+        <div className={wrapperClass} style={scaleStyle}>{inner}</div>
       )}
       {inner === null ? (
         <div
@@ -121,15 +133,29 @@ export function PreviewFrame({
   const frame = previewSurfaceConfig(name, "detail", surfaceLayout);
   const stagePad = stagePaddingStyle(frame);
   const fixed = frame.width != null && frame.height != null;
-  const framed = Boolean(frame.aspectRatio || frame.minHeight);
-  const fill = frame.fill ?? (framed && !frame.center);
-  const center = frame.center ?? (!fill && previewLayout === "centered");
+  const contain = frame.contain ?? false;
+  const hasAspect = frame.aspectRatio != null;
+  // "Cover": the admin chose to stretch the component to the full stage width;
+  // its own aspect ratio then sets the height (no fixed frame, no scaling).
+  const cover = frame.fill === true && !hasAspect && !fixed && !contain;
+  const framed = hasAspect && !cover;
+  const fill = framed ? (frame.fill ?? !frame.center) : false;
+  // Everything that isn't covering, fixed-size, scaled, or aspect-framed is
+  // centered in the stage, so small components sit in the middle, not top-left.
+  const center = frame.center ?? (!framed && !cover && !fixed && !contain);
   const clip = frame.clip !== false;
-  const stageStyle = stageBackground(previewAccent, previewLayout);
+  // Pin the stage to a fixed width (centered) so the live detail page, the admin
+  // preview, and the thumbnail capture all frame the component identically;
+  // height stays content-driven.
+  const stageStyle = {
+    ...stageBackground(previewAccent, previewLayout),
+    maxWidth: PREVIEW_FIXED_WIDTH,
+    marginInline: "auto",
+  };
   const componentProps = previewPropsForSurface(name, state, "detail");
   // Admin-controlled stage height + vertical alignment.
   const stageMinHeight = surfaceLayout?.minHeight ?? DETAIL_STAGE_MIN_HEIGHT;
-  const contain = frame.contain ?? false;
+  const scale = frame.scale ?? 1;
   const alignItems =
     frame.align === "top" ? "items-start" : frame.align === "bottom" ? "items-end" : "items-center";
 
@@ -174,6 +200,27 @@ export function PreviewFrame({
     );
   }
 
+  // "Cover": the component spans the full stage width; its own aspect ratio sets
+  // the height. Clipped to the stage so it can't overflow the container.
+  if (cover) {
+    return (
+      <div
+        className="relative flex w-full shrink-0 justify-center overflow-hidden"
+        style={{ ...stagePad, ...stageStyle, minHeight: surfaceLayout?.minHeight }}
+      >
+        <div ref={contentRef} className="flex w-full justify-center">
+          <PreviewContent
+            name={name}
+            componentProps={componentProps}
+            fill={false}
+            center
+            moduleUrl={moduleUrl}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (framed) {
     return (
       <div
@@ -203,6 +250,7 @@ export function PreviewFrame({
               componentProps={componentProps}
               fill={false}
               center={center}
+              scale={scale}
               moduleUrl={moduleUrl}
             />
           )}
@@ -214,11 +262,11 @@ export function PreviewFrame({
   return (
     <div
       className={cn(
-        "relative w-full shrink-0",
+        "relative w-full shrink-0 overflow-hidden",
         center && cn("flex justify-center", alignItems),
       )}
       style={{
-        padding: fill ? stagePad.padding : `${STAGE_PADDING_Y}px ${STAGE_PADDING_X}px`,
+        padding: stagePad.padding,
         ...stageStyle,
         minHeight: stageMinHeight,
       }}
@@ -227,7 +275,7 @@ export function PreviewFrame({
         ref={contentRef}
         className={cn(center ? cn("flex w-full justify-center", alignItems) : "relative w-full")}
       >
-          <PreviewContent name={name} componentProps={componentProps} fill={fill} center={center} moduleUrl={moduleUrl} />
+        <PreviewContent name={name} componentProps={componentProps} fill={fill} center={center} scale={scale} moduleUrl={moduleUrl} />
       </div>
     </div>
   );

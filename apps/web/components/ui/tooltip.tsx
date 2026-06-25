@@ -18,7 +18,7 @@ const contentSize = {
 } as const;
 
 const contentVariant = {
-  dark: "border border-stroke bg-[#292929] text-[#999]",
+  dark: "border border-stroke bg-[#292929] text-[#b8b8b8]",
   light: "bg-white text-black ring-1 ring-stroke",
 } as const;
 

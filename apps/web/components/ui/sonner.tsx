@@ -24,10 +24,10 @@ export function Toaster(props: ToasterProps) {
           title:
             "group-[.toast]:text-sm group-[.toast]:font-medium group-[.toast]:tracking-[-0.42px] group-[.toast]:text-white",
           description:
-            "group-[.toast]:text-xsm group-[.toast]:tracking-[-0.39px] group-[.toast]:text-[#999]",
+            "group-[.toast]:text-xsm group-[.toast]:tracking-[-0.39px] group-[.toast]:text-[#b8b8b8]",
           icon: "group-[.toast]:m-0 group-[.toast]:size-6 group-[.toast]:shrink-0 group-[.toast]:items-center group-[.toast]:justify-center",
           actionButton: "group-[.toast]:bg-white group-[.toast]:text-black",
-          cancelButton: "group-[.toast]:bg-elevated group-[.toast]:text-[#999]",
+          cancelButton: "group-[.toast]:bg-elevated group-[.toast]:text-[#b8b8b8]",
         },
       }}
       {...props}

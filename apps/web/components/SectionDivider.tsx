@@ -1,6 +1,6 @@
 /**
- * Figma 133:1284 — horizontal section divider.
- * Semi-transparent gray band + #020202 bottom hairline (not a flat black border).
+ * Horizontal section divider — a single flat gray hairline (uses the `divider`
+ * token) shared across the sidebar, variant nav, admin shell and info tabs.
  */
 export function SectionDivider({ className }: { className?: string }) {
   return (
@@ -9,8 +9,7 @@ export function SectionDivider({ className }: { className?: string }) {
       role="separator"
       aria-hidden
     >
-      <div className="h-px w-full bg-[rgba(43,43,43,0.5)]" />
-      <div className="h-[1.25px] w-full bg-[#020202]" />
+      <div className="h-px w-full bg-divider" />
     </div>
   );
 }

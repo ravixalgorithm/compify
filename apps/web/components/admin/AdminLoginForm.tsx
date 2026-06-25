@@ -59,7 +59,7 @@ export function AdminLoginForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="border border-stroke bg-black px-3 py-2.5 text-[14px] text-white outline-none focus:border-stroke-hover"
+              className="border border-field bg-field px-3 py-2.5 text-[14px] text-white outline-none focus:border-muted-foreground"
               placeholder="Enter admin password"
               autoFocus
             />

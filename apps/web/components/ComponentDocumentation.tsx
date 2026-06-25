@@ -84,10 +84,10 @@ function PropTableCell({ children }: { children: ReactNode }) {
 function PropTable({ props }: { props: PropDoc[] }) {
   return (
     <div className="flex w-full min-w-0 flex-col overflow-hidden border border-[#2e3132]">
-      <div className="flex w-full items-start overflow-hidden border border-[#393f42] bg-[#1a1a1a] py-[10px]">
+      <div className="flex w-full items-start overflow-hidden border-b border-[#393f42] bg-[#1a1a1a] py-[10px]">
         {["PROP", "TYPE", "DEFAULT", "DESCRIPTION"].map((col) => (
           <PropTableCell key={col}>
-            <span className="text-xs text-[#999]">{col}</span>
+            <span className="text-sm text-[#b8b8b8]">{col}</span>
           </PropTableCell>
         ))}
       </div>
@@ -101,25 +101,25 @@ function PropTable({ props }: { props: PropDoc[] }) {
             className={`flex w-full items-start overflow-hidden border-b border-[#2e2e2e] py-[12px] ${rowBg}`}
           >
             <PropTableCell>
-              <span className="break-words text-xsm font-medium text-white">
+              <span className="break-words text-sm font-medium text-white">
                 {prop.name}
               </span>
             </PropTableCell>
             <PropTableCell>
-              <span className="inline-flex max-w-full shrink-0 rounded-[4px] bg-[#282a2d] px-[6px] py-[2px] text-xsm tracking-[-0.39px] text-[#b5bbc3]">
+              <span className="inline-flex max-w-full shrink-0 whitespace-nowrap rounded-[4px] bg-[#282a2d] px-[8px] py-[2px] text-sm tracking-[-0.42px] text-[#b5bbc3]">
                 {typeLabel(prop.type)}
               </span>
             </PropTableCell>
             <PropTableCell>
               <span
-                className="block break-all font-space text-xsm leading-normal text-[#aaa]"
+                className="block break-all font-space text-sm leading-normal text-[#aaa]"
                 title={prop.default}
               >
                 {formatDefaultDisplay(prop.default)}
               </span>
             </PropTableCell>
             <PropTableCell>
-              <span className="block break-words text-xsm leading-normal text-[#aaa]">
+              <span className="block break-words text-sm leading-normal text-[#aaa]">
                 {prop.description}
               </span>
             </PropTableCell>
@@ -148,7 +148,7 @@ export function ComponentDocumentation({ entry }: { entry: RegistryEntry }) {
         <h2 className="text-title font-medium leading-[26px] tracking-[-0.66px] text-white">
           {entry.displayName}
         </h2>
-        <div className="text-base leading-[24px] tracking-[-0.48px] text-[#999]">
+        <div className="text-base leading-[24px] tracking-[-0.48px] text-[#b8b8b8]">
           {paragraphs.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
@@ -158,14 +158,14 @@ export function ComponentDocumentation({ entry }: { entry: RegistryEntry }) {
       {features.length ? (
         <div className="flex w-full flex-col gap-[20px]">
           <div className="flex w-full flex-col gap-[10px]">
-            <p className="text-xs text-[#999]">KEY FEATURES</p>
+            <p className="text-sm text-[#b8b8b8]">KEY FEATURES</p>
             <div className="h-px w-full bg-[#333]" />
           </div>
           <ul className="flex w-full flex-col gap-[12px]">
             {features.map((feature) => (
               <li
                 key={feature}
-                className="text-base leading-[24px] tracking-[-0.48px] text-[#999]"
+                className="text-base leading-[24px] tracking-[-0.48px] text-[#b8b8b8]"
               >
                 — {feature}
               </li>
@@ -180,7 +180,7 @@ export function ComponentDocumentation({ entry }: { entry: RegistryEntry }) {
           <h3 className="text-title font-medium leading-[26px] tracking-[-0.66px] text-white">
             API Reference
           </h3>
-          <p className="text-base leading-[24px] tracking-[-0.48px] text-[#999]">
+          <p className="text-base leading-[24px] tracking-[-0.48px] text-[#b8b8b8]">
             All props map directly to the controls panel sliders and color pickers.
           </p>
         </div>
@@ -188,7 +188,7 @@ export function ComponentDocumentation({ entry }: { entry: RegistryEntry }) {
         {propGroups.map(([group, props]) => (
           <div key={group} className="flex w-full flex-col gap-[16px] overflow-hidden">
             <div className="flex w-full flex-col gap-[10px]">
-              <p className="text-xs text-[#999]">{group}</p>
+              <p className="text-sm text-[#b8b8b8]">{group}</p>
               <div className="h-px w-full bg-[#333]" />
             </div>
             <PropTable props={props} />

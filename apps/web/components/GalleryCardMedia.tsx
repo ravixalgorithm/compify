@@ -7,6 +7,7 @@ import { previewSurfaceConfig } from "@/lib/preview";
 import { useInView } from "@/lib/useInView";
 import { GalleryInlinePreview } from "./GalleryInlinePreview";
 import { GalleryMediaSkeleton } from "./GalleryCardSkeleton";
+import { MediaThumb } from "./MediaThumb";
 
 type LoadState = "idle" | "loading" | "loaded" | "error";
 
@@ -57,6 +58,16 @@ export function GalleryCardMedia({
     !shouldLoad ||
     (showImage && state !== "loaded") ||
     (showLivePreview && !previewReady);
+
+  // Admin-uploaded gallery media (image/video) replaces the live preview: it
+  // fills the fixed card width, height follows its aspect ratio.
+  if (entry.galleryMedia) {
+    return (
+      <div ref={ref} className="relative w-full overflow-hidden bg-bg">
+        <MediaThumb src={entry.galleryMedia} alt={alt} />
+      </div>
+    );
+  }
 
   return (
     <div ref={ref} className="relative w-full overflow-hidden bg-bg">

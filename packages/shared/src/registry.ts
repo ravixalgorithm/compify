@@ -17,6 +17,20 @@ export const CATEGORIES: { id: ComponentCategory; label: string }[] = [
   { id: "data", label: "Data Display" },
 ];
 
+/**
+ * Display label for a category id. Built-in categories use their curated label;
+ * custom (admin-created) categories are title-cased from their slug
+ * ("my-widgets" → "My Widgets").
+ */
+export function categoryLabel(id: string): string {
+  const known = CATEGORIES.find((c) => c.id === id);
+  if (known) return known.label;
+  return id
+    .replace(/[-_]+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 /** Returns all registry entries, optionally filtered by category. */
 export function listComponents(category?: ComponentCategory): RegistryEntry[] {
   const seen = new Set<string>();

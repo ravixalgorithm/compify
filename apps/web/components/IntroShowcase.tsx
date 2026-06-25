@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import type { RegistryEntry } from "@compify/shared";
+import { ViewIntentLink } from "./ViewIntentLink";
 import { GalleryCardCorners } from "./GalleryCardCorners";
 import { GalleryInlinePreview } from "./GalleryInlinePreview";
 
@@ -15,7 +15,8 @@ function ShowcaseCell({ entry }: { entry: RegistryEntry }) {
         <GalleryInlinePreview entry={entry} surface="gallery" />
       </div>
       <GalleryCardCorners />
-      <Link
+      <ViewIntentLink
+        slug={entry.name}
         href={`/components/${entry.name}`}
         aria-label={`View ${entry.displayName}`}
         className="absolute inset-0 z-20 transition hover:brightness-110"

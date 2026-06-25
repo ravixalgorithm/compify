@@ -5,7 +5,7 @@
 
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { RiExpandUpDownLine } from "@remixicon/react";
+import { RiArrowDownSLine } from "@remixicon/react";
 import { cn } from "@/lib/cn";
 
 const SelectRoot = SelectPrimitive.Root;
@@ -20,7 +20,7 @@ const SelectTrigger = React.forwardRef<
     ref={forwardedRef}
     className={cn(
       "group/trigger flex w-full min-w-0 items-center justify-between gap-1",
-      "border border-black bg-black py-[4px] pl-2 pr-1",
+      "border border-field bg-field py-[4px] pl-2 pr-1",
       "font-mono text-[13px] capitalize text-[#aaa] outline-none",
       "duration-micro ease-micro transition-[color,background-color,border-color,box-shadow]",
       "data-[state=open]:text-white",
@@ -30,9 +30,9 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <RiExpandUpDownLine
+      <RiArrowDownSLine
         size={16}
-        className="shrink-0 text-[#aaa] duration-micro ease-micro transition-transform group-data-[state=open]/trigger:rotate-180"
+        className="shrink-0 text-[#aaa] duration-micro ease-micro transition-transform group-data-[state=open]/trigger:-rotate-180"
       />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>

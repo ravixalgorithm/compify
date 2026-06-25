@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { RiCheckLine, RiDeleteBin5Line, RiFileCopyLine, RiKey2Line } from "@remixicon/react";
 import { toastSuccess } from "@/components/ui/sonner";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { emitApiKeysChanged } from "@/lib/api-keys-events";
 
 interface ApiKeyRow {
   id: string;
@@ -24,6 +26,9 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Which confirmation dialog is open, if any.
+  const [confirm, setConfirm] = useState<"replace" | "delete" | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const activeKey = keys.find((k) => !k.revoked_at) ?? null;
 
@@ -44,18 +49,21 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
     void loadKeys();
   }, []);
 
-  async function handleCreate(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (!name.trim() || creating) return;
-    if (
-      activeKey &&
-      !window.confirm(
-        `Creating a new key will revoke "${activeKey.name}". Continue?`,
-      )
-    ) {
+    // Replacing an existing key revokes it — confirm first.
+    if (activeKey) {
+      setConfirm("replace");
       return;
     }
+    void createKey();
+  }
+
+  async function createKey() {
+    setConfirm(null);
+    if (!name.trim() || creating) return;
     setCreating(true);
     try {
       const res = await fetch("/api/api-keys", {
@@ -79,6 +87,7 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
           .map((k) => (k.revoked_at ? k : { ...k, revoked_at: revokedAt })),
       ]);
       void loadKeys();
+      emitApiKeysChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create API key");
     } finally {
@@ -86,20 +95,22 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
     }
   }
 
-  async function handleDelete() {
+  async function deleteKey() {
     if (!activeKey) return;
-    if (!window.confirm(`Delete "${activeKey.name}"? Agents using it lose access immediately.`)) {
-      return;
-    }
+    setConfirm(null);
     setError(null);
+    setDeleting(true);
     try {
       const res = await fetch(`/api/api-keys/${activeKey.id}`, { method: "DELETE" });
       const payload = await res.json();
       if (!res.ok) throw new Error(payload.error || "Failed to delete key");
       setCreatedKey(null);
       await loadKeys();
+      emitApiKeysChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete key");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -129,7 +140,7 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
         <h2 className="text-[16px] leading-[26px] tracking-[-0.48px] text-white">
           API Integration
         </h2>
-        <p className="text-[12px] leading-[1.5] tracking-[-0.12px] text-[#999]">
+        <p className="text-[12px] leading-[1.5] tracking-[-0.12px] text-[#b8b8b8]">
           Connect Cursor, Claude Code, and other MCP clients.{" "}
           <Link
             href="/connect"
@@ -141,7 +152,7 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
         </p>
       </div>
 
-      <form onSubmit={handleCreate} className="flex flex-col gap-[6px]">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-[6px]">
         <span className="text-[14px] tracking-[-0.42px] text-white">
           {activeKey ? "Replace API key" : "Create API key"}
         </span>
@@ -162,13 +173,13 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
             {creating ? "Creating…" : activeKey ? "Replace" : "Create"}
           </button>
         </div>
-        <p className="text-[11px] leading-[1.5] tracking-[-0.12px] text-[#999]">
+        <p className="text-[11px] leading-[1.5] tracking-[-0.12px] text-[#b8b8b8]">
           One active key at a time.{activeKey ? " Creating a new key revokes the current one." : ""}
         </p>
       </form>
 
       {loading ? (
-        <p className="text-[12px] text-[#999]">Loading…</p>
+        <p className="text-[12px] text-[#b8b8b8]">Loading…</p>
       ) : activeKey ? (
         <>
           {/* Figma 245:1040 — active key row */}
@@ -177,7 +188,7 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
               <p className="w-full truncate text-[14px] font-medium tracking-[-0.42px] text-white">
                 {activeKey.name}
               </p>
-              <p className="w-full truncate font-mono text-[13px] tracking-[-0.39px] text-[#999]">
+              <p className="w-full truncate font-mono text-[13px] tracking-[-0.39px] text-[#b8b8b8]">
                 {maskedKey}
               </p>
             </div>
@@ -186,13 +197,13 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
                 type="button"
                 onClick={handleCopy}
                 aria-label="Copy API key"
-                className="ui-press ui-micro flex items-center border border-[#2b2b2b] p-[6px] text-[#999] hover:text-white"
+                className="ui-press ui-micro flex items-center border border-[#2b2b2b] p-[6px] text-[#b8b8b8] hover:text-white"
               >
                 {copied ? <RiCheckLine size={18} /> : <RiFileCopyLine size={18} />}
               </button>
               <button
                 type="button"
-                onClick={handleDelete}
+                onClick={() => setConfirm("delete")}
                 aria-label="Delete API key"
                 className="ui-press ui-micro flex items-center border border-[#ffd3d3] bg-[#ffd3d3] p-[6px] text-[#d92d20] hover:bg-[#ffc2c2]"
               >
@@ -206,7 +217,7 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
           <RiKey2Line size={24} className="text-[#666]" />
           <div className="flex flex-col gap-[2px]">
             <p className="text-sm font-medium tracking-[-0.42px] text-white">No API key yet</p>
-            <p className="text-xs leading-[1.5] tracking-[-0.12px] text-[#999]">
+            <p className="text-xs leading-[1.5] tracking-[-0.12px] text-[#b8b8b8]">
               Create a key above to connect your editor and start using the MCP server.
             </p>
           </div>
@@ -218,6 +229,44 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
           {error}
         </p>
       ) : null}
+
+      <ConfirmDialog
+        open={confirm === "replace"}
+        onOpenChange={(open) => !open && setConfirm(null)}
+        onConfirm={() => void createKey()}
+        icon={<RiKey2Line size={20} />}
+        title="Replace API key?"
+        description={
+          activeKey ? (
+            <>
+              Creating a new key revokes{" "}
+              <span className="text-white">{activeKey.name}</span>. Agents using it lose access
+              immediately.
+            </>
+          ) : null
+        }
+        confirmLabel={creating ? "Replacing…" : "Replace"}
+        loading={creating}
+      />
+
+      <ConfirmDialog
+        open={confirm === "delete"}
+        onOpenChange={(open) => !open && setConfirm(null)}
+        onConfirm={() => void deleteKey()}
+        destructive
+        icon={<RiDeleteBin5Line size={20} />}
+        title="Delete API key?"
+        description={
+          activeKey ? (
+            <>
+              <span className="text-white">{activeKey.name}</span> will stop working immediately and
+              any agents using it lose access.
+            </>
+          ) : null
+        }
+        confirmLabel={deleting ? "Deleting…" : "Delete"}
+        loading={deleting}
+      />
     </div>
   );
 }

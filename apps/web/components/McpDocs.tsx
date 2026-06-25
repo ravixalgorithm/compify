@@ -74,7 +74,7 @@ function Section({
       <div className="flex flex-col gap-3">
         <h2 className="text-title font-medium leading-[26px] tracking-[-0.66px] text-white">{title}</h2>
         {description ? (
-          <p className="text-base leading-[24px] tracking-[-0.48px] text-[#999]">{description}</p>
+          <p className="text-base leading-[24px] tracking-[-0.48px] text-[#b8b8b8]">{description}</p>
         ) : null}
       </div>
       {children ? <div className="mt-5">{children}</div> : null}
@@ -89,7 +89,7 @@ function ToolsTable({
 }) {
   return (
     <div className="w-full overflow-x-auto">
-      <div className="flex min-w-[640px] border border-[#2b2b2b] bg-[#1a1a1a] px-4 py-2.5 text-xs font-medium tracking-[-0.36px] text-[#999]">
+      <div className="flex min-w-[640px] border border-[#2b2b2b] bg-[#1a1a1a] px-4 py-2.5 text-sm font-medium tracking-[-0.36px] text-[#b8b8b8]">
         <span className="w-[200px] shrink-0">Tool</span>
         <span className="min-w-0 flex-1">What it does</span>
       </div>
@@ -97,7 +97,7 @@ function ToolsTable({
         <div
           key={row.name}
           className={cn(
-            "flex min-w-[640px] border border-t-0 border-[#2b2b2b] px-4 py-3 text-xsm tracking-[-0.39px]",
+            "flex min-w-[640px] border border-t-0 border-[#2b2b2b] px-4 py-3 text-sm tracking-[-0.39px]",
             index % 2 === 0 ? "bg-[#111]" : "bg-[#161616]",
           )}
         >
@@ -109,7 +109,7 @@ function ToolsTable({
           >
             {row.name}
           </span>
-          <span className="min-w-0 flex-1 leading-[20px] text-[#999]">{row.summary}</span>
+          <span className="min-w-0 flex-1 leading-[20px] text-[#b8b8b8]">{row.summary}</span>
         </div>
       ))}
     </div>
@@ -124,7 +124,7 @@ export function McpDocs() {
           <h1 className="text-display font-medium leading-10 tracking-[-0.96px] text-white">
             MCP Server
           </h1>
-          <p className="mt-3 text-base leading-[24px] tracking-[-0.48px] text-[#999]">
+          <p className="mt-3 text-base leading-[24px] tracking-[-0.48px] text-[#b8b8b8]">
             The official Model Context Protocol server for Compify UI. Plug the component
             registry into Claude Code, Codex, Cursor, and any MCP-compatible editor —
             then fetch, customize, or generate Framer-safe components through natural language.
@@ -148,10 +148,10 @@ export function McpDocs() {
         <Section
           id="quick-start"
           title="Install in your agent"
-          description="Select your editor, copy the config, and restart the client."
+          description="Find your editor below, copy the config, and restart the client."
         >
           <ConnectClient />
-          <p className="mt-6 text-base leading-[24px] tracking-[-0.48px] text-[#999]">
+          <p className="mt-6 text-base leading-[24px] tracking-[-0.48px] text-[#b8b8b8]">
             After connecting, open any component page, tweak props, and click{" "}
             <span className="text-white">Copy</span>. Paste the prompt into your editor — the model
             calls MCP and delivers the file with dependencies installed.
@@ -168,8 +168,8 @@ export function McpDocs() {
 
         <Section id="tools" title="Tools exposed">
           <ToolsTable rows={TOOLS} />
-          <div className={cn(mcpDocs.card, "mt-5 p-4 text-xsm leading-[20px] tracking-[-0.39px] text-[#999]")}>
-            <p className="font-medium text-white">Stack behavior</p>
+          <div className={cn(mcpDocs.card, "mt-5 p-4 text-sm leading-[22px] tracking-[-0.39px] text-[#b8b8b8]")}>
+            <p className="text-base font-medium text-white">Stack behavior</p>
             <ul className="mt-3 space-y-1.5">
               <li>
                 <span className="text-white">framer</span> — use hosted module URLs from the{" "}
@@ -199,10 +199,10 @@ export function McpDocs() {
         >
           <div className="grid gap-6 sm:grid-cols-2">
             <div className={cn(mcpDocs.card, "p-4")}>
-              <p className="text-sm font-medium tracking-[-0.42px] text-white">
+              <p className="text-base font-medium tracking-[-0.42px] text-white">
                 From the website
               </p>
-              <ol className="mt-3 list-inside list-decimal space-y-2 text-xsm leading-[20px] tracking-[-0.39px] text-[#999]">
+              <ol className="mt-3 list-inside list-decimal space-y-2 text-sm leading-[22px] tracking-[-0.39px] text-[#b8b8b8]">
                 <li>Open a component page</li>
                 <li>Tweak props in the panel</li>
                 <li>Copy prompt and paste into editor</li>
@@ -210,10 +210,10 @@ export function McpDocs() {
               </ol>
             </div>
             <div className={cn(mcpDocs.card, "p-4")}>
-              <p className="text-sm font-medium tracking-[-0.42px] text-white">
+              <p className="text-base font-medium tracking-[-0.42px] text-white">
                 From the editor only
               </p>
-              <p className="mt-3 text-xsm leading-[20px] tracking-[-0.39px] text-[#999]">
+              <p className="mt-3 text-sm leading-[22px] tracking-[-0.39px] text-[#b8b8b8]">
                 No website required. Ask your editor to list, fetch, or generate components directly
                 through the MCP tools. Pass stack context from your package.json — nextjs + tailwind
                 for Next.js projects, framer for Framer canvas delivery.
@@ -245,8 +245,8 @@ export function McpDocs() {
                   index % 2 === 0 ? "bg-[#111]" : "bg-[#161616]",
                 )}
               >
-                <p className="text-sm font-medium tracking-[-0.42px] text-white">{item.q}</p>
-                <p className="mt-2 text-xsm leading-[20px] tracking-[-0.39px] text-[#999]">
+                <p className="text-base font-medium tracking-[-0.42px] text-white">{item.q}</p>
+                <p className="mt-2 text-sm leading-[22px] tracking-[-0.39px] text-[#b8b8b8]">
                   {item.a}
                 </p>
               </div>

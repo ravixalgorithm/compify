@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Roboto_Mono, Space_Mono } from "next/font/google";
-import { CATEGORIES } from "@compify/shared";
+import { CATEGORIES, categoryLabel } from "@compify/shared";
 import { listDbComponents } from "@/lib/db-components";
 import { AppFrame } from "@/components/AppFrame";
 import { RuntimeGlobals } from "@/components/RuntimeGlobals";
@@ -37,11 +37,18 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const registry = (await listDbComponents()).map((c) => c.entry);
 
-  const categories = CATEGORIES.map((c) => ({
-    id: c.id,
-    label: c.label,
-    count: registry.filter((e) => e.category === c.id).length,
-  })).filter((c) => c.count > 0);
+  // Build the library list from the categories actually present — built-in
+  // categories first (curated order), then any custom (admin-created) ones
+  // alphabetically — so custom categories show up as gallery filters too.
+  const counts = new Map<string, number>();
+  for (const e of registry) counts.set(e.category, (counts.get(e.category) ?? 0) + 1);
+  const knownIds = CATEGORIES.map((c) => c.id);
+  const customIds = [...counts.keys()]
+    .filter((id) => !knownIds.includes(id))
+    .sort((a, b) => categoryLabel(a).localeCompare(categoryLabel(b)));
+  const categories = [...knownIds, ...customIds]
+    .filter((id) => (counts.get(id) ?? 0) > 0)
+    .map((id) => ({ id, label: categoryLabel(id), count: counts.get(id) ?? 0 }));
 
   const components = registry.map((e) => ({
     name: e.name,

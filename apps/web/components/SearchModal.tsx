@@ -7,6 +7,7 @@ import { registry as defaultRegistry } from "@compify/shared";
 import type { CategoryItem, ComponentItem } from "./Sidebar";
 import { sortComponentsAlphabetically } from "./Sidebar";
 import * as CommandMenu from "@/components/ui/command-menu";
+import { markViewIntent } from "@/lib/view-intent";
 
 const defaultComponents = sortComponentsAlphabetically(
   defaultRegistry.map((e) => ({
@@ -24,12 +25,16 @@ export interface SearchModalProps {
   onQuery?: (value: string) => void;
   activeCategory?: string | null;
   onCategory?: (id: string | null) => void;
+  /** Override what happens when a component is picked (e.g. admin routes to the
+   *  editor instead of the live page). When set, the default view-intent +
+   *  navigation to /components/[name] is skipped. */
+  onSelectComponent?: (name: string) => void;
 }
 
 function DashedIcon() {
   return (
     <span className="relative size-[16px] shrink-0 overflow-hidden">
-      <span className="absolute left-1/2 top-1/2 size-[14px] -translate-x-1/2 -translate-y-1/2 border-[1.25px] border-dashed border-[#999]" />
+      <span className="absolute left-1/2 top-1/2 size-[14px] -translate-x-1/2 -translate-y-1/2 border-[1.25px] border-dashed border-[#b8b8b8]" />
     </span>
   );
 }
@@ -43,6 +48,7 @@ export function SearchModal({
   onQuery,
   activeCategory = null,
   onCategory,
+  onSelectComponent,
 }: SearchModalProps) {
   const router = useRouter();
   const [localQuery, setLocalQuery] = useState("");
@@ -88,6 +94,12 @@ export function SearchModal({
   }
 
   function selectComponent(name: string) {
+    if (onSelectComponent) {
+      onSelectComponent(name);
+      onClose();
+      return;
+    }
+    markViewIntent(name);
     router.push(`/components/${name}`);
     onClose();
   }
@@ -97,7 +109,7 @@ export function SearchModal({
       <CommandMenu.DialogTitle className="sr-only">Search components</CommandMenu.DialogTitle>
 
       <label className="flex w-full shrink-0 items-center gap-[8px] border border-solid border-[#212121] bg-[#111] py-[10px] pl-[12px] pr-[18px]">
-        <RiSearchLine size={18} className="shrink-0 text-[#999]" aria-hidden />
+        <RiSearchLine size={18} className="shrink-0 text-[#b8b8b8]" aria-hidden />
         <CommandMenu.Input
           value={queryValue}
           onValueChange={setQueryValue}
@@ -105,7 +117,7 @@ export function SearchModal({
         />
       </label>
 
-      <CommandMenu.List>
+      <CommandMenu.List className="pb-[28px]">
         {filteredCategories.length > 0 ? (
           <CommandMenu.Group heading="Libraries">
             {filteredCategories.map((c) => (

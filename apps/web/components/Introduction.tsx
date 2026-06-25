@@ -40,8 +40,8 @@ function Divider() {
 function FeatureCard({ title, description }: { title: string; description: string }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-1.5 border border-[#2b2b2b] bg-[#161616] p-4">
-      <p className="text-sm font-medium tracking-[-0.42px] text-white">{title}</p>
-      <p className="text-xs leading-[18px] tracking-[-0.36px] text-[#999]">{description}</p>
+      <p className="text-base font-medium tracking-[-0.42px] text-white">{title}</p>
+      <p className="text-sm leading-[20px] tracking-[-0.36px] text-[#b8b8b8]">{description}</p>
     </div>
   );
 }
@@ -70,7 +70,7 @@ function Section({
       <div className="flex flex-col gap-3">
         <h2 className="text-title font-medium leading-[26px] tracking-[-0.66px] text-white">{title}</h2>
         {description ? (
-          <p className="text-sm leading-[22px] tracking-[-0.42px] text-[#999]">{description}</p>
+          <p className="text-base leading-[24px] tracking-[-0.42px] text-[#b8b8b8]">{description}</p>
         ) : null}
       </div>
       {children ? <div className="mt-5">{children}</div> : null}
@@ -82,7 +82,7 @@ function Paragraphs({ lines, leading = "leading-[24px]" }: { lines: string[]; le
   return (
     <div className="flex flex-col gap-3">
       {lines.map((line) => (
-        <p key={line} className={`text-base ${leading} tracking-[-0.48px] text-[#999]`}>
+        <p key={line} className={`text-base ${leading} tracking-[-0.48px] text-[#b8b8b8]`}>
           {line}
         </p>
       ))}
@@ -106,15 +106,15 @@ export function Introduction({
             Introduction
           </h1>
           <div className="mt-3 flex flex-col gap-3">
-            <p className="text-base leading-[24px] tracking-[-0.48px] text-[#999]">
+            <p className="text-base leading-[24px] tracking-[-0.48px] text-[#b8b8b8]">
               Compify UI is a collection of production-ready components, interactions, and UI
               patterns built for both React and Framer. Copy components directly into your codebase
               or duplicate them inside Framer and customize them to fit your project.
             </p>
-            <p className="text-base leading-[24px] tracking-[-0.48px] text-[#999]">
+            <p className="text-base leading-[24px] tracking-[-0.48px] text-[#b8b8b8]">
               Built for designers, developers, and teams who care about great user experiences.
             </p>
-            <p className="text-base leading-[24px] tracking-[-0.48px] text-[#999]">
+            <p className="text-base leading-[24px] tracking-[-0.48px] text-[#b8b8b8]">
               This is more than a component library. It&apos;s a platform for discovering, copying,
               and shipping high-quality UI faster.
             </p>

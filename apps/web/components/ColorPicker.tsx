@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/cn";
 
 // Custom color selector (Figma node 2001:843): saturation/value square with a
 // cursor, a rainbow hue slider with a handle, an editable hex field, and an
@@ -132,49 +131,48 @@ export function ColorPicker({
   const currentHex = hsvToHex(hsv.h, hsv.s, hsv.v);
 
   return (
-    <div className="relative w-[225px] border-[0.5px] border-white/15 bg-[#111] p-1.5 shadow-[0px_8px_24px_rgba(0,0,0,0.45)]">
+    <div className="relative w-[225px] bg-[#242424] p-1.5 shadow-[0px_8px_24px_rgba(0,0,0,0.45)]">
       {/* caret — points at the anchor (top edge when below, bottom edge when above) */}
       <div
         aria-hidden
-        className={cn(
-          "absolute size-3 rotate-45 border-white/15 bg-[#111]",
-          caretSide === "top" ? "border-l-[0.5px] border-t-[0.5px]" : "border-r-[0.5px] border-b-[0.5px]",
-        )}
+        className="absolute size-3 rotate-45 bg-[#242424]"
         style={{ left: caretLeft - 6, ...(caretSide === "top" ? { top: -6 } : { bottom: -6 }) }}
       />
 
-      <div className="flex flex-col gap-1.5">
-        {/* Saturation / Value square */}
-        <div
-          ref={sv.ref}
-          onPointerDown={sv.onPointerDown}
-          className="relative h-[110px] w-full cursor-crosshair touch-none overflow-hidden"
-          style={{
-            background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), ${hueColor}`,
-          }}
-        >
-          <span
-            className="pointer-events-none absolute size-[14px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.4)]"
-            style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`, backgroundColor: currentHex }}
-            aria-hidden
-          />
-        </div>
+      <div className="flex flex-col gap-[10px]">
+        <div className="flex flex-col gap-1.5">
+          {/* Saturation / Value square */}
+          <div
+            ref={sv.ref}
+            onPointerDown={sv.onPointerDown}
+            className="relative h-[110px] w-full cursor-crosshair touch-none overflow-hidden"
+            style={{
+              background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), ${hueColor}`,
+            }}
+          >
+            <span
+              className="pointer-events-none absolute size-[14px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.4)]"
+              style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%`, backgroundColor: currentHex }}
+              aria-hidden
+            />
+          </div>
 
-        {/* Hue slider */}
-        <div
-          ref={hue.ref}
-          onPointerDown={hue.onPointerDown}
-          className="relative h-[10px] w-full cursor-pointer touch-none"
-          style={{
-            background:
-              "linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)",
-          }}
-        >
-          <span
-            className="pointer-events-none absolute top-1/2 size-[14px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.4)]"
-            style={{ left: `${(hsv.h / 360) * 100}%`, backgroundColor: hueColor }}
-            aria-hidden
-          />
+          {/* Hue slider */}
+          <div
+            ref={hue.ref}
+            onPointerDown={hue.onPointerDown}
+            className="relative h-[10px] w-full cursor-pointer touch-none rounded-full"
+            style={{
+              background:
+                "linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)",
+            }}
+          >
+            <span
+              className="pointer-events-none absolute top-1/2 size-[14px] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.4)]"
+              style={{ left: `${(hsv.h / 360) * 100}%`, backgroundColor: hueColor }}
+              aria-hidden
+            />
+          </div>
         </div>
 
         {/* Hex input */}
@@ -191,7 +189,7 @@ export function ColorPicker({
             }
           }}
           spellCheck={false}
-          className="w-full bg-[#111] px-3 py-1.5 font-mono text-[14px] tracking-[-0.42px] text-white outline-none"
+          className="w-full bg-[#111] px-3 py-1.5 font-mono text-sm tracking-[-0.42px] text-white outline-none"
           aria-label="Hex color"
         />
 
@@ -199,9 +197,13 @@ export function ColorPicker({
         <button
           type="button"
           onClick={() => onApply?.(currentHex)}
-          className="flex w-full items-center justify-center bg-white px-3 py-1.5 text-[14px] tracking-[-0.42px] text-black shadow-[0px_2px_4px_rgba(1,1,1,0.15)] transition hover:bg-white/90"
+          className="relative flex w-full items-center justify-center overflow-hidden bg-white px-3 py-1.5 text-sm tracking-[-0.42px] text-black shadow-[0px_4px_4px_-3px_rgba(178,178,189,0.1),0px_2px_4px_0px_rgba(1,1,1,0.15),0px_0px_1.1px_0px_rgba(0,0,0,0.25)] transition hover:bg-white/90"
         >
           Apply
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 shadow-[inset_0px_4px_4px_0px_rgba(255,255,255,0.1)]"
+          />
         </button>
       </div>
     </div>

@@ -30,6 +30,8 @@ export type PreviewFrameConfig = {
   align?: "top" | "center" | "bottom";
   /** Scale the whole component down to fit the stage, centered ("fit" mode). */
   contain?: boolean;
+  /** Scale multiplier applied to the component (1 = 100%). */
+  scale?: number;
 };
 
 type PreviewPropsFn = (state: TweakState) => TweakState;
@@ -282,7 +284,8 @@ export function previewSurfaceConfig(
       override.minHeight != null ||
       override.maxWidth != null ||
       override.padding != null ||
-      override.align);
+      override.align ||
+      override.scale != null);
   if (!hasOverride) return base;
   const merged: PreviewFrameConfig = { ...base };
   if (override!.fit === "fill") {
@@ -310,6 +313,7 @@ export function previewSurfaceConfig(
     merged.paddingY = undefined;
   }
   if (override!.align) merged.align = override!.align;
+  if (override!.scale != null) merged.scale = override!.scale;
   return merged;
 }
 
@@ -357,6 +361,12 @@ export const DETAIL_PREVIEW_PADDING = 0;
  *  button, a short bar) still get a comfortable preview area. Taller components
  *  exceed it, so it only affects the small ones. */
 export const DETAIL_STAGE_MIN_HEIGHT = 360;
+
+/** Fixed width (px) for the detail preview stage. The live detail page, the
+ *  admin preview, and the thumbnail/embed capture route all frame the component
+ *  at this exact width (centered), so what the admin sees matches the captured
+ *  thumbnail/video and the live preview. Height stays content-driven. */
+export const PREVIEW_FIXED_WIDTH = 1100;
 
 export function stagePaddingStyle(
   frame: Pick<PreviewFrameConfig, "padding" | "paddingX" | "paddingY">,
