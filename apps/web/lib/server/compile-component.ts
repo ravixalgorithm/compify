@@ -46,7 +46,16 @@ export function useIsStaticRenderer() { return false; }
 let sharedExportsCache: Record<string, string[]> | null = null;
 function sharedExports(): Record<string, string[]> {
   if (sharedExportsCache) return sharedExportsCache;
-  const names = (m: object) => Object.keys(m).filter((k) => k !== "default" && IDENT.test(k));
+  // CJS modules (react, react/jsx-runtime, react-dom) put their real exports on
+  // `.default` when statically imported via `import * as`; enumerate both the
+  // namespace and its default so hooks like useState/useEffect are included.
+  const names = (m: any): string[] => {
+    const keys = new Set<string>(Object.keys(m ?? {}));
+    if (m?.default && typeof m.default === "object") {
+      for (const k of Object.keys(m.default)) keys.add(k);
+    }
+    return [...keys].filter((k) => k !== "default" && IDENT.test(k));
+  };
   sharedExportsCache = {
     "react": names(HostReact),
     "react-dom": names(HostReactDOM),
@@ -57,11 +66,18 @@ function sharedExports(): Record<string, string[]> {
 }
 
 function makeGlobalShim(spec: string, names: string[]): string {
+  // Read each name from the host global, falling back to its `.default` — the
+  // host may expose exports on the namespace (ESM, e.g. framer-motion) or on
+  // `.default` (CJS interop, e.g. react), depending on the build.
+  const get = (n: string) => {
+    const k = JSON.stringify(n);
+    return `(__m[${k}] !== undefined ? __m[${k}] : (__m.default && __m.default[${k}]))`;
+  };
   return [
     `const __m = globalThis.__compifyGlobals && globalThis.__compifyGlobals[${JSON.stringify(spec)}];`,
     `if (!__m) throw new Error("compify: host global not set for ${spec}");`,
     `export default (__m.default !== undefined ? __m.default : __m);`,
-    ...names.map((n) => `export const ${n} = __m[${JSON.stringify(n)}];`),
+    ...names.map((n) => `export const ${n} = ${get(n)};`),
   ].join("\n");
 }
 
