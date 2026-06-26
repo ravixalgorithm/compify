@@ -54,7 +54,7 @@ Constraints (from the founder):
 | key_features | text[] | |
 | tags | text[] | |
 | dependencies | text[] | npm packages |
-| tweak_schema | jsonb | property controls (drives TweakPanel) |
+| tweak_schema | jsonb | property controls (drives TweakPanel) — every ControlType, real defaults (see "Property control extraction") |
 | variants | text[] | |
 | premium | bool | |
 | source | text | raw .tsx (MCP serves this) |
@@ -90,7 +90,9 @@ Admin panel ── upload .tsx + meta ──▶ POST /api/admin/components
                                         ├─ compile job (esbuild):
                                         │     tsx -> ESM, react/react-dom/jsx-runtime EXTERNAL,
                                         │     bundle all other deps, content-hash output
-                                        │      ├─ ok    ─▶ upload module to Storage (immutable URL)
+                                        │      ├─ ok    ─▶ introspect controls (eval module, read
+                                        │      │           Component.propertyControls) ─▶ tweak_schema
+                                        │      │           upload module to Storage (immutable URL)
                                         │      │           row: compiled_module_url, compile_status=ready
                                         │      └─ error ─▶ compile_status=error, compile_error=<msg>
                                         │                  surface to admin, BLOCK publish
@@ -116,6 +118,40 @@ list_components ─▶ SELECT published FROM components
 get_component   ─▶ SELECT source ─▶ transformComponent(stack/styling/ts/tweaks) ─▶ text
 ```
 Instant, always current, no compiled module involved.
+
+---
+
+## Property control extraction (tweak_schema)
+
+`tweak_schema` is the panel's contract: one `TweakControl` per editable prop,
+covering **every** Framer `ControlType` (font, transition, padding, border,
+image/responsive-image, link, object, array, …) with real default values.
+
+It is derived two ways from the same normalizer
+(`@compify/shared/extractPropertyControls`), which turns a live `propertyControls`
+object into `TweakControl[]`:
+
+- **Server, at publish** (`lib/server/introspect-controls.ts`): after esbuild,
+  the compiled module is evaluated in Node (host deps set on
+  `globalThis.__compifyGlobals`, imported via a `data:` URL). Our `framer` shim
+  attaches the evaluated `propertyControls` to the component, so we read the
+  **real** values — resolved consts (`defaultValue: DEFAULT_IMAGES`), font and
+  transition objects, nested Array/Object schema — and store them in
+  `tweak_schema`. Falls back to the regex source parser
+  (`parsePropertyControls`) if eval fails.
+- **Client, at render** (`lib/runtime-module.ts` → `useLiveControls`): the loaded
+  module's `Component.propertyControls` is normalized the same way and **wins**
+  over the stored schema, so the panel can never drift from the actual component.
+
+Why not regex-only: the source parser can't resolve referenced consts, evaluate
+expressions, or recover Framer-supplied defaults, and it silently dropped 8
+control types. Outside Framer there is no project to supply default
+fonts/transitions, so the normalizer substitutes its own
+(`FONT_DEFAULT` = Inter / `TRANSITION_DEFAULT` = spring 800/60) when the author
+gave none. Non-serializable controls (`componentinstance`, `slot`,
+`eventhandler`) are extracted for their default only and marked
+`editable: false` — no panel UI. Fonts a user picks load on demand from Google
+Fonts (`lib/fonts.ts`), since nothing auto-loads them outside Framer.
 
 ---
 

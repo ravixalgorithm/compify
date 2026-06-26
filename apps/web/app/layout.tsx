@@ -34,6 +34,21 @@ export const metadata: Metadata = {
   },
 };
 
+/** Origins gallery thumbnails/videos load from — warmed via preconnect so the
+ *  first media request skips DNS + TLS setup (helps first-time visitors most). */
+function mediaOrigins(): string[] {
+  const origins = new Set<string>();
+  for (const v of [process.env.R2_PUBLIC_URL, process.env.NEXT_PUBLIC_SUPABASE_URL]) {
+    if (!v) continue;
+    try {
+      origins.add(new URL(v).origin);
+    } catch {
+      /* ignore malformed env */
+    }
+  }
+  return [...origins];
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const registry = (await listDbComponents()).map((c) => c.entry);
 
@@ -57,6 +72,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" className={`${robotoMono.variable} ${spaceMono.variable}`}>
+      <head>
+        {mediaOrigins().map((origin) => (
+          <link key={origin} rel="preconnect" href={origin} />
+        ))}
+      </head>
       <body>
         <RuntimeGlobals />
         <Suspense fallback={<div className="min-h-screen bg-bg" />}>

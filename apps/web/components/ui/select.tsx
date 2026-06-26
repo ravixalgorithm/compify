@@ -21,7 +21,7 @@ const SelectTrigger = React.forwardRef<
     className={cn(
       "group/trigger flex w-full min-w-0 items-center justify-between gap-1",
       "border border-field bg-field py-[4px] pl-2 pr-1",
-      "font-mono text-[13px] capitalize text-[#aaa] outline-none",
+      "font-mono text-[13px] capitalize text-[#c8c8c8] outline-none",
       "duration-micro ease-micro transition-[color,background-color,border-color,box-shadow]",
       "data-[state=open]:text-white",
       className,
@@ -32,7 +32,7 @@ const SelectTrigger = React.forwardRef<
     <SelectPrimitive.Icon asChild>
       <RiArrowDownSLine
         size={16}
-        className="shrink-0 text-[#aaa] duration-micro ease-micro transition-transform group-data-[state=open]/trigger:-rotate-180"
+        className="shrink-0 text-[#c8c8c8] duration-micro ease-micro transition-transform group-data-[state=open]/trigger:-rotate-180"
       />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
@@ -54,7 +54,7 @@ const SelectContent = React.forwardRef<
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
         className={cn(
-          "z-[100] overflow-hidden border border-stroke bg-black shadow-[0px_4px_10px_rgba(0,0,0,0.4)]",
+          "z-[100] overflow-hidden border border-panel-line bg-[#2a2a2c] shadow-[0px_4px_10px_rgba(0,0,0,0.4)]",
           "min-w-[var(--radix-select-trigger-width)]",
           "duration-300 ease-micro",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
@@ -79,10 +79,12 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={forwardedRef}
     className={cn(
-      "relative cursor-pointer px-2 py-[6px] font-mono text-[13px] capitalize text-[#aaa] outline-none",
+      "relative cursor-pointer px-2 py-[6px] font-mono text-[13px] capitalize text-[#b8b8b8] outline-none",
       "duration-micro ease-micro transition-[color,background-color]",
-      "data-[highlighted]:bg-elevated data-[highlighted]:text-white",
-      "data-[state=checked]:bg-elevated data-[state=checked]:text-white",
+      // Selected: brighter/medium text (Radix also auto-highlights it on open).
+      "data-[state=checked]:font-medium data-[state=checked]:text-white",
+      // Hover/keyboard: a lighter fill than the menu, matching the field gray.
+      "data-[highlighted]:bg-field data-[highlighted]:text-white",
       className,
     )}
     {...rest}

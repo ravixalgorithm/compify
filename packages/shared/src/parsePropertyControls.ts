@@ -254,7 +254,7 @@ function parseControlEntry(key: string, entry: string): TweakControl | null {
 
 /** Controls rendered in the tweak panel and props documentation. */
 export function isTweakableControl(control: TweakControl): boolean {
-  return !control.hidden;
+  return !control.hidden && control.editable !== false;
 }
 
 /** Filter schema to user-facing controls only. */

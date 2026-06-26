@@ -4,6 +4,7 @@ import type { ComponentCategory } from "@compify/shared/types";
 import { getAdminUser } from "@/lib/server/require-admin";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { compileComponent } from "@/lib/server/compile-component";
+import { introspectControls } from "@/lib/server/introspect-controls";
 import { deriveComponentRow } from "@/lib/server/component-row";
 import { uploadToR2, r2Configured, r2KeyFromUrl, deleteFromR2 } from "@/lib/server/r2";
 import { COMPONENTS_TAG } from "@/lib/db-components";
@@ -71,6 +72,11 @@ export async function POST(request: Request) {
     if (!compiled.ok) {
       return NextResponse.json({ error: compiled.error, stage: "compile" }, { status: 400 });
     }
+
+    // 1b. Introspect the compiled module for its real, fully-typed control
+    //     schema (every ControlType, resolved defaults). Falls back to the regex
+    //     source parser inside deriveComponentRow if this returns null.
+    const introspectedSchema = await introspectControls(compiled.code);
 
     const db = createAdminClient();
 
@@ -154,7 +160,7 @@ export async function POST(request: Request) {
       premium: form.get("premium") === "true",
       framerModuleUrl: String(form.get("framerModuleUrl") ?? "").trim() || undefined,
       usage: String(form.get("usage") ?? "").trim() || undefined,
-    });
+    }, { tweakSchema: introspectedSchema });
 
     const publish = String(form.get("status") ?? "published") !== "draft";
     const previewLayoutRaw = String(form.get("previewLayout") ?? "").trim();

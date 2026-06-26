@@ -8,6 +8,9 @@ import { useGalleryBatch } from "@/lib/useGalleryBatch";
 import { GalleryCard } from "./GalleryCard";
 import { GalleryCardSkeleton } from "./GalleryCardSkeleton";
 
+// Cards loaded eagerly (media rendered in the SSR HTML, no scroll wait) so the
+// first viewport appears immediately. Kept modest because eager videos buffer —
+// loading too many at once competes with the visible row.
 const EAGER_THUMBNAIL_COUNT = 8;
 
 /** Matches the gallery breakpoints: 1 col < 640, 2 cols < 1280, 3 cols ≥ 1280. */

@@ -51,7 +51,7 @@ export function AdminPinButton({ slug, column }: { slug: string; column: number 
       disabled={busy}
       aria-label="Move to top"
       title="Move to top"
-      className="ui-press absolute right-2 top-2 z-10 flex size-8 items-center justify-center border border-stroke bg-bg/85 text-white backdrop-blur transition hover:bg-accent hover:text-black disabled:opacity-60"
+      className="ui-press absolute right-2 top-2 z-20 flex size-8 items-center justify-center border border-stroke bg-bg/85 text-white backdrop-blur transition hover:bg-accent hover:text-black disabled:opacity-60"
     >
       <RiArrowUpLine size={16} />
     </button>

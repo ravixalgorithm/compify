@@ -74,7 +74,7 @@ function formatDefaultDisplay(value: string): string {
 
 function PropTableCell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-1 items-start overflow-hidden pl-[16px] pr-[8px]">
+    <div className="flex min-w-0 flex-1 items-start overflow-hidden pl-[10px] pr-[6px] xl:pl-[16px] xl:pr-[8px]">
       {children}
     </div>
   );

@@ -17,12 +17,13 @@ export function GalleryCard({
   /** The grid column this card is rendered in (for "move to top of column"). */
   column?: number;
 }) {
+  // The navigation link is an absolute overlay sibling (not a wrapper) so the
+  // live component preview is never rendered inside an <a>. A previewed
+  // component can render its own anchor/button, and <a> inside <a> is invalid
+  // HTML (hydration error). The preview is non-interactive; the overlay on top
+  // captures the click. (Same pattern as IntroShowcase.)
   return (
-    <ViewIntentLink
-      slug={entry.name}
-      href={`/components/${entry.name}`}
-      className="relative mb-[14px] block w-full shrink-0 break-inside-avoid"
-    >
+    <div className="relative mb-[14px] block w-full shrink-0 break-inside-avoid">
       {pinnable ? <AdminPinButton slug={entry.name} column={column} /> : null}
       <GalleryCardFrame>
         <GalleryCardMedia
@@ -31,6 +32,12 @@ export function GalleryCard({
           priority={priority}
         />
       </GalleryCardFrame>
-    </ViewIntentLink>
+      <ViewIntentLink
+        slug={entry.name}
+        href={`/components/${entry.name}`}
+        aria-label={`View ${entry.displayName}`}
+        className="absolute inset-0 z-10"
+      />
+    </div>
   );
 }

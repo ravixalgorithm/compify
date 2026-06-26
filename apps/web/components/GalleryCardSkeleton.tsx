@@ -13,6 +13,8 @@ export const GALLERY_SKELETON_HEIGHT: Record<ComponentCategory, number> = {
 };
 
 function SkeletonShimmer({ className }: { className?: string }) {
+  // Plain shimmer block — cards show uploaded thumbnails/videos, so a
+  // content-shaped placeholder (fake text lines + body) just misleads.
   return (
     <div
       className={`relative overflow-hidden bg-[#161616] ${className ?? ""}`}
@@ -20,11 +22,6 @@ function SkeletonShimmer({ className }: { className?: string }) {
     >
       <div className="absolute inset-0 animate-pulse bg-[#161616]" />
       <div className="ui-skeleton-shimmer absolute inset-0" />
-      <div className="relative flex flex-col gap-3 p-5">
-        <div className="h-2 w-[58%] rounded-sm bg-[#242424]" />
-        <div className="h-2 w-[36%] rounded-sm bg-[#1f1f1f]" />
-        <div className="mt-2 min-h-[120px] flex-1 rounded-sm bg-[#1a1a1a]" />
-      </div>
     </div>
   );
 }

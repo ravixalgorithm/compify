@@ -6,7 +6,7 @@ import {
   dependenciesFromSource,
   exportNameFromSlug,
 } from "@compify/shared/server";
-import type { ComponentCategory } from "@compify/shared/types";
+import type { ComponentCategory, TweakControl } from "@compify/shared/types";
 
 export interface ComponentInput {
   slug: string;
@@ -29,9 +29,19 @@ export interface ComponentInput {
  * fields, deriving tweak_schema / props / usage / dependencies from the source
  * exactly the way the filesystem registry (syncRegistry) does — one source of
  * truth. Does NOT include source/compiled/status columns; the route adds those.
+ *
+ * `opts.tweakSchema` is the schema introspected from the compiled module (the
+ * full, real-default schema for every ControlType). When present it wins; we
+ * only fall back to the regex source parser if introspection failed.
  */
-export function deriveComponentRow(input: ComponentInput) {
-  const tweakSchema = parsePropertyControls(input.source);
+export function deriveComponentRow(
+  input: ComponentInput,
+  opts?: { tweakSchema?: TweakControl[] | null },
+) {
+  const tweakSchema =
+    opts?.tweakSchema && opts.tweakSchema.length
+      ? opts.tweakSchema
+      : parsePropertyControls(input.source);
   const exportName = exportNameFromSlug(input.slug);
   return {
     slug: input.slug,

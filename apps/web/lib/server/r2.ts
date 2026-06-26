@@ -78,6 +78,10 @@ export async function uploadToR2(
       Key: key,
       Body: bytes,
       ContentType: contentType,
+      // Immutable long cache: the public URL is cache-busted with `?v=<token>`
+      // on every save, so the browser can cache the media forever and refreshes
+      // are instant instead of re-downloading the image/video each time.
+      CacheControl: "public, max-age=31536000, immutable",
     }),
   );
   return r2PublicUrl(key);

@@ -56,10 +56,12 @@ function buildHeader(opts: TransformOptions, stack: StackName): string {
   const lines: string[] = [];
   lines.push(`// Delivered by Compify UI · stack: ${stack}` + (opts.styling ? ` · styling: ${opts.styling}` : ""));
   if (opts.tweaks && Object.keys(opts.tweaks).length > 0) {
-    const props = Object.entries(opts.tweaks)
-      .map(([k, v]) => `${k}={${JSON.stringify(v)}}`)
-      .join(" ");
-    lines.push(`// Recommended usage to match your tweak panel: <Component ${props} />`);
+    // One prop per line so object-valued controls (font, transition, image,
+    // arrays) stay readable instead of collapsing onto a single huge comment.
+    lines.push(`// Recommended props to match your tweak panel:`);
+    for (const [k, v] of Object.entries(opts.tweaks)) {
+      lines.push(`//   ${k}={${JSON.stringify(v)}}`);
+    }
   }
   if (stack === "framer") {
     lines.push(`// Paste into a Framer code component. Property controls included.`);

@@ -26,10 +26,12 @@ export function AdminDashboard({ entries }: { entries: RegistryEntry[] }) {
 
       <div className="grid grid-cols-1 items-start gap-[14px] sm:grid-cols-2 xl:grid-cols-3">
         {entries.map((entry) => (
-          <Link
+          // Link is an absolute overlay (not a wrapper) so the live preview is
+          // never rendered inside an <a> — a previewed component can render its
+          // own anchor, and <a> inside <a> is invalid HTML (hydration error).
+          <div
             key={entry.name}
-            href={`/admin/components/${entry.name}`}
-            className="group flex h-fit w-full flex-col overflow-hidden border border-stroke bg-surface transition hover:border-stroke-hover"
+            className="group relative flex h-fit w-full flex-col overflow-hidden border border-stroke bg-surface transition hover:border-stroke-hover"
           >
             {/* Actual gallery media (uploaded image/video) or the live preview —
                 the same thing the marketplace card shows. */}
@@ -41,7 +43,12 @@ export function AdminDashboard({ entries }: { entries: RegistryEntry[] }) {
               <p className="line-clamp-2 text-[12px] text-muted">{entry.description}</p>
               <p className="text-[11px] text-muted-foreground">{categoryLabel(entry.category)}</p>
             </div>
-          </Link>
+            <Link
+              href={`/admin/components/${entry.name}`}
+              aria-label={`Edit ${entry.displayName}`}
+              className="absolute inset-0 z-10"
+            />
+          </div>
         ))}
       </div>
     </div>

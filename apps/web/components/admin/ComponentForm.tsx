@@ -13,6 +13,8 @@ import {
 } from "@compify/shared";
 import { TweakPanel } from "@/components/TweakPanel";
 import { PreviewFrame } from "@/components/PreviewFrame";
+import { useLiveControls } from "@/lib/runtime-module";
+import { collectFontFamilies, ensureFontLoaded } from "@/lib/fonts";
 import { resolvePreviewLayout } from "@/lib/preview";
 import { isVideoUrl } from "@/components/MediaThumb";
 import type { CategoryOption } from "@/lib/categories";
@@ -535,11 +537,17 @@ export function ComponentForm({
     setCreatingCategory(false);
   }
 
-  const defaults = useMemo(() => tweakDefaults(draft.tweakSchema), [draft.tweakSchema]);
+  // The schema introspected from the compiled preview module is the real,
+  // fully-typed control set (every ControlType, resolved defaults) — same as the
+  // live site. Fall back to the regex-parsed draft schema until it loads.
+  const liveSchema = useLiveControls(previewModuleUrl ?? undefined);
+  const activeSchema = liveSchema ?? draft.tweakSchema;
+
+  const defaults = useMemo(() => tweakDefaults(activeSchema), [activeSchema]);
   const previewSlug = mode === "edit" ? draft.name : draft.name || draft.templateSlug;
   const tweakableControls = useMemo(
-    () => tweakableSchema(draft.tweakSchema),
-    [draft.tweakSchema],
+    () => tweakableSchema(activeSchema),
+    [activeSchema],
   );
   const canPreview = Boolean(draft.source.trim());
 
@@ -589,9 +597,26 @@ export function ComponentForm({
     updateDraft({ previewLayout: Object.keys(next).length ? JSON.stringify(next) : undefined });
   }
 
+  // Keep existing edits when the schema changes (e.g. the live introspected one
+  // arrives after compile); seed new controls with their default, drop removed.
   useEffect(() => {
-    setPreviewState(defaults);
-  }, [defaults]);
+    setPreviewState((prev) => {
+      const next: TweakState = {};
+      for (const control of activeSchema) {
+        next[control.key] =
+          control.key in prev ? prev[control.key] : control.default;
+      }
+      return next;
+    });
+  }, [activeSchema]);
+
+  // Preload active font families so the preview renders in them even when the
+  // relevant control is in a collapsed panel section.
+  useEffect(() => {
+    for (const family of collectFontFamilies(activeSchema, previewState)) {
+      ensureFontLoaded(family);
+    }
+  }, [activeSchema, previewState]);
 
   function updateDraft(patch: Partial<EditorDraft>) {
     setDraft((prev) => ({ ...prev, ...patch }));
@@ -682,7 +707,10 @@ export function ComponentForm({
       if (!draft.name.trim()) throw new Error("Component ID is required.");
       if (!draft.displayName.trim()) throw new Error("Display name is required.");
       if (!draft.source.trim()) throw new Error("Upload a component file first.");
-      if (!draft.tweakSchema.length) {
+      // The server introspects the compiled module for the real schema (every
+      // ControlType), so only require the source to declare controls here —
+      // don't gate on what the quick regex parse happened to recognise.
+      if (!/addPropertyControls\s*\(/.test(draft.source)) {
         throw new Error("No controls found in the file. Make sure it includes Framer property controls.");
       }
 
@@ -740,7 +768,7 @@ export function ComponentForm({
   const filesSidebar = (
     <FilesSidebar
       componentFileName={componentFileName}
-      controlCount={tweakableSchema(draft.tweakSchema).length}
+      controlCount={tweakableControls.length}
       onComponentFile={handleComponentFile}
     />
   );

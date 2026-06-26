@@ -72,10 +72,10 @@ function VariantGridCard({
   active: boolean;
 }) {
   return (
-    <ViewIntentLink
-      slug={variant.name}
-      href={`/components/${variant.name}`}
-      prefetch
+    // Link is an absolute overlay (not a wrapper) so the live variant preview is
+    // never rendered inside an <a> (a component can render its own anchor, and
+    // <a> inside <a> is invalid HTML / a hydration error).
+    <div
       className={cn(
         "ui-micro relative flex w-full flex-col gap-[6px] p-[6px]",
         !active && "hover:bg-[#171717]/50",
@@ -98,7 +98,14 @@ function VariantGridCard({
       >
         {variant.displayName}
       </motion.span>
-    </ViewIntentLink>
+      <ViewIntentLink
+        slug={variant.name}
+        href={`/components/${variant.name}`}
+        prefetch
+        aria-label={`View ${variant.displayName}`}
+        className="absolute inset-0 z-20"
+      />
+    </div>
   );
 }
 

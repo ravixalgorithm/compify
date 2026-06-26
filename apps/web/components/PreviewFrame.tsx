@@ -1,6 +1,8 @@
 "use client";
 
-import { Component, useRef } from "react";
+import { Component, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import { RiRefreshLine } from "@remixicon/react";
 import type { PreviewLayout, PreviewSurfaceLayout, TweakState } from "@compify/shared";
 import { getLibraryComponent } from "@compify/library";
 import { DynamicComponent } from "./DynamicComponent";
@@ -67,6 +69,10 @@ function PreviewContent({
   scale?: number;
   moduleUrl?: string;
 }) {
+  // Reload nonce — bumped by the reload button to remount the component (replays
+  // its mount animations / resets its internal state) without a full page reload.
+  const [reloadNonce, setReloadNonce] = useState(0);
+
   // DB-backed path: render the runtime-compiled module. Filesystem path
   // (no moduleUrl): render the bundled library component (unchanged behavior).
   const LibraryComponent = moduleUrl ? undefined : getLibraryComponent(name);
@@ -91,25 +97,47 @@ function PreviewContent({
       : undefined;
 
   return (
-    <PreviewErrorBoundary key={moduleUrl ?? name}>
-      {inner === null ? null : contain ? (
-        <ScaleToFit>{inner}</ScaleToFit>
-      ) : (
-        <div className={wrapperClass} style={scaleStyle}>{inner}</div>
-      )}
-      {inner === null ? (
-        <div
-          style={{
-            padding: 24,
-            color: "rgba(245,245,250,0.5)",
-            fontFamily: "ui-monospace, monospace",
-            textAlign: "center",
-          }}
+    <>
+      {/* The nonce in the key remounts the component on reload — the button below
+          is outside the boundary so it persists across reloads. */}
+      <PreviewErrorBoundary key={`${moduleUrl ?? name}-${reloadNonce}`}>
+        {inner === null ? null : contain ? (
+          <ScaleToFit>{inner}</ScaleToFit>
+        ) : (
+          <div className={wrapperClass} style={scaleStyle}>{inner}</div>
+        )}
+        {inner === null ? (
+          <div
+            style={{
+              padding: 24,
+              color: "rgba(245,245,250,0.5)",
+              fontFamily: "ui-monospace, monospace",
+              textAlign: "center",
+            }}
+          >
+            Unknown component: {name}
+          </div>
+        ) : null}
+      </PreviewErrorBoundary>
+      {inner !== null ? (
+        <button
+          type="button"
+          onClick={() => setReloadNonce((n) => n + 1)}
+          aria-label="Reload preview"
+          title="Reload preview"
+          className="ui-press absolute right-2 top-2 z-20 flex size-7 items-center justify-center border border-panel-line bg-panel text-[#b8b8b8] transition hover:bg-field hover:text-white"
         >
-          Unknown component: {name}
-        </div>
+          {/* One full spin per reload (rotate accumulates 360° each click). */}
+          <motion.span
+            className="flex"
+            animate={{ rotate: reloadNonce * 360 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+          >
+            <RiRefreshLine size={14} />
+          </motion.span>
+        </button>
       ) : null}
-    </PreviewErrorBoundary>
+    </>
   );
 }
 

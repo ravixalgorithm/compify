@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@supabase/supabase-js";
 import type { RegistryEntry } from "@compify/shared";
 
@@ -81,6 +82,35 @@ function toDbComponent(row: Record<string, any>): DbComponent {
   return { entry: rowToEntry(row), source: row.source ?? "", moduleUrl: row.compiled_module_url ?? null };
 }
 
+// Columns the list/gallery/sidebar need (everything `rowToEntry` reads). The big
+// `source` column is intentionally excluded — the list discards it (consumers
+// use `c.entry` only), so fetching every component's raw .tsx on every request
+// was pure waste. The detail page (`fetchOne`) still selects it via `*`.
+const LIST_COLUMNS = [
+  "slug",
+  "display_name",
+  "category",
+  "description",
+  "description_paragraphs",
+  "key_features",
+  "tags",
+  "dependencies",
+  "tweak_schema",
+  "variants",
+  "premium",
+  "preview_accent",
+  "preview_layout",
+  "thumbnail_url",
+  "gallery_media_url",
+  "variant_media_url",
+  "framer_module_url",
+  "props",
+  "usage",
+  "related",
+  "copy_count",
+  "compiled_module_url",
+].join(",");
+
 async function fetchOne(slug: string): Promise<DbComponent | null> {
   const { data, error } = await readClient()
     .from("components")
@@ -95,16 +125,15 @@ async function fetchOne(slug: string): Promise<DbComponent | null> {
 async function fetchAll(): Promise<DbComponent[]> {
   const { data, error } = await readClient()
     .from("components")
-    .select("*")
+    .select(LIST_COLUMNS)
     .eq("status", "published")
     .order("copy_count", { ascending: false });
   if (error || !data) return [];
   return data.map(toDbComponent);
 }
 
-// Live reads — the gallery/sidebar always reflect the current DB. The component
-// table is tiny (one row per component) and trending/pins are already read live,
-// so per-request reads are cheap and avoid stale-cache surprises after direct
-// DB edits or wipes.
-export const getDbComponent = fetchOne;
-export const listDbComponents = fetchAll;
+// Live reads — the gallery/sidebar always reflect the current DB. Wrapped in
+// React `cache()` so the layout and the page that both call `listDbComponents`
+// in the same request share a single Supabase round-trip instead of two.
+export const getDbComponent = cache(fetchOne);
+export const listDbComponents = cache(fetchAll);
