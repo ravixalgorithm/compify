@@ -6,8 +6,7 @@ import { ComponentWorkspace } from "@/components/ComponentWorkspace";
 // (live reads), which is incompatible with static generation: pairing it with
 // `generateStaticParams` made Next try to statically render the page and then
 // throw "Page changed from static to dynamic at runtime" → 500 on every
-// component page in production. force-dynamic matches the live-reads design and
-// the sibling /db/[name] route.
+// component page in production. force-dynamic matches the live-reads design.
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: { name: string } }) {
