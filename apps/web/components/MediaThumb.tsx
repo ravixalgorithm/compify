@@ -44,29 +44,44 @@ export function MediaThumb({
   const [shouldLoad, setShouldLoad] = useState(priority);
   const [loaded, setLoaded] = useState(false);
 
-  // One observer drives both lazy-load (latch shouldLoad on first approach) and,
-  // for video, play/pause on every enter/leave so off-screen clips stay paused.
+  // Start loading well before the media is reached so it's buffered by the time
+  // it scrolls in (this is what keeps videos feeling instant). Video gets a much
+  // larger lead than images since clips take longer to buffer. Latches once.
   useEffect(() => {
-    // Eager image needs no observer; an eager video still wants play/pause.
-    if (priority && !isVideo) return;
+    if (priority) return;
     const el = wrapRef.current;
     if (!el) return;
-
     const observer = new IntersectionObserver(
       ([entry]) => {
-        const visible = !!entry?.isIntersecting;
-        if (visible) setShouldLoad(true);
-        const video = videoRef.current;
-        if (video) {
-          if (visible) void video.play().catch(() => {});
-          else video.pause();
+        if (entry?.isIntersecting) {
+          setShouldLoad(true);
+          observer.disconnect();
         }
       },
-      { rootMargin: priority ? "0px" : "320px 0px", threshold: 0.01 },
+      { rootMargin: isVideo ? "2000px 0px" : "400px 0px", threshold: 0.01 },
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [priority, isVideo]);
+
+  // Play a video only while it's actually on screen, and pause it when it leaves
+  // — buffering ahead (above) is cheap, but decoding many clips at once is not.
+  useEffect(() => {
+    if (!isVideo || !shouldLoad) return;
+    const el = wrapRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const video = videoRef.current;
+        if (!video) return;
+        if (entry?.isIntersecting) void video.play().catch(() => {});
+        else video.pause();
+      },
+      { threshold: 0.01 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isVideo, shouldLoad]);
 
   function handleReady() {
     setLoaded(true);
@@ -102,8 +117,9 @@ export function MediaThumb({
             muted
             loop
             playsInline
-            preload="metadata"
+            preload="auto"
             onLoadedData={handleReady}
+            onCanPlay={handleReady}
             aria-label={alt}
           />
         ) : (
