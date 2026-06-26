@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { RiArrowDownSLine } from "@remixicon/react";
 import { cn } from "@/lib/cn";
 import { GOOGLE_FONTS, ensureFontLoaded } from "@/lib/fonts";
 
@@ -41,7 +42,12 @@ export function FontFamilyPicker({
       const el = anchorRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
-      setPos({ top: r.bottom + 4, left: r.left, width: r.width });
+      // Align to the field and clamp within the control-panel column so the list
+      // never spills outside the panel boundary.
+      const panel = (el.closest("[data-tweak-panel]") as HTMLElement | null)?.getBoundingClientRect();
+      let left = r.left;
+      if (panel) left = Math.min(Math.max(left, panel.left + 8), panel.right - r.width - 8);
+      setPos({ top: r.bottom + 4, left, width: r.width });
     };
     place();
     const onDown = (e: PointerEvent) => {
@@ -93,15 +99,22 @@ export function FontFamilyPicker({
             select(query.trim() || results[0] || value);
           }
         }}
-        style={{ fontFamily: value ? `'${value}'` : undefined }}
-        className="w-full border border-field bg-field py-[4px] pl-[6px] pr-[3px] text-2xs text-[#ddd] outline-none ui-micro"
+        className="w-full border border-field bg-field py-[4px] pl-2 pr-6 font-mono text-[13px] leading-tight text-[#c8c8c8] outline-none ui-micro"
+      />
+      <RiArrowDownSLine
+        size={16}
+        className={cn(
+          "pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-[#c8c8c8] duration-micro ease-micro transition-transform",
+          open && "-rotate-180",
+        )}
       />
       {open && pos && typeof document !== "undefined"
         ? createPortal(
             <div
               ref={popRef}
-              style={{ position: "fixed", top: pos.top, left: pos.left, width: Math.max(pos.width, 180), zIndex: 9999 }}
-              className="no-scrollbar max-h-[240px] overflow-y-auto border border-panel-line bg-panel"
+              data-tweak-popover
+              style={{ position: "fixed", top: pos.top, left: pos.left, width: pos.width, zIndex: 9999 }}
+              className="no-scrollbar max-h-[240px] origin-top animate-in overflow-y-auto border border-panel-line bg-[#2a2a2c] fade-in-0 zoom-in-95 duration-150 ease-out slide-in-from-top-2"
             >
               {results.length ? (
                 results.map((f) => (
@@ -112,8 +125,8 @@ export function FontFamilyPicker({
                     onClick={() => select(f)}
                     style={{ fontFamily: `'${f}'` }}
                     className={cn(
-                      "block w-full px-[8px] py-[5px] text-left text-xsm text-[#ccc] hover:bg-field",
-                      f === value && "bg-field text-white",
+                      "block w-full cursor-pointer px-2 py-[6px] text-left text-[13px] text-[#c8c8c8] transition-[color,background-color] duration-micro ease-micro hover:bg-field hover:text-white",
+                      f === value && "font-medium text-white",
                     )}
                   >
                     {f}
@@ -123,12 +136,12 @@ export function FontFamilyPicker({
                 <button
                   type="button"
                   onClick={() => select(query.trim())}
-                  className="block w-full px-[8px] py-[5px] text-left text-xsm text-muted hover:bg-field"
+                  className="block w-full cursor-pointer px-2 py-[6px] text-left font-mono text-[13px] text-muted transition-[color,background-color] duration-micro ease-micro hover:bg-field hover:text-white"
                 >
                   Use “{query.trim()}”
                 </button>
               ) : (
-                <p className="px-[8px] py-[5px] text-xsm text-muted">No matches</p>
+                <p className="px-2 py-[6px] font-mono text-[13px] text-muted">No matches</p>
               )}
             </div>,
             document.body,

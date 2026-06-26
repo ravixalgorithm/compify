@@ -7,6 +7,7 @@ import { useLiveControls } from "@/lib/runtime-module";
 import { collectFontFamilies, ensureFontLoaded } from "@/lib/fonts";
 import { TweakPanel } from "./TweakPanel";
 import { ComponentDetailColumn } from "./ComponentDetailColumn";
+import { GradientSupportProbe } from "./GradientSupportProbe";
 
 export function ComponentWorkspace({
   entry,
@@ -46,8 +47,32 @@ export function ComponentWorkspace({
     for (const family of collectFontFamilies(schema, state)) ensureFontLoaded(family);
   }, [schema, state]);
 
+  // Gradient support: a CSS gradient only shows where the component applies the
+  // value to `background`. Probe the component once (hidden) to learn which
+  // color props actually render a gradient, so the picker can hide the Gradient
+  // tab everywhere it wouldn't take effect. Re-probes when the component changes.
+  const probeModuleUrl = moduleUrl ?? entry.compiledModuleUrl;
+  const colorKeys = useMemo(
+    () => schema.filter((c) => c.type === "color").map((c) => c.key),
+    [schema],
+  );
+  const colorKeySig = colorKeys.join(",");
+  const [gradientKeys, setGradientKeys] = useState<Set<string> | null>(null);
+  useEffect(() => {
+    setGradientKeys(null);
+  }, [probeModuleUrl, entry.name, colorKeySig]);
+
   return (
     <div className="flex flex-col gap-5 p-[14px] xl:flex-row xl:items-start xl:p-[26px] 3xl:mx-auto 3xl:max-w-[1560px]">
+      {gradientKeys === null && colorKeys.length > 0 ? (
+        <GradientSupportProbe
+          name={entry.name}
+          moduleUrl={probeModuleUrl}
+          defaults={defaults}
+          colorKeys={colorKeys}
+          onResult={setGradientKeys}
+        />
+      ) : null}
       <ComponentDetailColumn entry={entry} source={source} state={state} moduleUrl={moduleUrl} />
 
       {/* Stacks below the preview up to xl (so 1024px tablets get a full-width preview);
@@ -62,6 +87,7 @@ export function ComponentWorkspace({
             setState((s) => ({ ...s, [key]: value }))
           }
           onReset={() => setState(defaults)}
+          gradientKeys={gradientKeys}
         />
       </aside>
     </div>

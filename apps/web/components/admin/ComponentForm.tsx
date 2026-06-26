@@ -13,6 +13,7 @@ import {
 } from "@compify/shared";
 import { TweakPanel } from "@/components/TweakPanel";
 import { PreviewFrame } from "@/components/PreviewFrame";
+import { GradientSupportProbe } from "@/components/GradientSupportProbe";
 import { useLiveControls } from "@/lib/runtime-module";
 import { collectFontFamilies, ensureFontLoaded } from "@/lib/fonts";
 import { resolvePreviewLayout } from "@/lib/preview";
@@ -551,6 +552,19 @@ export function ComponentForm({
   );
   const canPreview = Boolean(draft.source.trim());
 
+  // Probe which color props render a gradient, so the picker hides the Gradient
+  // tab where it wouldn't take effect (see GradientSupportProbe). Re-probes when
+  // the compiled module or the set of color controls changes.
+  const colorKeys = useMemo(
+    () => tweakableControls.filter((c) => c.type === "color").map((c) => c.key),
+    [tweakableControls],
+  );
+  const colorKeySig = colorKeys.join(",");
+  const [gradientKeys, setGradientKeys] = useState<Set<string> | null>(null);
+  useEffect(() => {
+    setGradientKeys(null);
+  }, [previewModuleUrl, colorKeySig]);
+
   // Per-surface preview framing, parsed from the draft's previewLayout JSON.
   const previewLayoutObj = useMemo<Record<string, any>>(() => {
     if (!draft.previewLayout) return {};
@@ -1075,6 +1089,15 @@ export function ComponentForm({
             </div>
             {tweakableControls.length ? (
               <aside className="h-[70vh] w-full shrink-0 overflow-hidden xl:sticky xl:top-8 xl:h-[calc(100vh-120px)] xl:w-[325px] 3xl:w-[500px]">
+                {gradientKeys === null && previewModuleUrl && colorKeys.length > 0 ? (
+                  <GradientSupportProbe
+                    name={previewSlug}
+                    moduleUrl={previewModuleUrl}
+                    defaults={defaults}
+                    colorKeys={colorKeys}
+                    onResult={setGradientKeys}
+                  />
+                ) : null}
                 <TweakPanel
                   schema={tweakableControls}
                   state={previewState}
@@ -1082,6 +1105,7 @@ export function ComponentForm({
                     setPreviewState((s) => ({ ...s, [key]: value }))
                   }
                   onReset={() => setPreviewState(defaults)}
+                  gradientKeys={gradientKeys}
                 />
               </aside>
             ) : null}
