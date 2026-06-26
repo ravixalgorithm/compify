@@ -20,9 +20,11 @@ import { ViewIntentLink } from "./ViewIntentLink";
 import { SectionDivider } from "./SectionDivider";
 import { SignInModal } from "./SignInModal";
 import { SearchModal } from "./SearchModal";
+import { SearchKbd } from "./ui/kbd";
 import { useUser } from "./AuthProvider";
 import { cn } from "@/lib/cn";
 import { microTransition } from "@/lib/motion";
+import { useSearchHotkey } from "@/lib/use-search-hotkey";
 import { ActiveBg, ActiveDot } from "./ActiveHighlight";
 
 export interface CategoryItem {
@@ -274,6 +276,7 @@ export function Sidebar({
 }) {
   const [signInOpen, setSignInOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  useSearchHotkey(setSearchOpen);
 
   return (
     <aside
@@ -303,7 +306,8 @@ export function Sidebar({
             className="ui-press ui-micro flex w-full shrink-0 items-center gap-[8px] border border-stroke bg-surface px-[12px] py-[10px] text-left hover:border-stroke/80 hover:bg-surface/80"
           >
             <RiSearchLine size={18} className="shrink-0 text-muted" />
-            <span className="text-sm tracking-[-0.42px] 3xl:text-base text-muted">Search Components...</span>
+            <span className="min-w-0 truncate text-sm tracking-[-0.42px] 3xl:text-base text-muted">Search Components...</span>
+            <SearchKbd className="ml-auto" />
           </button>
 
           <div className="flex min-h-0 w-full flex-1 flex-col justify-between">

@@ -13,10 +13,12 @@ import {
 import { Logo } from "@/components/Logo";
 import { SectionDivider } from "@/components/SectionDivider";
 import { SearchModal } from "@/components/SearchModal";
+import { SearchKbd } from "@/components/ui/kbd";
 import { ActiveBg, ActiveDot } from "@/components/ActiveHighlight";
 import { useUser } from "@/components/AuthProvider";
 import { cn } from "@/lib/cn";
 import { microTransition } from "@/lib/motion";
+import { useSearchHotkey } from "@/lib/use-search-hotkey";
 
 type ComponentLink = { name: string; displayName: string };
 
@@ -31,6 +33,7 @@ export function AdminShell({
   const router = useRouter();
   const { signOut } = useUser();
   const [searchOpen, setSearchOpen] = useState(false);
+  useSearchHotkey(setSearchOpen);
 
   // Admin access is the user's Supabase session + app_metadata.is_admin, so
   // "Sign out" is a normal Supabase sign-out. Once signed out the user is no
@@ -64,7 +67,8 @@ export function AdminShell({
               className="ui-press ui-micro flex w-full shrink-0 items-center gap-[8px] border border-stroke bg-surface px-[12px] py-[10px] text-left hover:border-stroke/80 hover:bg-surface/80"
             >
               <RiSearchLine size={18} className="shrink-0 text-muted" />
-              <span className="text-sm tracking-[-0.42px] text-muted">Search Components...</span>
+              <span className="min-w-0 truncate text-sm tracking-[-0.42px] text-muted">Search Components...</span>
+              <SearchKbd className="ml-auto" />
             </button>
 
             <div className="flex min-h-0 w-full flex-1 flex-col justify-between">

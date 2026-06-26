@@ -8,6 +8,7 @@ import type { RegistryEntry } from "@compify/shared";
 import { Logo } from "./Logo";
 import { SectionDivider } from "./SectionDivider";
 import { SearchModal } from "./SearchModal";
+import { SearchKbd } from "./ui/kbd";
 import { useUser } from "./AuthProvider";
 import { UserMenu } from "./UserMenu";
 import {
@@ -18,6 +19,7 @@ import {
 } from "./Sidebar";
 import { ComponentVariantNav } from "./ComponentVariantNav";
 import { sidebarSlideTransition } from "@/lib/motion";
+import { useSearchHotkey } from "@/lib/use-search-hotkey";
 
 /**
  * One sidebar for the whole app. The frame — logo, search, sign-in — is shared
@@ -48,6 +50,7 @@ export function UnifiedSidebar({
   interactive: boolean;
 }) {
   const [searchOpen, setSearchOpen] = useState(false);
+  useSearchHotkey(setSearchOpen);
   const { user, loading, openSignIn } = useUser();
 
   const pathname = usePathname() || "/";
@@ -77,7 +80,8 @@ export function UnifiedSidebar({
             className="ui-press ui-micro flex w-full shrink-0 items-center gap-[8px] border border-stroke bg-surface px-[12px] py-[10px] text-left hover:border-stroke/80 hover:bg-surface/80"
           >
             <RiSearchLine size={18} className="shrink-0 text-muted" />
-            <span className="text-sm tracking-[-0.42px] text-muted 3xl:text-base">Search Components...</span>
+            <span className="min-w-0 truncate text-sm tracking-[-0.42px] text-muted 3xl:text-base">Search Components...</span>
+            <SearchKbd className="ml-auto" />
           </button>
 
           <div className="relative min-h-0 flex-1 overflow-hidden">
