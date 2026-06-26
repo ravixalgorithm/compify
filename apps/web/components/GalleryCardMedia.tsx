@@ -60,12 +60,19 @@ export function GalleryCardMedia({
     (showLivePreview && !previewReady);
 
   // Admin-uploaded gallery media (image/video) replaces the live preview: it
-  // fills the fixed card width, height follows its aspect ratio.
+  // fills the fixed card width, height follows its aspect ratio. MediaThumb
+  // lazy-loads it, holds the space with a skeleton, and (for video) plays only
+  // while on screen.
   if (entry.galleryMedia) {
     return (
-      <div ref={ref} className="relative w-full overflow-hidden bg-bg">
-        <MediaThumb src={entry.galleryMedia} alt={alt} />
-      </div>
+      <MediaThumb
+        src={entry.galleryMedia}
+        alt={alt}
+        priority={priority}
+        category={entry.category}
+        aspectRatio={frame.aspectRatio}
+        minHeight={skeletonMinHeight}
+      />
     );
   }
 

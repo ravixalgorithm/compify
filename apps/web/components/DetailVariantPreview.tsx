@@ -24,7 +24,12 @@ export function DetailVariantPreview({ entry }: { entry: RegistryEntry }) {
   if (entry.variantMedia) {
     return (
       <div className="w-full overflow-hidden bg-black">
-        <MediaThumb src={entry.variantMedia} alt={`${entry.displayName} preview`} />
+        <MediaThumb
+          src={entry.variantMedia}
+          alt={`${entry.displayName} preview`}
+          category={entry.category}
+          minHeight={152}
+        />
       </div>
     );
   }
