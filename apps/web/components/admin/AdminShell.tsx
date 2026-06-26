@@ -14,6 +14,7 @@ import { Logo } from "@/components/Logo";
 import { SectionDivider } from "@/components/SectionDivider";
 import { SearchModal } from "@/components/SearchModal";
 import { ActiveBg, ActiveDot } from "@/components/ActiveHighlight";
+import { useUser } from "@/components/AuthProvider";
 import { cn } from "@/lib/cn";
 import { microTransition } from "@/lib/motion";
 
@@ -28,11 +29,15 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { signOut } = useUser();
   const [searchOpen, setSearchOpen] = useState(false);
 
+  // Admin access is the user's Supabase session + app_metadata.is_admin, so
+  // "Sign out" is a normal Supabase sign-out. Once signed out the user is no
+  // longer an admin, so the server admin layout sends them home on next visit.
   async function logout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    router.push("/admin/login");
+    await signOut();
+    router.push("/");
     router.refresh();
   }
 
