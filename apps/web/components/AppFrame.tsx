@@ -88,7 +88,7 @@ export function AppFrame(props: FrameData & { children: React.ReactNode }) {
             </div>
             {/* Phones & tablets (< lg) — Introduction only, no library/auth. */}
             <div className="lg:hidden">
-              <MobileGate />
+              <MobileGate entries={props.registry} />
             </div>
           </Tooltip.Provider>
         </GalleryFilterProvider>

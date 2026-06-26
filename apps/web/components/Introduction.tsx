@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import type { RegistryEntry } from "@compify/shared";
 import { IntroShowcase } from "@/components/IntroShowcase";
-import { introShowcaseEntries } from "@/lib/intro-showcase";
+import { pickIntroShowcase } from "@/lib/intro-showcase";
 
 const CROSS_PLATFORM = [
   {
@@ -92,11 +93,14 @@ function Paragraphs({ lines, leading = "leading-[24px]" }: { lines: string[]; le
 
 export function Introduction({
   onBrowseLibrary,
+  entries = [],
 }: {
   /** When provided, "Browse Library" becomes a button firing this instead of linking. */
   onBrowseLibrary?: () => void;
+  /** Live (DB-backed) components used to build the showcase grid. */
+  entries?: RegistryEntry[];
 } = {}) {
-  const showcase = introShowcaseEntries();
+  const showcase = pickIntroShowcase(entries);
 
   return (
     <div className="font-[family-name:var(--font-roboto-mono)] min-h-[calc(100vh-12px)] bg-[#111] px-6 pb-12 pt-[70px] shadow-[0px_4px_10px_rgba(0,0,0,0.04)] sm:px-10 lg:px-[200px]">
