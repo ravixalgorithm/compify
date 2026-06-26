@@ -24,17 +24,8 @@ const nextConfig = {
         "../../registry.json",
       ],
     },
-    // The admin publish route resolves the repo via process.cwd(), which makes
-    // Next trace the entire build dir into its serverless function and blow past
-    // Vercel's 250 MB limit. None of these are needed at runtime.
     outputFileTracingExcludes: {
       "*": ["**/.next/cache/**"],
-      "/api/admin/publish": [
-        "**/.next/cache/**",
-        "**/.next/static/**",
-        "**/.next/trace",
-        "**/public/**",
-      ],
     },
   },
   webpack: (config) => {
