@@ -55,11 +55,13 @@ const ModalContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     overlayClassName?: string;
     showClose?: boolean;
-    /** Stacking layer for the whole modal. Default z-50; raise above z-[100]
-     *  popovers (Select/Tooltip) when a modal must sit on top of them. */
+    /** Stacking layer for the whole modal. Defaults very high so modals sit
+     *  above everything — including library components that use extreme
+     *  z-indexes (the gallery uses 999999999). Select/Tooltip popovers sit just
+     *  above this (max int) so they still work inside modals. */
     zIndexClass?: string;
   }
->(({ className, overlayClassName, children, showClose: _showClose = true, zIndexClass = "z-50", ...rest }, forwardedRef) => {
+>(({ className, overlayClassName, children, showClose: _showClose = true, zIndexClass = "z-[2000000000]", ...rest }, forwardedRef) => {
   const open = React.useContext(ModalOpenContext);
 
   return (

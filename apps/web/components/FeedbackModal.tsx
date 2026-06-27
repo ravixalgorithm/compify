@@ -48,7 +48,6 @@ export function FeedbackModal({ open, onClose }: { open: boolean; onClose: () =>
     <Modal.Root open={open} onOpenChange={(next) => (next ? null : onClose())}>
       <Modal.Content
         showClose={false}
-        zIndexClass="z-[120]"
         className="flex w-[480px] flex-col gap-[28px] overflow-hidden bg-[#1b1b1b] p-[26px] font-mono"
       >
         <div className="flex w-full items-start justify-between">
