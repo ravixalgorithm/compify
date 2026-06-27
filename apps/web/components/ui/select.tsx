@@ -54,7 +54,7 @@ const SelectContent = React.forwardRef<
         sideOffset={sideOffset}
         collisionPadding={collisionPadding}
         className={cn(
-          "z-[100] overflow-hidden border border-panel-line bg-[#2a2a2c] shadow-[0px_4px_10px_rgba(0,0,0,0.4)]",
+          "z-[2147483647] overflow-hidden border border-panel-line bg-[#2a2a2c] shadow-[0px_4px_10px_rgba(0,0,0,0.4)]",
           "min-w-[var(--radix-select-trigger-width)]",
           "duration-300 ease-micro",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
