@@ -101,8 +101,15 @@ function ValueBox({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onFocus={(e) => {
+          // Select the whole value on focus so a click lets you type a new number.
+          const el = e.currentTarget;
+          requestAnimationFrame(() => {
+            if (document.activeElement === el) el.select();
+          });
+        }}
         className={cn(
-          "w-[40px] shrink-0 border border-field bg-field px-[6px] py-[4px] text-center font-mono text-2xs text-[#c8c8c8] outline-none",
+          "w-[44px] shrink-0 border border-field bg-field px-[6px] py-[4px] text-center font-mono text-sm text-[#c8c8c8] outline-none transition-colors focus:border-[#5a5a5c] focus:bg-[#2a2a2b] focus:text-white",
           className
         )}
       />
@@ -111,11 +118,11 @@ function ValueBox({
   return (
     <div
       className={cn(
-        "flex w-[40px] shrink-0 items-start justify-center border border-field bg-field px-[6px] py-[4px]",
+        "flex w-[44px] shrink-0 items-start justify-center border border-field bg-field px-[6px] py-[4px]",
         className
       )}
     >
-      <span className="font-mono text-2xs text-[#c8c8c8]">{value}</span>
+      <span className="font-mono text-sm text-[#c8c8c8]">{value}</span>
     </div>
   );
 }
