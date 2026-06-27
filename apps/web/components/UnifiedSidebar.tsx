@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import { RiLoginBoxLine, RiSearchLine } from "@remixicon/react";
 import type { RegistryEntry } from "@compify/shared";
 import { Logo } from "./Logo";
@@ -18,15 +17,17 @@ import {
   type ComponentItem,
 } from "./Sidebar";
 import { ComponentVariantNav } from "./ComponentVariantNav";
-import { sidebarSlideTransition } from "@/lib/motion";
+import { cn } from "@/lib/cn";
 import { useSearchHotkey } from "@/lib/use-search-hotkey";
 
 /**
  * One sidebar for the whole app. The frame — logo, search, sign-in — is shared
  * and stays put; only the nav content slides between the gallery sections and
- * the component-detail variant nav. `initial={false}` skips the entrance
- * animation so a refresh on `/components/*` lands on the variant nav immediately;
- * client navigations still slide smoothly.
+ * the component-detail variant nav. The slide is a pure CSS transform transition
+ * (compositor-driven) rather than a JS animation, so it stays smooth even while
+ * the destination page (gallery media / live preview) is mounting on the main
+ * thread. A CSS transition only fires on change, so a refresh on `/components/*`
+ * lands on the variant nav with no entrance animation; client navigations slide.
  */
 export function UnifiedSidebar({
   categories,
@@ -85,11 +86,11 @@ export function UnifiedSidebar({
           </button>
 
           <div className="relative min-h-0 flex-1 overflow-hidden">
-            <motion.div
-              className="flex h-full w-[200%]"
-              initial={false}
-              animate={{ x: isDetail ? "-50%" : "0%" }}
-              transition={sidebarSlideTransition}
+            <div
+              className={cn(
+                "flex h-full w-[200%] will-change-transform transition-transform duration-[420ms] ease-micro motion-reduce:transition-none",
+                isDetail ? "-translate-x-1/2" : "translate-x-0",
+              )}
             >
               <div className="no-scrollbar h-full w-1/2 overflow-y-auto overscroll-contain pb-2">
                 <SidebarNav
@@ -111,7 +112,7 @@ export function UnifiedSidebar({
                   ) : null}
                 </div>
               </div>
-            </motion.div>
+            </div>
             {/* fade scroll content into the footer */}
             <div
               className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[65px] bg-gradient-to-b from-transparent to-bg"
