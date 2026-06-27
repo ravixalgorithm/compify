@@ -449,7 +449,10 @@ function StepperInput({
   };
 
   return (
-    <div ref={wrapRef} className="ui-micro flex w-full items-stretch border border-field bg-field">
+    <div
+      ref={wrapRef}
+      className="ui-micro flex w-full items-stretch border border-field bg-field transition-colors focus-within:border-[#5a5a5c] focus-within:bg-[#2a2a2b]"
+    >
       <button
         type="button"
         tabIndex={-1}
@@ -474,11 +477,20 @@ function StepperInput({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
+        onFocus={(e) => {
+          // Select the whole value on focus so a click lets you type a new number
+          // straight away. Deferred past the click's caret placement, and skipped
+          // when a drag-scrub took focus (it blurs the input).
+          const el = e.currentTarget;
+          requestAnimationFrame(() => {
+            if (document.activeElement === el) el.select();
+          });
+        }}
         className={cn(
-          "min-w-0 flex-1 cursor-ew-resize bg-transparent px-[6px] py-[4px] text-center font-mono text-[#c8c8c8] outline-none",
+          "min-w-0 flex-1 cursor-ew-resize bg-transparent px-[6px] py-[4px] text-center font-mono text-[#c8c8c8] outline-none focus:text-white",
           "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
           scrubbing && "select-none",
-          small ? "text-2xs" : "text-xsm",
+          small ? "text-xsm" : "text-sm",
         )}
       />
       <button
