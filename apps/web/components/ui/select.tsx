@@ -21,7 +21,7 @@ const SelectTrigger = React.forwardRef<
     className={cn(
       "group/trigger flex w-full min-w-0 items-center justify-between gap-1",
       "border border-field bg-field py-[4px] pl-2 pr-1",
-      "font-mono text-[13px] capitalize text-[#c8c8c8] outline-none",
+      "font-mono text-sm capitalize text-[#c8c8c8] outline-none",
       "duration-micro ease-micro transition-[color,background-color,border-color,box-shadow]",
       "data-[state=open]:text-white",
       className,
@@ -79,7 +79,7 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={forwardedRef}
     className={cn(
-      "relative cursor-pointer px-2 py-[6px] font-mono text-[13px] capitalize text-[#b8b8b8] outline-none",
+      "relative cursor-pointer px-2 py-[6px] font-mono text-sm capitalize text-[#b8b8b8] outline-none",
       "duration-micro ease-micro transition-[color,background-color]",
       // Selected: brighter/medium text (Radix also auto-highlights it on open).
       "data-[state=checked]:font-medium data-[state=checked]:text-white",

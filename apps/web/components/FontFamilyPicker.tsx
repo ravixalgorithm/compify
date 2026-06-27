@@ -99,7 +99,7 @@ export function FontFamilyPicker({
             select(query.trim() || results[0] || value);
           }
         }}
-        className="w-full border border-field bg-field py-[4px] pl-2 pr-6 font-mono text-[13px] leading-tight text-[#c8c8c8] outline-none ui-micro"
+        className="w-full border border-field bg-field py-[4px] pl-2 pr-6 font-mono text-sm leading-tight text-[#c8c8c8] outline-none ui-micro"
       />
       <RiArrowDownSLine
         size={16}
@@ -125,7 +125,7 @@ export function FontFamilyPicker({
                     onClick={() => select(f)}
                     style={{ fontFamily: `'${f}'` }}
                     className={cn(
-                      "block w-full cursor-pointer px-2 py-[6px] text-left text-[13px] text-[#c8c8c8] transition-[color,background-color] duration-micro ease-micro hover:bg-field hover:text-white",
+                      "block w-full cursor-pointer px-2 py-[6px] text-left text-sm text-[#c8c8c8] transition-[color,background-color] duration-micro ease-micro hover:bg-field hover:text-white",
                       f === value && "font-medium text-white",
                     )}
                   >
@@ -136,12 +136,12 @@ export function FontFamilyPicker({
                 <button
                   type="button"
                   onClick={() => select(query.trim())}
-                  className="block w-full cursor-pointer px-2 py-[6px] text-left font-mono text-[13px] text-muted transition-[color,background-color] duration-micro ease-micro hover:bg-field hover:text-white"
+                  className="block w-full cursor-pointer px-2 py-[6px] text-left font-mono text-sm text-muted transition-[color,background-color] duration-micro ease-micro hover:bg-field hover:text-white"
                 >
                   Use “{query.trim()}”
                 </button>
               ) : (
-                <p className="px-2 py-[6px] font-mono text-[13px] text-muted">No matches</p>
+                <p className="px-2 py-[6px] font-mono text-sm text-muted">No matches</p>
               )}
             </div>,
             document.body,

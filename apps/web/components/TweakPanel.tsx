@@ -101,8 +101,15 @@ function ValueBox({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onFocus={(e) => {
+          // Select the whole value on focus so a click lets you type a new number.
+          const el = e.currentTarget;
+          requestAnimationFrame(() => {
+            if (document.activeElement === el) el.select();
+          });
+        }}
         className={cn(
-          "w-[40px] shrink-0 border border-field bg-field px-[6px] py-[4px] text-center font-mono text-2xs text-[#c8c8c8] outline-none",
+          "w-[44px] shrink-0 border border-field bg-field px-[6px] py-[4px] text-center font-mono text-sm text-[#c8c8c8] outline-none transition-colors focus:border-[#5a5a5c] focus:bg-[#2a2a2b] focus:text-white",
           className
         )}
       />
@@ -111,11 +118,11 @@ function ValueBox({
   return (
     <div
       className={cn(
-        "flex w-[40px] shrink-0 items-start justify-center border border-field bg-field px-[6px] py-[4px]",
+        "flex w-[44px] shrink-0 items-start justify-center border border-field bg-field px-[6px] py-[4px]",
         className
       )}
     >
-      <span className="font-mono text-2xs text-[#c8c8c8]">{value}</span>
+      <span className="font-mono text-sm text-[#c8c8c8]">{value}</span>
     </div>
   );
 }
@@ -449,7 +456,10 @@ function StepperInput({
   };
 
   return (
-    <div ref={wrapRef} className="ui-micro flex w-full items-stretch border border-field bg-field">
+    <div
+      ref={wrapRef}
+      className="ui-micro flex w-full items-stretch border border-field bg-field transition-colors focus-within:border-[#5a5a5c] focus-within:bg-[#2a2a2b]"
+    >
       <button
         type="button"
         tabIndex={-1}
@@ -474,11 +484,20 @@ function StepperInput({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
+        onFocus={(e) => {
+          // Select the whole value on focus so a click lets you type a new number
+          // straight away. Deferred past the click's caret placement, and skipped
+          // when a drag-scrub took focus (it blurs the input).
+          const el = e.currentTarget;
+          requestAnimationFrame(() => {
+            if (document.activeElement === el) el.select();
+          });
+        }}
         className={cn(
-          "min-w-0 flex-1 cursor-ew-resize bg-transparent px-[6px] py-[4px] text-center font-mono text-[#c8c8c8] outline-none",
+          "min-w-0 flex-1 cursor-ew-resize bg-transparent px-[6px] py-[4px] text-center font-mono text-[#c8c8c8] outline-none focus:text-white",
           "[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
           scrubbing && "select-none",
-          small ? "text-2xs" : "text-xsm",
+          small ? "text-xsm" : "text-sm",
         )}
       />
       <button
@@ -746,7 +765,7 @@ function SubField({
 }) {
   return (
     <div className="flex items-center gap-[6px] py-[3px]">
-      <span className="w-[84px] shrink-0 text-2xs tracking-[-0.24px] text-muted">
+      <span className="w-[84px] shrink-0 text-sm tracking-[-0.24px] text-muted">
         {label}
       </span>
       <div className="flex min-w-0 flex-1 items-center">{children}</div>
