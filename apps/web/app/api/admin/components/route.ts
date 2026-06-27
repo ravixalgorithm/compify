@@ -32,10 +32,21 @@ const MEDIA_TYPES = new Map([
   ["video/quicktime", "mov"],
 ]);
 
+// Comma- OR newline-separated (tags, related slugs).
 function parseStringList(raw: string | null): string[] {
   if (!raw) return [];
   return raw
     .split(/[,\n]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+// One entry per LINE only — commas are kept as content (key features and
+// description paragraphs can read "Light, dark, and system themes").
+function parseLines(raw: string | null): string[] {
+  if (!raw) return [];
+  return raw
+    .split(/\r?\n/)
     .map((s) => s.trim())
     .filter(Boolean);
 }
@@ -152,8 +163,8 @@ export async function POST(request: Request) {
       displayName: String(form.get("displayName") ?? "").trim(),
       category: (String(form.get("category") ?? "cards") as ComponentCategory),
       description: String(form.get("description") ?? "").trim(),
-      descriptionParagraphs: parseStringList(String(form.get("descriptionParagraphs") ?? "")),
-      keyFeatures: parseStringList(String(form.get("keyFeatures") ?? "")),
+      descriptionParagraphs: parseLines(String(form.get("descriptionParagraphs") ?? "")),
+      keyFeatures: parseLines(String(form.get("keyFeatures") ?? "")),
       tags: parseStringList(String(form.get("tags") ?? "")),
       related: parseStringList(String(form.get("related") ?? "")),
       previewAccent: String(form.get("previewAccent") ?? "#7C3AED"),
