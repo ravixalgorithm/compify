@@ -55,7 +55,7 @@ function InfoBlock({ label, children }: { label: string; children: ReactNode }) 
 }
 
 function Divider() {
-  return <div className="h-px w-full shrink-0 bg-[#2b2b2b]" aria-hidden />;
+  return <div className="h-px w-full shrink-0 bg-divider" aria-hidden />;
 }
 
 function Section({

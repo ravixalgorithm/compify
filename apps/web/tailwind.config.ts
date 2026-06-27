@@ -14,7 +14,7 @@ const config: Config = {
         elevated: "#242424",
         stroke: "#212121",
         "stroke-hover": "#2e2e2e",
-        divider: "rgba(43,43,43,0.5)",
+        divider: "#343434",
         // Control panel (tweak panel) surfaces
         panel: "#232324",
         "panel-line": "#333333",
