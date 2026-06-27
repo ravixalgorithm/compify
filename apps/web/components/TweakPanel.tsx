@@ -746,7 +746,7 @@ function SubField({
 }) {
   return (
     <div className="flex items-center gap-[6px] py-[3px]">
-      <span className="w-[84px] shrink-0 text-2xs tracking-[-0.24px] text-muted">
+      <span className="w-[84px] shrink-0 text-sm tracking-[-0.24px] text-muted">
         {label}
       </span>
       <div className="flex min-w-0 flex-1 items-center">{children}</div>
