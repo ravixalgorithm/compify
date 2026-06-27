@@ -55,15 +55,18 @@ const ModalContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     overlayClassName?: string;
     showClose?: boolean;
+    /** Stacking layer for the whole modal. Default z-50; raise above z-[100]
+     *  popovers (Select/Tooltip) when a modal must sit on top of them. */
+    zIndexClass?: string;
   }
->(({ className, overlayClassName, children, showClose: _showClose = true, ...rest }, forwardedRef) => {
+>(({ className, overlayClassName, children, showClose: _showClose = true, zIndexClass = "z-50", ...rest }, forwardedRef) => {
   const open = React.useContext(ModalOpenContext);
 
   return (
     <AnimatePresence mode="wait">
       {open ? (
         <ModalPortal forceMount>
-          <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
+          <div className={cn("fixed inset-0 flex items-center justify-center overflow-y-auto p-4", zIndexClass)}>
             <ModalOverlay className={overlayClassName} />
             <DialogPrimitive.Content asChild forceMount {...rest}>
               <motion.div

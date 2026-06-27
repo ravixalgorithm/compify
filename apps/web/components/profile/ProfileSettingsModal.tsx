@@ -182,6 +182,7 @@ export function ProfileSettingsModal({
     <Modal.Root open={open} onOpenChange={(next) => (next ? null : onClose())}>
       <Modal.Content
         showClose={false}
+        zIndexClass="z-[120]"
         className="flex h-[460px] max-h-[calc(100vh-2rem)] w-[709px] max-w-[calc(100vw-2rem)] flex-col gap-[10px] overflow-hidden bg-[#0f0f0f] px-[12px] py-[10px] font-mono shadow-[0px_4px_2px_rgba(0,0,0,0.25)] sm:h-[383px] sm:flex-row"
       >
         {/* Left — settings nav */}

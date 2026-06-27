@@ -66,6 +66,10 @@ export async function POST(request: Request) {
     const form = await request.formData();
     const slug = String(form.get("slug") ?? "").trim();
     const source = String(form.get("source") ?? "");
+    // Edit-only: the row's current slug. When it differs from `slug`, this save
+    // renames the component (the new slug must be free).
+    const originalSlug = String(form.get("originalSlug") ?? "").trim();
+    const renaming = Boolean(originalSlug) && originalSlug !== slug;
 
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
       return NextResponse.json(
@@ -199,11 +203,26 @@ export async function POST(request: Request) {
       }
     }
 
-    const { data, error } = await db
-      .from("components")
-      .upsert(payload, { onConflict: "slug" })
-      .select("id, slug, status, compiled_module_url, thumbnail_url")
-      .single();
+    // Renaming the Component ID: the target id must be free, then update the
+    // existing row in place so featured/positions/copy_count/created_at survive.
+    if (renaming) {
+      const { data: clash } = await db
+        .from("components")
+        .select("slug")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (clash) {
+        return NextResponse.json(
+          { error: `A component with ID "${slug}" already exists. Pick a different ID.`, stage: "db" },
+          { status: 409 },
+        );
+      }
+    }
+
+    const cols = "id, slug, status, compiled_module_url, thumbnail_url";
+    const { data, error } = renaming
+      ? await db.from("components").update(payload).eq("slug", originalSlug).select(cols).single()
+      : await db.from("components").upsert(payload, { onConflict: "slug" }).select(cols).single();
 
     if (error) {
       return NextResponse.json({ error: `Save failed: ${error.message}`, stage: "db" }, { status: 500 });

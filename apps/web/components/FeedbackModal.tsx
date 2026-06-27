@@ -48,6 +48,7 @@ export function FeedbackModal({ open, onClose }: { open: boolean; onClose: () =>
     <Modal.Root open={open} onOpenChange={(next) => (next ? null : onClose())}>
       <Modal.Content
         showClose={false}
+        zIndexClass="z-[120]"
         className="flex w-[480px] flex-col gap-[28px] overflow-hidden bg-[#1b1b1b] p-[26px] font-mono"
       >
         <div className="flex w-full items-start justify-between">
@@ -75,7 +76,12 @@ export function FeedbackModal({ open, onClose }: { open: boolean; onClose: () =>
               <span className="flex size-[40px] items-center justify-center rounded-full bg-[#2b2b2b] text-[#4ade80]">
                 <RiCheckLine size={22} />
               </span>
-              <p className="text-[14px] tracking-[-0.42px] text-white">Thanks for your feedback!</p>
+              <div className="flex flex-col items-center gap-[4px] text-center">
+                <p className="text-[14px] tracking-[-0.42px] text-white">Thanks for your feedback!</p>
+                <p className="max-w-[320px] text-[13px] leading-[18px] tracking-[-0.39px] text-[#b8b8b8]">
+                  We review every submission and use it to keep improving the platform.
+                </p>
+              </div>
             </div>
             <button
               type="button"

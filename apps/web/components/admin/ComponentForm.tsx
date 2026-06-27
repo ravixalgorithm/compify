@@ -730,6 +730,9 @@ export function ComponentForm({
 
       const form = new FormData();
       form.append("slug", draft.name);
+      // On edit, send the original slug so the server renames the existing row
+      // when the Component ID changed (and rejects if the new id is taken).
+      if (mode === "edit" && initialEntry) form.append("originalSlug", initialEntry.name);
       form.append("source", draft.source);
       form.append("displayName", draft.displayName);
       // Normalise the category to a slug so a typed label ("My Widgets") becomes
@@ -845,12 +848,15 @@ export function ComponentForm({
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field
                   label="Component ID"
-                  hint={mode === "edit" ? "Locked after publishing." : "Used in the page URL."}
+                  hint={
+                    mode === "edit"
+                      ? "Used in the page URL. Changing it renames the component; must be unique."
+                      : "Used in the page URL."
+                  }
                 >
                   <input
-                    className={cn(inputClass, mode === "edit" && "opacity-60")}
+                    className={inputClass}
                     value={draft.name}
-                    disabled={mode === "edit"}
                     onChange={(e) => updateDraft({ name: slugify(e.target.value) })}
                     placeholder="contact-form"
                   />
