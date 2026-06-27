@@ -114,3 +114,18 @@ export function generateIndexRegistration(name: string): string {
 export function tweakDefaults(schema: TweakControl[]): TweakState {
   return Object.fromEntries(schema.map((c) => [c.key, c.default]));
 }
+
+/**
+ * The initial tweak state for a component: each control's value is the admin's
+ * saved preview default when present, otherwise the control's own (Framer)
+ * default. Keying off the current schema makes it tolerate drift — a control
+ * added after the preview was saved still gets its own default.
+ */
+export function resolvePreviewState(
+  schema: TweakControl[],
+  overrides?: TweakState | null,
+): TweakState {
+  return Object.fromEntries(
+    schema.map((c) => [c.key, overrides && c.key in overrides ? overrides[c.key] : c.default]),
+  );
+}

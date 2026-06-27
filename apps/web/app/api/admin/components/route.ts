@@ -179,6 +179,7 @@ export async function POST(request: Request) {
 
     const publish = String(form.get("status") ?? "published") !== "draft";
     const previewLayoutRaw = String(form.get("previewLayout") ?? "").trim();
+    const previewDefaultsRaw = String(form.get("previewDefaults") ?? "").trim();
 
     const payload: Record<string, unknown> = {
       ...row,
@@ -202,6 +203,28 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "previewLayout must be valid JSON." }, { status: 400 });
       }
     }
+    // Admin-curated preview defaults (tweak state). Always sent by the editor;
+    // an empty object means "no overrides" and is stored as-is so a previous
+    // preview can be cleared. Reject blob: URLs — those are transient local
+    // previews that won't resolve on the live site (uploads are disabled in the
+    // editor, but guard anyway).
+    if (previewDefaultsRaw) {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(previewDefaultsRaw);
+      } catch {
+        return NextResponse.json({ error: "previewDefaults must be valid JSON." }, { status: 400 });
+      }
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        if (JSON.stringify(parsed).includes("blob:")) {
+          return NextResponse.json(
+            { error: "Preview defaults can't reference uploaded (blob:) images — use an image URL." },
+            { status: 400 },
+          );
+        }
+        payload.preview_defaults = parsed;
+      }
+    }
 
     // Renaming the Component ID: the target id must be free, then update the
     // existing row in place so featured/positions/copy_count/created_at survive.
@@ -220,9 +243,20 @@ export async function POST(request: Request) {
     }
 
     const cols = "id, slug, status, compiled_module_url, thumbnail_url";
-    const { data, error } = renaming
-      ? await db.from("components").update(payload).eq("slug", originalSlug).select(cols).single()
-      : await db.from("components").upsert(payload, { onConflict: "slug" }).select(cols).single();
+    const save = (p: Record<string, unknown>) =>
+      renaming
+        ? db.from("components").update(p).eq("slug", originalSlug).select(cols).single()
+        : db.from("components").upsert(p, { onConflict: "slug" }).select(cols).single();
+
+    let { data, error } = await save(payload);
+    // 42703 = undefined_column: this DB predates the preview_defaults migration.
+    // Don't block the edit — drop that one column and retry so every other field
+    // still saves (the admin just needs to run the ALTER to persist previews).
+    if (error?.code === "42703" && "preview_defaults" in payload) {
+      const rest = { ...payload };
+      delete rest.preview_defaults;
+      ({ data, error } = await save(rest));
+    }
 
     if (error) {
       return NextResponse.json({ error: `Save failed: ${error.message}`, stage: "db" }, { status: 500 });

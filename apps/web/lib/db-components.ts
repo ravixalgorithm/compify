@@ -54,6 +54,10 @@ function rowToEntry(row: Record<string, any>): RegistryEntry {
     copyCount: row.copy_count ?? 0,
     compiledModuleUrl: row.compiled_module_url ?? undefined,
     previewSurfaces: surfacesFromLayout(row.preview_layout),
+    previewDefaults:
+      row.preview_defaults && typeof row.preview_defaults === "object" && !Array.isArray(row.preview_defaults)
+        ? row.preview_defaults
+        : undefined,
   };
 }
 
@@ -86,7 +90,7 @@ function toDbComponent(row: Record<string, any>): DbComponent {
 // `source` column is intentionally excluded — the list discards it (consumers
 // use `c.entry` only), so fetching every component's raw .tsx on every request
 // was pure waste. The detail page (`fetchOne`) still selects it via `*`.
-const LIST_COLUMNS = [
+const LIST_COLUMN_LIST = [
   "slug",
   "display_name",
   "category",
@@ -100,6 +104,7 @@ const LIST_COLUMNS = [
   "featured",
   "preview_accent",
   "preview_layout",
+  "preview_defaults",
   "thumbnail_url",
   "gallery_media_url",
   "variant_media_url",
@@ -109,7 +114,11 @@ const LIST_COLUMNS = [
   "related",
   "copy_count",
   "compiled_module_url",
-].join(",");
+];
+const LIST_COLUMNS = LIST_COLUMN_LIST.join(",");
+// Fallback column list for a DB that predates the preview_defaults migration —
+// so the gallery still loads (instead of emptying) before the ALTER is run.
+const LIST_COLUMNS_LEGACY = LIST_COLUMN_LIST.filter((c) => c !== "preview_defaults").join(",");
 
 async function fetchOne(slug: string): Promise<DbComponent | null> {
   const { data, error } = await readClient()
@@ -123,11 +132,20 @@ async function fetchOne(slug: string): Promise<DbComponent | null> {
 }
 
 async function fetchAll(): Promise<DbComponent[]> {
-  const { data, error } = await readClient()
-    .from("components")
-    .select(LIST_COLUMNS)
-    .eq("status", "published")
-    .order("copy_count", { ascending: false });
+  const run = (columns: string) =>
+    readClient()
+      .from("components")
+      .select(columns)
+      .eq("status", "published")
+      .order("copy_count", { ascending: false });
+
+  let { data, error } = await run(LIST_COLUMNS);
+  // 42703 = undefined_column: the preview_defaults migration hasn't been run on
+  // this DB yet. Retry without it so the gallery still loads (cards just fall
+  // back to the component's own control defaults until the column is added).
+  if (error?.code === "42703") {
+    ({ data, error } = await run(LIST_COLUMNS_LEGACY));
+  }
   if (error || !data) return [];
   return data.map(toDbComponent);
 }

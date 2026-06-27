@@ -10,6 +10,15 @@ const nextConfig = {
   transpilePackages: ["@compify/library", "@compify/shared"],
   // Include library sources for server-side readSource() on Vercel.
   experimental: {
+    // Client router cache: keep a visited dynamic route's RSC payload around so
+    // navigating back to it (e.g. component detail → home gallery) is served from
+    // cache — instant, no server round-trip / skeleton — instead of refetching
+    // the live DB on every return. The gallery tolerates up to this much
+    // staleness on back-nav; detail-page view counts refresh client-side anyway.
+    staleTimes: {
+      dynamic: 60,
+      static: 300,
+    },
     // esbuild has a native binary + dynamic requires; let Next require it at
     // runtime instead of bundling it into the serverless function (fixes the
     // admin compile routes in dev and on Vercel).

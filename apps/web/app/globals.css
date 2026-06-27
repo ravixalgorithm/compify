@@ -15,6 +15,14 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* The component detail page is a full-height, non-scrolling shell (its panels
+   scroll internally), so the root never shows a scrollbar there. Drop the
+   reserved gutter on that route so the control-panel rail sits flush against
+   the right edge instead of leaving the gutter's width as dead space. */
+html:has([data-app-shell="detail"]) {
+  scrollbar-gutter: auto;
+}
+
 html,
 body {
   padding: 0;

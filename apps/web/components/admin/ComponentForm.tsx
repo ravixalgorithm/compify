@@ -611,18 +611,27 @@ export function ComponentForm({
     updateDraft({ previewLayout: Object.keys(next).length ? JSON.stringify(next) : undefined });
   }
 
+  // Admin's previously-saved preview defaults (edit mode) — loaded into the panel
+  // so editing starts from the saved look, not the raw Framer defaults.
+  const savedPreviewDefaults = initialEntry?.previewDefaults;
+
   // Keep existing edits when the schema changes (e.g. the live introspected one
-  // arrives after compile); seed new controls with their default, drop removed.
+  // arrives after compile); seed new controls from the saved preview default
+  // (falling back to the control default), drop removed.
   useEffect(() => {
     setPreviewState((prev) => {
       const next: TweakState = {};
       for (const control of activeSchema) {
         next[control.key] =
-          control.key in prev ? prev[control.key] : control.default;
+          control.key in prev
+            ? prev[control.key]
+            : savedPreviewDefaults && control.key in savedPreviewDefaults
+              ? savedPreviewDefaults[control.key]
+              : control.default;
       }
       return next;
     });
-  }, [activeSchema]);
+  }, [activeSchema, savedPreviewDefaults]);
 
   // Preload active font families so the preview renders in them even when the
   // relevant control is in a collapsed panel section.
@@ -749,6 +758,15 @@ export function ComponentForm({
       form.append("framerModuleUrl", draft.framerModuleUrl ?? "");
 
       if (draft.previewLayout) form.append("previewLayout", draft.previewLayout);
+
+      // Admin-curated preview defaults: the current tweak-panel state, saved as
+      // how the component renders by default on the live site (over its Framer
+      // control defaults). Only tweakable controls are persisted.
+      const previewDefaults: TweakState = {};
+      for (const control of tweakableControls) {
+        if (control.key in previewState) previewDefaults[control.key] = previewState[control.key];
+      }
+      form.append("previewDefaults", JSON.stringify(previewDefaults));
 
       // Gallery / variant thumbnail media: send new files, or a clear flag when
       // an existing one was removed.
@@ -1112,6 +1130,7 @@ export function ComponentForm({
                   }
                   onReset={() => setPreviewState(defaults)}
                   gradientKeys={gradientKeys}
+                  allowImageUpload={false}
                 />
               </aside>
             ) : null}

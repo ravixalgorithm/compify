@@ -303,6 +303,10 @@ alter table public.components add column if not exists grid_column smallint;
 -- Uploaded gallery/variant thumbnail media (image or video URL).
 alter table public.components add column if not exists gallery_media_url text;
 alter table public.components add column if not exists variant_media_url text;
+-- Admin-curated preview defaults: the tweak-panel state (prop key -> value) the
+-- admin saved as how the component should look by default, overriding the
+-- component's own (Framer) control defaults on the live site.
+alter table public.components add column if not exists preview_defaults jsonb not null default '{}'::jsonb;
 -- Admin-curated "Featured" marker (admin-set only). Idempotent for re-runs.
 alter table public.components add column if not exists featured boolean not null default false;
 -- Manual ordering within the Featured view (independent of the home-grid pins).

@@ -85,6 +85,18 @@ export function connectSnippet(
   }
 }
 
+/** Comment lines for the props changed away from their defaults in the preview. */
+function changedPropComments(entry: RegistryEntry, tweaks: TweakState): string[] {
+  return entry.tweakSchema
+    .filter(
+      (c) =>
+        isTweakableControl(c) &&
+        tweaks[c.key] !== undefined &&
+        tweaks[c.key] !== c.default,
+    )
+    .map((c) => `//   ${c.key}: ${JSON.stringify(tweaks[c.key])}`);
+}
+
 /** Builds the Framer paste payload: module URL when hosted, otherwise source + prop hints. */
 export function framerCopy(
   entry: RegistryEntry,
@@ -94,20 +106,34 @@ export function framerCopy(
   const moduleUrl = entry.framerModuleUrl?.trim();
   if (moduleUrl) return moduleUrl;
 
-  const changed = entry.tweakSchema
-    .filter(
-      (c) =>
-        isTweakableControl(c) &&
-        tweaks[c.key] !== undefined &&
-        tweaks[c.key] !== c.default,
-    )
-    .map((c) => `//   ${c.key}: ${JSON.stringify(tweaks[c.key])}`);
+  const changed = changedPropComments(entry, tweaks);
   const header = [
     `// ${entry.displayName} — Compify UI`,
     `// Paste into a Framer code component (Insert → Code → New Component).`,
     changed.length
       ? `// In the Framer property panel, set:\n${changed.join("\n")}`
       : `// All defaults — adjust in the Framer property panel.`,
+  ].join("\n");
+  return `${header}\n\n${source}`;
+}
+
+/**
+ * Builds the "Copy Code" payload: the complete component source, ready to drop
+ * into a React/TypeScript project. Unlike framerCopy it always returns the code
+ * (never the hosted Framer URL) and captures any props changed in the preview
+ * as a header comment so the customization isn't lost.
+ */
+export function componentCodeCopy(
+  entry: RegistryEntry,
+  source: string,
+  tweaks: TweakState
+): string {
+  const changed = changedPropComments(entry, tweaks);
+  const header = [
+    `// ${entry.displayName} — Compify UI`,
+    changed.length
+      ? `// Props set in the preview:\n${changed.join("\n")}`
+      : `// Using component defaults.`,
   ].join("\n");
   return `${header}\n\n${source}`;
 }

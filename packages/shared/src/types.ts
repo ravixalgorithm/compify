@@ -244,6 +244,14 @@ export interface RegistryEntry {
    * component per surface, and the choice is applied on the live site.
    */
   previewSurfaces?: Partial<Record<PreviewSurfaceName, PreviewSurfaceLayout>>;
+  /**
+   * Admin-curated default tweak state (prop key -> value). When set, the live
+   * site initializes the control panel — and every default render of the
+   * component (detail stage, gallery card, variant tile, Copy) — from these
+   * values instead of the component's own Framer control defaults. Keys absent
+   * here fall back to each control's `default`, so it tolerates schema drift.
+   */
+  previewDefaults?: TweakState;
 }
 
 export type PreviewSurfaceName = "gallery" | "detail" | "variant";

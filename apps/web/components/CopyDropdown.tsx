@@ -28,7 +28,7 @@ export function CopyDropdown({
   // Restore the last-chosen workflow on mount (defaults to Framer).
   useEffect(() => {
     const stored = window.localStorage.getItem(WORKFLOW_KEY);
-    if (stored === "mcp" || stored === "framer") setWorkflowState(stored);
+    if (stored === "mcp" || stored === "framer" || stored === "code") setWorkflowState(stored);
   }, []);
 
   function setWorkflow(next: Workflow) {

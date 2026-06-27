@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { MotionConfig } from "framer-motion";
 import type { RegistryEntry } from "@compify/shared";
 import { GalleryFilterProvider, useGalleryFilter } from "@/lib/gallery-filter-context";
+import { OptimisticNavProvider } from "@/lib/optimistic-nav";
 import { AuthProvider } from "./AuthProvider";
 import { UnifiedSidebar } from "./UnifiedSidebar";
 import { MobileGate } from "./MobileGate";
@@ -14,7 +15,7 @@ import { layoutTransition } from "@/lib/motion";
 import { cn } from "@/lib/cn";
 
 /** Routes that show the main sidebar. `/components/*` shows the detail sidebar. */
-const MAIN_ROUTES = new Set(["/", "/intro", "/connect", "/framer"]);
+const MAIN_ROUTES = new Set(["/", "/intro", "/integrations"]);
 
 type FrameData = {
   categories: CategoryItem[];
@@ -44,7 +45,7 @@ function Frame({
   const activeSort = isHome ? searchParams.get("sort") : null;
 
   return (
-    <div className="flex min-h-screen overflow-x-clip">
+    <div className="flex min-h-screen overflow-x-clip" data-app-shell={isDetail ? "detail" : "main"}>
       <UnifiedSidebar
         categories={categories}
         components={components}
@@ -82,14 +83,16 @@ export function AppFrame(props: FrameData & { children: React.ReactNode }) {
       <AuthProvider>
         <GalleryFilterProvider>
           <Tooltip.Provider delayDuration={200}>
-            {/* Desktop (lg+) — the full app: sidebar, library, detail, auth. */}
-            <div className="hidden lg:contents">
-              <Frame {...props} />
-            </div>
-            {/* Phones & tablets (< lg) — Introduction only, no library/auth. */}
-            <div className="lg:hidden">
-              <MobileGate entries={props.registry} />
-            </div>
+            <OptimisticNavProvider>
+              {/* Desktop (lg+) — the full app: sidebar, library, detail, auth. */}
+              <div className="hidden lg:contents">
+                <Frame {...props} />
+              </div>
+              {/* Phones & tablets (< lg) — Introduction only, no library/auth. */}
+              <div className="lg:hidden">
+                <MobileGate entries={props.registry} />
+              </div>
+            </OptimisticNavProvider>
           </Tooltip.Provider>
         </GalleryFilterProvider>
       </AuthProvider>

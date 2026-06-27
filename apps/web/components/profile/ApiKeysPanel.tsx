@@ -143,7 +143,7 @@ export function ApiKeysPanel({ onClose }: { onClose?: () => void }) {
         <p className="text-[12px] leading-[1.5] tracking-[-0.12px] text-[#b8b8b8]">
           Connect Cursor, Claude Code, and other MCP clients.{" "}
           <Link
-            href="/connect"
+            href="/integrations?tab=mcp"
             onClick={onClose}
             className="font-medium text-white underline underline-offset-2"
           >

@@ -665,6 +665,11 @@ const RootStateContext = createContext<Record<string, unknown>>({});
 // Lets a color control show the Gradient tab only where it would take effect.
 const GradientSupportContext = createContext<Set<string> | null>(null);
 
+// Whether image/file controls may upload a local file. False in the admin editor
+// (uploads become transient blob: URLs that don't persist to the live preview) —
+// there the admin sets an image URL instead. True everywhere else.
+const ImageUploadContext = createContext<boolean>(true);
+
 /**
  * A control is shown when it's editable and Framer's `hidden` predicate (if any)
  * is false. `scope` is the local props (full state for top-level controls, the
@@ -1122,6 +1127,7 @@ function MediaControl({
   /** Reverted to when the image is removed (the control's default). */
   defaultValue?: string;
 }) {
+  const allowUpload = useContext(ImageUploadContext);
   const inputRef = useRef<HTMLInputElement>(null);
   const isImage =
     value.startsWith("blob:") ||
@@ -1162,7 +1168,7 @@ function MediaControl({
             <RiCloseLine size={14} />
           </button>
         </div>
-      ) : (
+      ) : allowUpload ? (
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -1172,8 +1178,12 @@ function MediaControl({
         >
           <RiUpload2Line size={14} />
         </button>
-      )}
-      <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+      ) : null}
+      {/* Upload is disabled in the admin editor (blob: previews don't persist) —
+          there the admin pastes/edits an image URL in the field below. */}
+      {allowUpload ? (
+        <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+      ) : null}
       <div className="min-w-0 flex-1">
         <TextControl value={value} onChange={onChange} />
       </div>
@@ -1875,6 +1885,7 @@ export function TweakPanel({
   onChange,
   onReset,
   gradientKeys = null,
+  allowImageUpload = true,
 }: {
   schema: TweakControl[];
   state: TweakState;
@@ -1882,6 +1893,9 @@ export function TweakPanel({
   onReset: () => void;
   /** Color keys whose value renders as a gradient (probed). null = none. */
   gradientKeys?: Set<string> | null;
+  /** Allow image/file controls to upload a local file. False hides the upload
+   *  affordance so only an image URL can be set (used in the admin editor). */
+  allowImageUpload?: boolean;
 }) {
   // Visibility depends on live state (Framer-style conditional `hidden`), so this
   // recomputes as the user tweaks — a group with all-hidden controls drops out.
@@ -1930,6 +1944,7 @@ export function TweakPanel({
 
   return (
     <RootStateContext.Provider value={state as Record<string, unknown>}>
+    <ImageUploadContext.Provider value={allowImageUpload}>
     <GradientSupportContext.Provider value={gradientKeys}>
     <div
       ref={panelRef}
@@ -2004,6 +2019,7 @@ export function TweakPanel({
       </div>
     </div>
     </GradientSupportContext.Provider>
+    </ImageUploadContext.Provider>
     </RootStateContext.Provider>
   );
 }
