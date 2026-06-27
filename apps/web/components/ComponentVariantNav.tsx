@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/tabs";
 import { cn } from "@/lib/cn";
 import { microTransition, sidebarSlideTransition } from "@/lib/motion";
+import { useOptimisticNavigate } from "@/lib/optimistic-nav";
 import { ActiveBg, ActiveDot } from "./ActiveHighlight";
 
 type ViewMode = "list" | "grid";
@@ -118,6 +119,7 @@ export function ComponentVariantNav({
   variants: RegistryEntry[];
 }) {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const navigate = useOptimisticNavigate();
 
   const categoryLabel =
     CATEGORIES.find((c) => c.id === entry.category)?.label ?? entry.category;
@@ -145,6 +147,7 @@ export function ComponentVariantNav({
       <div className="flex w-full flex-col gap-[8px]">
         <Link
           href="/"
+          onClick={(e) => navigate("/", e)}
           className="ui-micro flex w-full items-center gap-[8px] px-[12px] py-[9px] hover:bg-elevated/40"
         >
           <RiArrowLeftSLine size={16} className="shrink-0 text-white" />

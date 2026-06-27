@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useOptimisticPath, useOptimisticNavigate } from "@/lib/optimistic-nav";
 import { LayoutGroup, motion } from "framer-motion";
 import {
   RiCodeSSlashLine,
@@ -44,37 +44,6 @@ const EXPLORE: { href: string; label: string; sort: string; Icon: RemixiconCompo
   { href: "/?sort=featured", label: "Featured", sort: "featured", Icon: RiHeartLine },
 ];
 
-function FramerIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={cn("size-[18px] shrink-0", className)}
-      viewBox="0 0 18 18"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      <path
-        d="M8.99935 11.0416H4.62435"
-        stroke="currentColor"
-        strokeWidth="1.25"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M13.3757 2.87498H4.91732L9.00065 6.95831H13.3757V2.87498Z"
-        stroke="currentColor"
-        strokeWidth="1.25"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M13.0827 11.0417L8.99935 6.95835H4.62435V11.0417L8.99935 15.125V11.0417H13.0827Z"
-        stroke="currentColor"
-        strokeWidth="1.25"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 function NavItem({
   href,
   label,
@@ -90,10 +59,12 @@ function NavItem({
   layoutId?: string;
   dotLayoutId?: string;
 }) {
+  const navigate = useOptimisticNavigate();
   return (
     <Link
       href={href}
       prefetch
+      onClick={(e) => navigate(href, e)}
       className={cn(
         "relative flex w-full items-center overflow-hidden px-[12px] py-[9px]",
         !active && "hover:bg-elevated/40",
@@ -150,7 +121,8 @@ export function SidebarNav({
   activeSort?: string | null;
   interactive?: boolean;
 }) {
-  const pathname = usePathname();
+  // Optimistic pathname so the highlighted row flips on click, not on commit.
+  const pathname = useOptimisticPath();
   const { isAdmin } = useUser();
   const introductionActive = pathname === "/intro";
 
@@ -167,18 +139,10 @@ export function SidebarNav({
             dotLayoutId="get-started-active-dot"
           />
           <NavItem
-            href="/connect"
-            label="MCP Integrations"
+            href="/integrations"
+            label="Integrations"
             icon={<RiPlugLine size={18} />}
-            active={pathname === "/connect"}
-            layoutId="get-started-active-bg"
-            dotLayoutId="get-started-active-dot"
-          />
-          <NavItem
-            href="/framer"
-            label="Framer Integration"
-            icon={<FramerIcon />}
-            active={pathname === "/framer"}
+            active={pathname.startsWith("/integrations")}
             layoutId="get-started-active-bg"
             dotLayoutId="get-started-active-dot"
           />

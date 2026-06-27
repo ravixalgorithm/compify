@@ -57,8 +57,18 @@ export function GalleryInlinePreview({
   /** Live tweak state. When omitted (live site), the component's defaults are used. */
   state?: Record<string, unknown>;
 }) {
+  // Default render uses the admin's saved preview (entry.previewDefaults) over
+  // each control's own default, so cards/tiles match the curated detail preview.
   const defaults = useMemo(
-    () => Object.fromEntries(entry.tweakSchema.map((control) => [control.key, control.default])),
+    () =>
+      Object.fromEntries(
+        entry.tweakSchema.map((control) => [
+          control.key,
+          entry.previewDefaults && control.key in entry.previewDefaults
+            ? entry.previewDefaults[control.key]
+            : control.default,
+        ]),
+      ),
     [entry],
   );
 

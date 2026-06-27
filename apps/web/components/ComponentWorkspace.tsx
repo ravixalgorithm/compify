@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { RegistryEntry, TweakState, TweakValue } from "@compify/shared";
-import { tweakDefaults } from "@/lib/generateRegistryOutput";
+import { resolvePreviewState } from "@/lib/generateRegistryOutput";
 import { useLiveControls } from "@/lib/runtime-module";
 import { collectFontFamilies, ensureFontLoaded } from "@/lib/fonts";
 import { TweakPanel } from "./TweakPanel";
@@ -24,22 +24,34 @@ export function ComponentWorkspace({
   const liveSchema = useLiveControls(moduleUrl ?? entry.compiledModuleUrl);
   const schema = liveSchema ?? entry.tweakSchema;
 
-  const defaults = useMemo<TweakState>(() => tweakDefaults(schema), [schema]);
+  // The default state is the admin's saved preview (entry.previewDefaults) laid
+  // over each control's own default — so the page opens looking how the admin
+  // configured it, not the raw Framer defaults. Reset returns here too.
+  const previewDefaults = entry.previewDefaults;
+  const defaults = useMemo<TweakState>(
+    () => resolvePreviewState(schema, previewDefaults),
+    [schema, previewDefaults],
+  );
   const [state, setState] = useState<TweakState>(defaults);
 
   // When the schema changes (e.g. the live one arrives), keep the user's
-  // existing edits for controls that still exist, seed new controls with their
-  // default, and drop controls that no longer exist.
+  // existing edits for controls that still exist, seed new controls from the
+  // admin preview default (falling back to the control default), and drop
+  // controls that no longer exist.
   useEffect(() => {
     setState((prev) => {
       const next: TweakState = {};
       for (const control of schema) {
         next[control.key] =
-          control.key in prev ? prev[control.key] : control.default;
+          control.key in prev
+            ? prev[control.key]
+            : previewDefaults && control.key in previewDefaults
+              ? previewDefaults[control.key]
+              : control.default;
       }
       return next;
     });
-  }, [schema]);
+  }, [schema, previewDefaults]);
 
   // Preload every active font family so the preview renders in it even while its
   // control is in a collapsed (unmounted) panel section.

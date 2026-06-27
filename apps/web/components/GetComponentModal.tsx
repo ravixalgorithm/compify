@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { type ReactNode } from "react";
-import { RiCloseLine, RiInformationFill, RiPlugLine } from "@remixicon/react";
+import { RiCloseLine, RiCodeSSlashLine, RiInformationFill, RiPlugLine } from "@remixicon/react";
 import { toastError, toastSuccess } from "@/components/ui/sonner";
 import type { RegistryEntry, TweakState } from "@compify/shared";
-import { encodePrompt, framerCopy } from "@/lib/prompt";
+import { componentCodeCopy, encodePrompt, framerCopy } from "@/lib/prompt";
 import { useClipboard } from "@/lib/useClipboard";
 import { incrementCopy } from "@/lib/stats";
 import { consumeCopyQuota, emitQuotaChanged, formatResetIn } from "@/lib/quota";
@@ -15,7 +15,7 @@ import * as Tooltip from "@/components/ui/tooltip";
 import * as Modal from "@/components/ui/modal";
 import { cn } from "@/lib/cn";
 
-export type Workflow = "mcp" | "framer";
+export type Workflow = "mcp" | "framer" | "code";
 
 /** Figma 147:9960/9989 — radio: filled white disc + dark center when selected,
  *  white outline ring when not. */
@@ -219,7 +219,11 @@ export function GetComponentModal({
     }
 
     const text =
-      workflow === "mcp" ? encodePrompt(entry, state) : framerCopy(entry, source, state);
+      workflow === "mcp"
+        ? encodePrompt(entry, state)
+        : workflow === "code"
+          ? componentCodeCopy(entry, source, state)
+          : framerCopy(entry, source, state);
     const copied = await clipboard.copy(text); // gated — opens sign-in if signed out
     if (copied) {
       void incrementCopy(entry.name);
@@ -233,7 +237,7 @@ export function GetComponentModal({
     <Modal.Root open={open} onOpenChange={handleOpenChange}>
       <Modal.Content
         showClose={false}
-        className="flex w-[480px] shrink-0 flex-col gap-[28px] overflow-hidden bg-[#1b1b1b] p-[26px] font-mono"
+        className="flex w-[480px] shrink-0 flex-col gap-[28px] overflow-hidden bg-[#121212] p-[26px] font-mono"
       >
         <div className="flex w-full items-start justify-between">
           <div className="flex flex-col gap-[8px]">
@@ -260,12 +264,11 @@ export function GetComponentModal({
         <div className="flex w-full flex-col gap-[12px]">
           <div className="flex w-full flex-col gap-[8px]">
             <WorkflowCard
-              selected={workflow === "mcp"}
-              onSelect={() => onWorkflowChange("mcp")}
-              icon={<RiPlugLine size={20} />}
-              title="Copy with MCP"
-              titleExtra={<McpSetupInfo />}
-              description="Copy an MCP prompt to pull this component into your editor — AI-assisted setup and updates."
+              selected={workflow === "code"}
+              onSelect={() => onWorkflowChange("code")}
+              icon={<RiCodeSSlashLine size={20} />}
+              title="Copy Code"
+              description="Copy the complete component code, ready to customize."
             />
             <WorkflowCard
               selected={workflow === "framer"}
@@ -274,20 +277,34 @@ export function GetComponentModal({
               title="Copy in Framer"
               description="Copy the component, then paste it straight into your Framer canvas."
             />
+            <WorkflowCard
+              selected={workflow === "mcp"}
+              onSelect={() => onWorkflowChange("mcp")}
+              icon={<RiPlugLine size={20} />}
+              title="Copy with MCP"
+              titleExtra={<McpSetupInfo />}
+              description="Copy an MCP prompt to pull this component into your editor — AI-assisted setup and updates."
+            />
           </div>
 
-          {workflow === "mcp" ? (
+          {workflow === "code" ? (
             <WorkflowInfoBanner>
-              Paste the prompt into your agent.{" "}
-              <Link href="/connect" onClick={onClose} className={docsLinkClass}>
-                Installation docs
-              </Link>
+              Paste the component code into your project and customize it.
             </WorkflowInfoBanner>
           ) : null}
 
           {workflow === "framer" ? (
             <WorkflowInfoBanner>
               Copy and paste this component into your Framer canvas.
+            </WorkflowInfoBanner>
+          ) : null}
+
+          {workflow === "mcp" ? (
+            <WorkflowInfoBanner>
+              Paste the prompt into your agent.{" "}
+              <Link href="/integrations?tab=mcp" onClick={onClose} className={docsLinkClass}>
+                Installation docs
+              </Link>
             </WorkflowInfoBanner>
           ) : null}
         </div>

@@ -65,20 +65,11 @@ function Section({
 }
 
 export function FramerDocs() {
+  // Body only — the unified Integrations page provides the page wrapper and the
+  // MCP/Framer/Code tab bar that replaces each doc's standalone page header.
   return (
-    <div className="font-[family-name:var(--font-roboto-mono)] -mx-6 -my-6 min-h-[calc(100vh-12px)] bg-bg px-6 pb-12 pt-[70px] sm:-mx-10 sm:-my-10 sm:px-10 lg:px-12 xl:px-20 2xl:px-[120px]">
-      <div className="mx-auto w-full max-w-[1042px]">
-        <header className="pb-8">
-          <h1 className="text-display font-medium leading-10 tracking-[-0.96px] text-white">
-            Framer Integration
-          </h1>
-          <p className="mt-3 text-base leading-[24px] tracking-[-0.48px] text-[#b8b8b8]">
-            Compify UI components are built for Framer. Copy any component and paste it onto your
-            canvas as a code component — production-ready UI with property controls, no setup.
-          </p>
-        </header>
-
-        <Divider />
+    <>
+      <Divider />
 
         <Section
           id="overview"
@@ -127,7 +118,7 @@ export function FramerDocs() {
               <EditorIconStack size={22} ringClassName="" />
             </span>
             ? See{" "}
-            <Link href="/connect" className="text-white underline underline-offset-2">
+            <Link href="/integrations?tab=mcp" className="text-white underline underline-offset-2">
               MCP Integrations
             </Link>
             .
@@ -178,7 +169,6 @@ export function FramerDocs() {
             ))}
           </div>
         </Section>
-      </div>
-    </div>
+    </>
   );
 }

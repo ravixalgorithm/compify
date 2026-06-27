@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { RiLoginBoxLine, RiSearchLine } from "@remixicon/react";
 import type { RegistryEntry } from "@compify/shared";
 import { Logo } from "./Logo";
@@ -19,6 +18,7 @@ import {
 import { ComponentVariantNav } from "./ComponentVariantNav";
 import { cn } from "@/lib/cn";
 import { useSearchHotkey } from "@/lib/use-search-hotkey";
+import { useOptimisticPath } from "@/lib/optimistic-nav";
 
 /**
  * One sidebar for the whole app. The frame — logo, search, sign-in — is shared
@@ -54,12 +54,26 @@ export function UnifiedSidebar({
   useSearchHotkey(setSearchOpen);
   const { user, loading, openSignIn } = useUser();
 
-  const pathname = usePathname() || "/";
+  // Optimistic pathname: flips on click so the slide + active row react before
+  // the (force-dynamic) detail page renders — instead of waiting on usePathname,
+  // which only updates once navigation commits.
+  const pathname = useOptimisticPath();
   const isDetail = pathname.startsWith("/components/");
   const slug = isDetail ? pathname.split("/")[2] : undefined;
   const entry = slug ? registry.find((e) => e.name === slug) : undefined;
-  const variants = entry
-    ? registry.filter((e) => e.category === entry.category)
+
+  // Retain the last detail entry so that when the rail slides back out to the
+  // gallery (entry becomes undefined the instant "back" is clicked) the variant
+  // nav keeps its content while sliding away instead of blanking. While sliding
+  // in, the live `entry` wins so the panel is populated on the first frame.
+  const [lastEntry, setLastEntry] = useState(entry);
+  useEffect(() => {
+    if (entry) setLastEntry(entry);
+  }, [entry]);
+  const shownEntry = entry ?? lastEntry;
+
+  const variants = shownEntry
+    ? registry.filter((e) => e.category === shownEntry.category)
     : [];
 
   return (
@@ -104,9 +118,9 @@ export function UnifiedSidebar({
               </div>
               <div className="no-scrollbar h-full w-1/2 overflow-y-auto overscroll-contain pb-2">
                 <div className="flex w-full flex-col pb-10">
-                  {entry ? (
+                  {shownEntry ? (
                     <ComponentVariantNav
-                      entry={entry}
+                      entry={shownEntry}
                       variants={variants}
                     />
                   ) : null}
