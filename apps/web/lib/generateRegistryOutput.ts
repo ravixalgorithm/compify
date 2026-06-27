@@ -11,7 +11,7 @@ export interface EditorDraft {
   tags: string;
   related: string;
   previewAccent: string;
-  premium: boolean;
+  featured: boolean;
   source: string;
   tweakSchema: TweakControl[];
   framerModuleUrl?: string;
@@ -54,7 +54,7 @@ export function draftToRegistryEntry(draft: EditorDraft): RegistryEntry {
     dependencies: [],
     tweakSchema: draft.tweakSchema,
     variants: ["framer"],
-    premium: draft.premium,
+    featured: draft.featured,
     sourcePath: `packages/library/src/components/${draft.name || "my-component"}.tsx`,
     thumbnail: `/thumbnails/${draft.name || "my-component"}.png`,
     framerModuleUrl: draft.framerModuleUrl?.trim() || undefined,
@@ -85,7 +85,6 @@ export function generateRegistryJson(entry: RegistryEntry): string {
     tags: entry.tags,
     dependencies: entry.dependencies,
     variants: entry.variants,
-    premium: entry.premium,
     sourcePath: entry.sourcePath,
     previewAccent: entry.previewAccent,
     copyCount: entry.copyCount,

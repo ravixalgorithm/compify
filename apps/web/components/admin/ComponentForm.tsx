@@ -41,7 +41,7 @@ function draftFromEntry(entry: RegistryEntry, source: string): EditorDraft {
     tags: entry.tags.join(", "),
     related: (entry.related ?? []).join(", "),
     previewAccent: entry.previewAccent,
-    premium: entry.premium,
+    featured: entry.featured ?? false,
     source,
     tweakSchema: entry.tweakSchema.map((c) => ({ ...c })),
     usage: entry.usage,
@@ -87,7 +87,7 @@ function emptyDraft(): EditorDraft {
     tags: "",
     related: "",
     previewAccent: "#7C3AED",
-    premium: false,
+    featured: false,
     source: "",
     tweakSchema: [],
     usage: "",
@@ -742,7 +742,7 @@ export function ComponentForm({
       form.append("related", draft.related);
       form.append("previewAccent", draft.previewAccent);
       form.append("usage", draft.usage);
-      form.append("premium", String(draft.premium));
+      form.append("featured", String(draft.featured));
       form.append("framerModuleUrl", draft.framerModuleUrl ?? "");
 
       if (draft.previewLayout) form.append("previewLayout", draft.previewLayout);
@@ -1002,19 +1002,19 @@ export function ComponentForm({
 
               <button
                 type="button"
-                onClick={() => updateDraft({ premium: !draft.premium })}
+                onClick={() => updateDraft({ featured: !draft.featured })}
                 className="flex items-center justify-between gap-3 border border-stroke bg-bg px-4 py-3 text-left transition hover:border-stroke-hover"
               >
                 <span className="flex flex-col gap-0.5">
-                  <span className="text-[14px] text-white">Featured / premium</span>
+                  <span className="text-[14px] text-white">Featured</span>
                   <span className="text-[12px] text-muted-foreground">
-                    Highlight this component in the featured sort.
+                    Surface this component first in the Featured view.
                   </span>
                 </span>
                 <span
                   className={cn(
                     "flex size-[20px] shrink-0 items-center justify-center border transition",
-                    draft.premium
+                    draft.featured
                       ? "border-white bg-white text-black"
                       : "border-stroke text-transparent",
                   )}

@@ -19,7 +19,7 @@ export interface ComponentInput {
   tags: string[];
   related: string[];
   previewAccent: string;
-  premium: boolean;
+  featured: boolean;
   framerModuleUrl?: string;
   usage?: string;
 }
@@ -57,7 +57,7 @@ export function deriveComponentRow(
     related: input.related,
     dependencies: dependenciesFromSource(input.source),
     variants: ["framer"],
-    premium: input.premium,
+    featured: input.featured,
     tweak_schema: tweakSchema,
     props: propsFromSchema(tweakSchema),
     usage: input.usage || usageFromSlug(input.slug, exportName),

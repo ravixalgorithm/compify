@@ -5,7 +5,6 @@
   "tags": ["typography", "animation", "text", "reveal", "stagger"],
   "previewAccent": "#f59e0b",
   "previewLayout": "centered",
-  "premium": false,
   "variants": ["framer"],
   "framerModuleUrl": "https://framer.com/m/TextLift-o83Q7T.js@LOx9CpbSUnrSHxnOvA66"
 }

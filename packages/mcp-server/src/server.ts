@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getComponent, listComponents } from "./registry-source.js";
 import { transformComponent } from "./transform.js";
 import { incrementCopy } from "./stats.js";
+import { consumeQuota, formatResetIn } from "./quota.js";
 
 const stackEnum = z.enum(["framer", "react", "nextjs", "vite"]);
 const stylingEnum = z.enum(["css", "tailwind", "cssmodules"]);
@@ -14,8 +15,10 @@ function text(t: string) {
 /**
  * Builds a fully-configured Compify UI MCP server with the two delivery
  * tools. A fresh instance is created per HTTP request (stateless transport).
+ * `userId` is the authenticated caller (from the API key); when present,
+ * get_component is metered against that user's shared daily quota.
  */
-export function createCompifyServer(): McpServer {
+export function createCompifyServer(userId?: string): McpServer {
   const server = new McpServer({
     name: "compify-ui",
     version: "1.0.0",
@@ -40,7 +43,6 @@ export function createCompifyServer(): McpServer {
         tags: c.tags,
         variants: c.variants,
         dependencies: c.dependencies,
-        premium: c.premium,
       }));
       return text(JSON.stringify({ count: index.length, components: index }, null, 2));
     }
@@ -67,6 +69,24 @@ export function createCompifyServer(): McpServer {
         return text(`No component named "${name}". Available: ${names}`);
       }
       const { entry, source } = found;
+
+      // Meter against the caller's shared daily quota (admins unlimited). A null
+      // result means the check couldn't run (misconfig) — allow, don't block.
+      if (userId) {
+        const quota = await consumeQuota(userId);
+        if (quota && !quota.allowed) {
+          const waitFor = formatResetIn(quota.reset_at);
+          return text(
+            `Daily limit reached: you've used all ${quota.limit} Compify UI component fetches for today ` +
+              `(shared with website copies). ` +
+              (waitFor
+                ? `Wait ${waitFor} — the limit restores at ${quota.reset_at} (UTC). `
+                : `It restores tomorrow. `) +
+              `Admins are unlimited.`,
+          );
+        }
+      }
+
       void incrementCopy(entry.name); // count MCP deliveries toward "used by"
       const code = transformComponent(source, { stack, styling, typescript, tweaks });
       const meta = {

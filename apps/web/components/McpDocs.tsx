@@ -15,7 +15,7 @@ const TOOLS = [
     name: "get_component",
     summary:
       "Returns source for a registry component, adapted to your stack (framer, react, nextjs, vite) with optional tweak values.",
-    highlight: true,
+    highlight: false,
   },
 ];
 

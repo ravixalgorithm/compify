@@ -1,4 +1,4 @@
-/** Claude, Cursor, and Codex brand marks for MCP UI. */
+/** Claude, Cursor, Codex, Windsurf, and Antigravity brand marks for MCP UI. */
 
 import Image from "next/image";
 import type { Editor } from "@/lib/prompt";
@@ -8,6 +8,8 @@ export const EDITOR_BRAND_ICONS: Record<Editor, string> = {
   claude: "/brand/icons/claude.png",
   codex: "/brand/icons/codex.png",
   cursor: "/brand/icons/cursor.png",
+  windsurf: "/brand/icons/windsurf.png",
+  antigravity: "/brand/icons/antigravity.png",
 };
 
 const STACK_ORDER: Editor[] = ["claude", "cursor", "codex"];

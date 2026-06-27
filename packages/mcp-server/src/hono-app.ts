@@ -69,7 +69,9 @@ export function createApp() {
   });
 
   app.all("/mcp", async (c) => {
-    const server = createCompifyServer();
+    // userId is set by the auth middleware above (unset when auth is disabled,
+    // in which case there's no user to meter — delivery stays unlimited).
+    const server = createCompifyServer(c.get("userId"));
     const transport = new StreamableHTTPTransport();
     await server.connect(transport);
     const res = await transport.handleRequest(c);

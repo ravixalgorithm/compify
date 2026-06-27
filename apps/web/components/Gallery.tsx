@@ -108,7 +108,15 @@ export function Gallery({
       <div className="min-h-[calc(100vh-12px)] bg-bg p-[26px] shadow-[0px_4px_10px_rgba(0,0,0,0.04)]">
         {filtered.length === 0 ? (
           <div className="grid h-[60vh] place-items-center">
-            <p className="text-sm tracking-tighter text-muted">No components match your filters.</p>
+            <p className="text-sm tracking-tighter text-muted">
+              {query.trim() || category
+                ? "No components match your filters."
+                : initialSort === "trending"
+                  ? "Nothing's trending yet — components appear here once they get views or copies."
+                  : initialSort === "featured"
+                    ? "No featured components yet."
+                    : "No components match your filters."}
+            </p>
           </div>
         ) : (
           <>
@@ -121,6 +129,7 @@ export function Gallery({
                       entry={e}
                       priority={eager.has(e.name)}
                       pinnable={pinnable}
+                      featuredOrderable={initialSort === "featured"}
                       column={ci}
                     />
                   ))}

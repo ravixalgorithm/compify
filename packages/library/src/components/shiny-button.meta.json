@@ -5,7 +5,6 @@
   "tags": ["button", "animation", "hover", "shine", "gradient"],
   "previewAccent": "#7c3aed",
   "previewLayout": "centered",
-  "premium": false,
   "variants": ["framer"],
   "framerModuleUrl": "https://framer.com/m/ShinyButton-BpoGgd.js@eO8YPxhOFebsIzxyxjHt"
 }

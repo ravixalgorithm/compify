@@ -8,6 +8,7 @@ import { fetchStats, incrementView, type ComponentStats } from "@/lib/stats";
 import { consumeViewIntent } from "@/lib/view-intent";
 import { PreviewFrame } from "./PreviewFrame";
 import { CopyDropdown } from "./CopyDropdown";
+import { AdminEditButton } from "./AdminEditButton";
 import { ComponentDocumentation } from "./ComponentDocumentation";
 
 /** Figma 154:869 — left column: header, preview, documentation. */
@@ -71,7 +72,10 @@ export function ComponentDetailColumn({
             </span>
           </div>
         </div>
-        <CopyDropdown entry={entry} source={source} state={state} />
+        <div className="flex shrink-0 items-center gap-2">
+          <AdminEditButton slug={entry.name} />
+          <CopyDropdown entry={entry} source={source} state={state} />
+        </div>
       </header>
 
       <PreviewFrame

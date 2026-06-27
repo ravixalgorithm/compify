@@ -70,7 +70,6 @@ async function main() {
         dependencies: e.dependencies ?? [],
         variants: e.variants ?? ["framer"],
         related: e.related ?? [],
-        premium: e.premium ?? false,
         tweak_schema: e.tweakSchema ?? [],
         props: e.props ?? [],
         usage: e.usage ?? null,

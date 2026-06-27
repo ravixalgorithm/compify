@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  RiArrowDownSLine,
   RiCheckLine,
   RiEyeLine,
   RiEyeOffLine,
@@ -16,18 +18,26 @@ import { CopyButton } from "@/components/ui/copy-feedback";
 import { McpSnippetCode } from "@/components/McpSnippetCode";
 import { EditorTabIcon } from "@/components/EditorIconStack";
 import { mcpDocs } from "@/lib/mcp-docs-surface";
+import { microTransition } from "@/lib/motion";
 import { cn } from "@/lib/cn";
+
+// Persist the last-expanded editor so the list reopens to the one you use.
+const CONNECT_EDITOR_KEY = "compify-connect-editor";
 
 const CLIENTS: { id: Editor; label: string }[] = [
   { id: "claude", label: "Claude Code" },
   { id: "codex", label: "Codex" },
   { id: "cursor", label: "Cursor (or any IDE)" },
+  { id: "windsurf", label: "Windsurf" },
+  { id: "antigravity", label: "Antigravity" },
 ];
 
 const EDITOR_HINT: Record<Editor, string> = {
   claude: "Run once in your terminal, then restart Claude Code",
   codex: "Run once in your terminal, then restart Codex",
-  cursor: "Settings → MCP — same JSON works in Windsurf, Claude Desktop, and other editors",
+  cursor: "Settings → MCP — same JSON works in Claude Desktop and other editors",
+  windsurf: "Settings → MCP, or drop it in mcp_config.json — then restart Windsurf",
+  antigravity: "Add it to your MCP settings JSON, then restart Antigravity",
 };
 
 interface ApiKeyRow {
@@ -46,6 +56,8 @@ function maskKey(key: string): string {
 
 function snippetLabel(editor: Editor): string {
   if (editor === "claude" || editor === "codex") return "Terminal";
+  if (editor === "windsurf") return "~/.codeium/windsurf/mcp_config.json";
+  if (editor === "antigravity") return "mcp.json";
   return ".cursor/mcp.json";
 }
 
@@ -84,44 +96,82 @@ function ApiKeyField({ apiKey }: { apiKey: string }) {
   );
 }
 
-function ClientCard({ id, label, apiKey }: { id: Editor; label: string; apiKey?: string }) {
+function ClientCard({
+  id,
+  label,
+  apiKey,
+  open,
+  onToggle,
+}: {
+  id: Editor;
+  label: string;
+  apiKey?: string;
+  open: boolean;
+  onToggle: () => void;
+}) {
   const { copied, copy } = useClipboard();
-  // Copy the real key; display it masked so the secret isn't shown on screen.
-  const copySnippet = connectSnippet(id, "prod", apiKey);
-  const displaySnippet = connectSnippet(id, "prod", apiKey ? maskKey(apiKey) : undefined);
+  // Show the full key in the command (no masking) so it reads/copies exactly as
+  // it will be pasted into the editor config.
+  const snippet = connectSnippet(id, "prod", apiKey);
 
   return (
     <div className={cn("border", mcpDocs.border)}>
-      <div
+      {/* The header is the collapse toggle — only the chosen editor's command is
+          expanded, so the list stays tidy with five editors. */}
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
         className={cn(
-          "flex items-center gap-2 border-b px-3 py-2.5",
-          mcpDocs.border,
+          "flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-[#222]",
           mcpDocs.surfaceRaised,
+          open && cn("border-b", mcpDocs.border),
         )}
       >
         <EditorTabIcon editor={id} />
-        <span className="ui-micro min-w-0 truncate text-sm font-medium tracking-[-0.39px] text-white">
+        <span className="ui-micro min-w-0 flex-1 truncate text-sm font-medium tracking-[-0.39px] text-white">
           {label}
         </span>
-      </div>
+        <motion.span
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={microTransition}
+          className="inline-flex shrink-0 text-[#777]"
+          aria-hidden
+        >
+          <RiArrowDownSLine size={16} />
+        </motion.span>
+      </button>
 
-      <div className={cn("px-3 py-2.5", mcpDocs.surface)}>
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <p className={mcpDocs.label}>{snippetLabel(id)}</p>
-            <p className="mt-0.5 text-2xs leading-4 tracking-[-0.33px] text-[#777]">
-              {EDITOR_HINT[id]}
-            </p>
-          </div>
-          <CopyButton
-            copied={copied}
-            onCopy={() => copy(copySnippet)}
-            className={cn("shrink-0 pt-0.5", mcpDocs.label, "hover:text-white")}
-            iconSize={12}
-          />
-        </div>
-        <McpSnippetCode editor={id} code={displaySnippet} />
-      </div>
+      <AnimatePresence initial={false}>
+        {open ? (
+          <motion.div
+            key="body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={microTransition}
+            className="overflow-hidden"
+          >
+            <div className={cn("px-3 py-2.5", mcpDocs.surface)}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className={mcpDocs.label}>{snippetLabel(id)}</p>
+                  <p className="mt-0.5 text-2xs leading-4 tracking-[-0.33px] text-[#777]">
+                    {EDITOR_HINT[id]}
+                  </p>
+                </div>
+                <CopyButton
+                  copied={copied}
+                  onCopy={() => copy(snippet)}
+                  className={cn("shrink-0 pt-0.5", mcpDocs.label, "hover:text-white")}
+                  iconSize={12}
+                />
+              </div>
+              <McpSnippetCode editor={id} code={snippet} />
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
@@ -132,6 +182,27 @@ export function ConnectClient() {
   const [keyLoading, setKeyLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Single-open accordion: only the chosen editor's command is shown. Defaults to
+  // the first client; the last choice is restored from localStorage on mount.
+  const [openId, setOpenId] = useState<Editor | null>(CLIENTS[0].id);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(CONNECT_EDITOR_KEY);
+    if (stored && CLIENTS.some((c) => c.id === stored)) setOpenId(stored as Editor);
+  }, []);
+
+  function toggleClient(id: Editor) {
+    setOpenId((prev) => {
+      const next = prev === id ? null : id;
+      try {
+        if (next) window.localStorage.setItem(CONNECT_EDITOR_KEY, next);
+        else window.localStorage.removeItem(CONNECT_EDITOR_KEY);
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
 
   // Pull the signed-in user's active key (plaintext is returned by the API for
   // the owner) so we can embed it directly in the connect commands.
@@ -220,9 +291,16 @@ export function ConnectClient() {
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         {CLIENTS.map((item) => (
-          <ClientCard key={item.id} id={item.id} label={item.label} apiKey={apiKey ?? undefined} />
+          <ClientCard
+            key={item.id}
+            id={item.id}
+            label={item.label}
+            apiKey={apiKey ?? undefined}
+            open={openId === item.id}
+            onToggle={() => toggleClient(item.id)}
+          />
         ))}
       </div>
 

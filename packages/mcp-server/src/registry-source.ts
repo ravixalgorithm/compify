@@ -26,7 +26,6 @@ function rowToEntry(row: Record<string, any>): RegistryEntry {
     dependencies: row.dependencies ?? [],
     tweakSchema: row.tweak_schema ?? [],
     variants: row.variants ?? ["framer"],
-    premium: row.premium ?? false,
     sourcePath: "",
     previewAccent: row.preview_accent ?? "#7C3AED",
     previewLayout: row.preview_layout?.mode ?? "full",

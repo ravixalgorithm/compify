@@ -165,6 +165,29 @@ drop policy if exists "component_stats_read" on public.component_stats;
 create policy "component_stats_read" on public.component_stats
   for select using (true);
 
+-- Per-day buckets powering the time-windowed "Trending" view. The all-time
+-- totals above stay the general engagement signal (default home + featured
+-- tie-break); trending sums these buckets over a recent window so it reflects
+-- what is hot NOW. One small row per component per active day. Buckets only
+-- start filling once this migration runs — historical activity has no per-day
+-- timestamps to backfill, so trending begins fresh from deploy.
+create table if not exists public.component_stats_daily (
+  slug   text not null,
+  day    date not null default current_date,
+  views  bigint not null default 0,
+  copies bigint not null default 0,
+  primary key (slug, day)
+);
+
+alter table public.component_stats_daily enable row level security;
+
+drop policy if exists "component_stats_daily_read" on public.component_stats_daily;
+create policy "component_stats_daily_read" on public.component_stats_daily
+  for select using (true);
+
+-- Window queries filter by day; index it for the rolling lookback.
+create index if not exists component_stats_daily_day_idx on public.component_stats_daily (day);
+
 create or replace function public.increment_view(p_slug text)
 returns public.component_stats
 language plpgsql
@@ -178,6 +201,11 @@ begin
   on conflict (slug) do update
     set views = public.component_stats.views + 1, updated_at = now()
   returning * into result;
+
+  insert into public.component_stats_daily (slug, day, views) values (p_slug, current_date, 1)
+  on conflict (slug, day) do update
+    set views = public.component_stats_daily.views + 1;
+
   return result;
 end;
 $$;
@@ -198,6 +226,11 @@ begin
   on conflict (slug) do update
     set copies = public.component_stats.copies + 1, updated_at = now()
   returning * into result;
+
+  insert into public.component_stats_daily (slug, day, copies) values (p_slug, current_date, 1)
+  on conflict (slug, day) do update
+    set copies = public.component_stats_daily.copies + 1;
+
   return result;
 end;
 $$;
@@ -226,7 +259,6 @@ create table if not exists public.components (
   dependencies          text[] not null default '{}',
   variants              text[] not null default '{framer}'::text[],
   related               text[] not null default '{}',
-  premium               boolean not null default false,
   tweak_schema          jsonb not null default '[]'::jsonb,   -- property controls
   props                 jsonb not null default '[]'::jsonb,   -- generated PropDoc[]
   usage                 text,                                  -- generated usage snippet
@@ -251,6 +283,8 @@ create table if not exists public.components (
   preview_layout        jsonb not null default '{}'::jsonb,
 
   -- Lifecycle
+  featured              boolean not null default false,       -- admin-curated "Featured" view (admin-set only)
+  featured_position     integer,                              -- manual order within Featured (lower = nearer top; null = unordered)
   status                text not null default 'draft'
                           check (status in ('draft','published','archived')),
   grid_column           smallint,                              -- admin-pinned home column (0-based; null = unpinned)
@@ -269,8 +303,15 @@ alter table public.components add column if not exists grid_column smallint;
 -- Uploaded gallery/variant thumbnail media (image or video URL).
 alter table public.components add column if not exists gallery_media_url text;
 alter table public.components add column if not exists variant_media_url text;
+-- Admin-curated "Featured" marker (admin-set only). Idempotent for re-runs.
+alter table public.components add column if not exists featured boolean not null default false;
+-- Manual ordering within the Featured view (independent of the home-grid pins).
+alter table public.components add column if not exists featured_position integer;
+-- The old "premium" (paid) flag is gone — Featured is the only curation now.
+alter table public.components drop column if exists premium;
 
 create index if not exists components_grid_idx on public.components (grid_column, sort_position);
+create index if not exists components_featured_idx on public.components (featured) where featured;
 
 create index if not exists components_status_idx   on public.components (status);
 create index if not exists components_category_idx on public.components (category);
@@ -326,7 +367,159 @@ drop policy if exists "component_modules_public_read" on storage.objects;
 drop policy if exists "component_thumbnails_public_read" on storage.objects;
 
 -- ----------------------------------------------------------------------------
--- 8. Tell PostgREST to refresh its schema cache immediately (otherwise a new
+-- 9. Daily copy / MCP quota. Non-admin users get a fixed number of component
+--    deliveries per day (website "Copy" + MCP get_component share one counter);
+--    admins are unlimited. Enforced through SECURITY DEFINER functions so a
+--    leaked anon key can't bump another user's usage or read it.
+-- ----------------------------------------------------------------------------
+create table if not exists public.usage_daily (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  day     date not null default current_date,
+  copies  integer not null default 0,
+  primary key (user_id, day)
+);
+
+alter table public.usage_daily enable row level security;
+
+-- Users may read only their own usage (powers the Profile meter). All writes go
+-- through the functions below, never directly.
+drop policy if exists "usage_daily_read_own" on public.usage_daily;
+create policy "usage_daily_read_own" on public.usage_daily
+  for select using (auth.uid() = user_id);
+
+create index if not exists usage_daily_day_idx on public.usage_daily (day);
+
+-- Per-user daily limit, in one place so the website and MCP agree.
+create or replace function public.copy_quota_limit()
+returns integer language sql immutable as $$ select 5 $$;
+
+-- Is the given user a backend-authorized admin (app_metadata.is_admin / role)?
+create or replace function public.is_admin_user(p_user_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select coalesce((
+    select (u.raw_app_meta_data ->> 'is_admin')::boolean = true
+        or (u.raw_app_meta_data ->> 'role') = 'admin'
+    from auth.users u
+    where u.id = p_user_id
+  ), false);
+$$;
+
+-- Consume one unit of quota for an explicit user (service-role callers: MCP).
+-- Returns { allowed, used, limit, remaining, unlimited }.
+create or replace function public.consume_copy_quota_for(p_user_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_limit int := public.copy_quota_limit();
+  v_used  int;
+  -- When the day's allowance restores: start of tomorrow (UTC, matching current_date).
+  v_reset timestamptz := (current_date + 1)::timestamptz;
+begin
+  if p_user_id is null then
+    return jsonb_build_object('allowed', false, 'used', 0, 'limit', v_limit, 'remaining', 0, 'unlimited', false, 'reset_at', v_reset);
+  end if;
+
+  if public.is_admin_user(p_user_id) then
+    return jsonb_build_object('allowed', true, 'used', 0, 'limit', null, 'remaining', null, 'unlimited', true, 'reset_at', null);
+  end if;
+
+  select copies into v_used from public.usage_daily
+    where user_id = p_user_id and day = current_date;
+  v_used := coalesce(v_used, 0);
+
+  if v_used >= v_limit then
+    return jsonb_build_object('allowed', false, 'used', v_used, 'limit', v_limit, 'remaining', 0, 'unlimited', false, 'reset_at', v_reset);
+  end if;
+
+  insert into public.usage_daily (user_id, day, copies) values (p_user_id, current_date, 1)
+  on conflict (user_id, day) do update set copies = public.usage_daily.copies + 1
+  returning copies into v_used;
+
+  return jsonb_build_object('allowed', true, 'used', v_used, 'limit', v_limit,
+                            'remaining', greatest(v_limit - v_used, 0), 'unlimited', false, 'reset_at', v_reset);
+end;
+$$;
+
+-- Website wrapper: consume for the signed-in caller (auth.uid()).
+create or replace function public.consume_copy_quota()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return public.consume_copy_quota_for(auth.uid());
+end;
+$$;
+
+-- Read-only view of an explicit user's quota (service-role: e.g. future MCP UI).
+create or replace function public.get_copy_quota_for(p_user_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_limit int := public.copy_quota_limit();
+  v_used  int;
+  v_reset timestamptz := (current_date + 1)::timestamptz;
+begin
+  if p_user_id is null then
+    return jsonb_build_object('used', 0, 'limit', v_limit, 'remaining', v_limit, 'unlimited', false, 'reset_at', v_reset);
+  end if;
+  if public.is_admin_user(p_user_id) then
+    return jsonb_build_object('used', 0, 'limit', null, 'remaining', null, 'unlimited', true, 'reset_at', null);
+  end if;
+  select copies into v_used from public.usage_daily
+    where user_id = p_user_id and day = current_date;
+  v_used := coalesce(v_used, 0);
+  return jsonb_build_object('used', v_used, 'limit', v_limit,
+                            'remaining', greatest(v_limit - v_used, 0), 'unlimited', false, 'reset_at', v_reset);
+end;
+$$;
+
+-- Read-only quota for the signed-in caller (powers the Profile meter).
+create or replace function public.get_copy_quota()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return public.get_copy_quota_for(auth.uid());
+end;
+$$;
+
+-- Grants: the auth.uid() wrappers are for signed-in website users; the *_for
+-- variants take an arbitrary user id, so they are restricted to service_role
+-- (the MCP server) — never anon/authenticated, which could otherwise grief or
+-- inspect other users' quotas.
+revoke all on function public.consume_copy_quota() from public;
+grant execute on function public.consume_copy_quota() to authenticated;
+revoke all on function public.get_copy_quota() from public;
+grant execute on function public.get_copy_quota() to authenticated;
+
+-- The *_for variants take an arbitrary user id — keep them off anon/authenticated
+-- (Supabase grants EXECUTE to those roles by default) so only the service role
+-- can meter or inspect a given user.
+revoke all on function public.consume_copy_quota_for(uuid) from public, anon, authenticated;
+revoke all on function public.get_copy_quota_for(uuid) from public, anon, authenticated;
+grant execute on function public.consume_copy_quota_for(uuid) to service_role;
+grant execute on function public.get_copy_quota_for(uuid) to service_role;
+
+-- Internal helper — only the SECURITY DEFINER functions above call it (as the
+-- owner). Lock it down so clients can't probe arbitrary users' admin status.
+revoke all on function public.is_admin_user(uuid) from public, anon, authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 10. Tell PostgREST to refresh its schema cache immediately (otherwise a new
 --    table can take a moment to appear, surfacing "Could not find the table
 --    'public.api_keys' in the schema cache").
 -- ----------------------------------------------------------------------------

@@ -5,7 +5,6 @@
   "tags": ["background", "animation", "webgl", "light", "rays"],
   "previewAccent": "#38bdf8",
   "previewLayout": "full",
-  "premium": false,
   "variants": ["framer"],
   "framerModuleUrl": "https://framer.com/m/LightRays-YcOKgm.js@wXAiSUPElkydGSZ7S1Mm"
 }

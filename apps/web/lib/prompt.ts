@@ -42,12 +42,14 @@ export function encodePrompt(entry: RegistryEntry, tweaks: TweakState): string {
   return `Using compify-ui MCP, get me the ${entry.name} component${tail}.`;
 }
 
-export type Editor = "claude" | "cursor" | "codex";
+export type Editor = "claude" | "cursor" | "codex" | "windsurf" | "antigravity";
 
 export const EDITORS: { id: Editor; label: string }[] = [
   { id: "claude", label: "Claude Code" },
   { id: "cursor", label: "Cursor" },
   { id: "codex", label: "Codex" },
+  { id: "windsurf", label: "Windsurf" },
+  { id: "antigravity", label: "Antigravity" },
 ];
 
 /**
@@ -64,7 +66,11 @@ export function connectSnippet(
   switch (editor) {
     case "claude":
       return `claude mcp add compify-ui --transport http --url ${url} --header "Authorization: Bearer ${key}"`;
+    // Cursor, Windsurf, and Antigravity all read the same mcpServers JSON
+    // (each just stores it in its own config file).
     case "cursor":
+    case "windsurf":
+    case "antigravity":
       return JSON.stringify(
         {
           mcpServers: {

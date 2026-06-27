@@ -12,7 +12,6 @@
   "previewAccent": "#9aa8bc",
   "previewLayout": "centered",
   "usage": "import RepeatImageHover from \"./repeat-image-hover\"\n\n<RepeatImageHover layers={4} borderRadius={180} />",
-  "premium": false,
   "related": [
     "lightning",
     "animatedbars"

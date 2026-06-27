@@ -12,6 +12,8 @@ export function McpSnippetCode({
   className?: string;
 }) {
   const lines = code.split("\n");
+  // Cursor, Windsurf, and Antigravity show a JSON config; the rest are shell.
+  const isJson = editor === "cursor" || editor === "windsurf" || editor === "antigravity";
 
   return (
     <pre
@@ -21,7 +23,7 @@ export function McpSnippetCode({
       )}
     >
       <code>
-        {editor === "cursor"
+        {isJson
           ? tokenizeJson(code).map((token, index) => (
               <span key={index} className={token.className}>
                 {token.text}

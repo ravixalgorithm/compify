@@ -9,7 +9,6 @@
     "framer-motion"
   ],
   "previewAccent": "#7C3AED",
-  "premium": false,
   "related": [
     "lightning",
     "repeat-image-hover"

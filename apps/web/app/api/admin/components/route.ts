@@ -157,7 +157,7 @@ export async function POST(request: Request) {
       tags: parseStringList(String(form.get("tags") ?? "")),
       related: parseStringList(String(form.get("related") ?? "")),
       previewAccent: String(form.get("previewAccent") ?? "#7C3AED"),
-      premium: form.get("premium") === "true",
+      featured: form.get("featured") === "true",
       framerModuleUrl: String(form.get("framerModuleUrl") ?? "").trim() || undefined,
       usage: String(form.get("usage") ?? "").trim() || undefined,
     }, { tweakSchema: introspectedSchema });

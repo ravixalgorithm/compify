@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { type ReactNode } from "react";
 import { RiCloseLine, RiInformationFill, RiPlugLine } from "@remixicon/react";
-import { toastSuccess } from "@/components/ui/sonner";
+import { toastError, toastSuccess } from "@/components/ui/sonner";
 import type { RegistryEntry, TweakState } from "@compify/shared";
 import { encodePrompt, framerCopy } from "@/lib/prompt";
 import { useClipboard } from "@/lib/useClipboard";
 import { incrementCopy } from "@/lib/stats";
+import { consumeCopyQuota, emitQuotaChanged, formatResetIn } from "@/lib/quota";
+import { useOptionalAuth } from "@/components/AuthProvider";
 import { CopyFeedback } from "@/components/ui/copy-feedback";
 import * as Tooltip from "@/components/ui/tooltip";
 import * as Modal from "@/components/ui/modal";
@@ -186,12 +188,36 @@ export function GetComponentModal({
   onWorkflowChange: (workflow: Workflow) => void;
 }) {
   const clipboard = useClipboard();
+  const auth = useOptionalAuth();
 
   function handleOpenChange(next: boolean) {
     if (!next) onClose();
   }
 
   async function handleCopy() {
+    // Signed-out users get the sign-in modal (same gate as clipboard.copy).
+    if (auth && !auth.user) {
+      auth.openSignIn();
+      return;
+    }
+
+    // Enforce the shared daily copy/MCP quota for non-admins. Consume a unit
+    // before delivering; block with a message when the day's allowance is spent.
+    if (auth && !auth.isAdmin) {
+      const quota = await consumeCopyQuota();
+      emitQuotaChanged();
+      if (quota && !quota.allowed) {
+        const waitFor = formatResetIn(quota.reset_at, Date.now());
+        toastError(
+          "Daily limit reached",
+          `You've used all ${quota.limit} free copies today.${
+            waitFor ? ` Resets in ${waitFor}.` : " Resets tomorrow."
+          }`,
+        );
+        return;
+      }
+    }
+
     const text =
       workflow === "mcp" ? encodePrompt(entry, state) : framerCopy(entry, source, state);
     const copied = await clipboard.copy(text); // gated — opens sign-in if signed out

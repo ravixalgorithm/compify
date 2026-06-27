@@ -56,7 +56,7 @@ Constraints (from the founder):
 | dependencies | text[] | npm packages |
 | tweak_schema | jsonb | property controls (drives TweakPanel) — every ControlType, real defaults (see "Property control extraction") |
 | variants | text[] | |
-| premium | bool | |
+| featured | bool | admin-curated "Featured" view (admin-set only) |
 | source | text | raw .tsx (MCP serves this) |
 | compiled_module_url | text | Storage URL, content-hashed, immutable |
 | compiled_module_hash | text | |
@@ -71,7 +71,10 @@ Constraints (from the founder):
 | created_by | uuid | admin user |
 | created_at / updated_at / published_at | timestamptz | |
 
-Stats stay in the existing `component_stats` table. RLS: read published rows
+Stats stay in the existing `component_stats` table (all-time `views`/`copies`,
+the general engagement signal). Time-windowed **Trending** sums per-day buckets
+in `component_stats_daily (slug, day, views, copies)` over the last 7 days; the
+`increment_view`/`increment_copy` RPCs bump both tables. RLS: read published rows
 public; write restricted to admins (role check, same pattern as api_keys).
 
 Storage buckets: `component-modules` (immutable, public read, content-hashed

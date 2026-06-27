@@ -5,7 +5,6 @@
   "tags": ["card", "animation", "pixel", "hover", "grid"],
   "previewAccent": "#22d3ee",
   "previewLayout": "centered",
-  "premium": false,
   "variants": ["framer"],
   "framerModuleUrl": "https://framer.com/m/PixelCard-1DNjuR.js@ympeaEd1IHGrEQ9pV1Rq"
 }

@@ -97,9 +97,7 @@
     ],
     "variants": [
       "framer"
-    ],
-    "premium": false,
-    "sourcePath": "packages/library/src/components/lightning.tsx",
+    ],    "sourcePath": "packages/library/src/components/lightning.tsx",
     "previewAccent": "#3b5bff",
     "previewLayout": "full",
     "thumbnail": "/thumbnails/lightning.png",
@@ -321,9 +319,7 @@
     ],
     "variants": [
       "framer"
-    ],
-    "premium": false,
-    "sourcePath": "packages/library/src/components/repeat-image-hover.tsx",
+    ],    "sourcePath": "packages/library/src/components/repeat-image-hover.tsx",
     "previewAccent": "#9aa8bc",
     "previewLayout": "centered",
     "thumbnail": "/thumbnails/repeat-image-hover.png",
@@ -586,9 +582,7 @@
     ],
     "variants": [
       "framer"
-    ],
-    "premium": false,
-    "sourcePath": "packages/library/src/components/animatedbars.tsx",
+    ],    "sourcePath": "packages/library/src/components/animatedbars.tsx",
     "previewAccent": "#7C3AED",
     "previewLayout": "full",
     "thumbnail": "/thumbnails/animatedbars.jpg",
@@ -817,9 +811,7 @@
     ],
     "variants": [
       "framer"
-    ],
-    "premium": false,
-    "sourcePath": "packages/library/src/components/snowfall.tsx",
+    ],    "sourcePath": "packages/library/src/components/snowfall.tsx",
     "previewAccent": "#c8e6ff",
     "previewLayout": "full",
     "thumbnail": "/thumbnails/snowfall.png",
@@ -1003,9 +995,7 @@
     ],
     "variants": [
       "framer"
-    ],
-    "premium": false,
-    "sourcePath": "packages/library/src/components/before-after-slider.tsx",
+    ],    "sourcePath": "packages/library/src/components/before-after-slider.tsx",
     "previewAccent": "#ffffff",
     "previewLayout": "full",
     "thumbnail": "/thumbnails/before-after-slider.png",
@@ -1336,9 +1326,7 @@
     ],
     "variants": [
       "framer"
-    ],
-    "premium": false,
-    "sourcePath": "packages/library/src/components/coverflow.tsx",
+    ],    "sourcePath": "packages/library/src/components/coverflow.tsx",
     "previewAccent": "#ec4899",
     "previewLayout": "full",
     "thumbnail": "/thumbnails/coverflow.png",
@@ -1601,9 +1589,7 @@
     ],
     "variants": [
       "framer"
-    ],
-    "premium": false,
-    "sourcePath": "packages/library/src/components/light-rays.tsx",
+    ],    "sourcePath": "packages/library/src/components/light-rays.tsx",
     "previewAccent": "#38bdf8",
     "previewLayout": "full",
     "thumbnail": "/thumbnails/light-rays.png",
@@ -1736,9 +1722,7 @@
     ],
     "variants": [
       "framer"
-    ],
-    "premium": false,
-    "sourcePath": "packages/library/src/components/pixel-card.tsx",
+    ],    "sourcePath": "packages/library/src/components/pixel-card.tsx",
     "previewAccent": "#22d3ee",
     "previewLayout": "centered",
     "thumbnail": "/thumbnails/pixel-card.png",
@@ -1979,9 +1963,7 @@
     ],
     "variants": [
       "framer"
-    ],
-    "premium": false,
-    "sourcePath": "packages/library/src/components/shiny-button.tsx",
+    ],    "sourcePath": "packages/library/src/components/shiny-button.tsx",
     "previewAccent": "#7c3aed",
     "previewLayout": "centered",
     "thumbnail": "/thumbnails/shiny-button.png",
@@ -2247,9 +2229,7 @@
     ],
     "variants": [
       "framer"
-    ],
-    "premium": false,
-    "sourcePath": "packages/library/src/components/text-lift.tsx",
+    ],    "sourcePath": "packages/library/src/components/text-lift.tsx",
     "previewAccent": "#f59e0b",
     "previewLayout": "centered",
     "thumbnail": "/thumbnails/text-lift.png",

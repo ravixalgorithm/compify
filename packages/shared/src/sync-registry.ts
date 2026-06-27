@@ -15,7 +15,6 @@ export interface ComponentMeta {
   tags?: string[];
   previewAccent?: string;
   previewLayout?: RegistryEntry["previewLayout"];
-  premium?: boolean;
   variants?: RegistryEntry["variants"];
   related?: string[];
   keyFeatures?: string[];
@@ -141,7 +140,6 @@ function mergeEntry(
       : (existing?.dependencies ?? []),
     tweakSchema,
     variants: meta?.variants ?? existing?.variants ?? ["framer"],
-    premium: meta?.premium ?? existing?.premium ?? false,
     sourcePath,
     previewAccent: meta?.previewAccent ?? existing?.previewAccent ?? "#7C3AED",
     previewLayout:

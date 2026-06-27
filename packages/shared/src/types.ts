@@ -205,7 +205,9 @@ export interface RegistryEntry {
   tweakSchema: TweakControl[];
   /** Which stack variants exist for this component. */
   variants: StackName[];
-  premium: boolean;
+  /** Admin-curated "Featured" marker — surfaces the component in the Featured
+   *  view. Absent on filesystem/MCP entries. */
+  featured?: boolean;
   /** Path (relative to repo root) of the component source file. */
   sourcePath: string;
   /** Public path to a static gallery thumbnail, e.g. "/thumbnails/hero.png". */

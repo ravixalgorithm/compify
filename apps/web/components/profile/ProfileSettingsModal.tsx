@@ -21,6 +21,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useUser } from "@/components/AuthProvider";
 import { cn } from "@/lib/cn";
 import { ApiKeysPanel } from "./ApiKeysPanel";
+import { CopyQuotaMeter } from "./CopyQuotaMeter";
 
 type SettingsTab = "account" | "api-keys";
 
@@ -287,6 +288,8 @@ export function ProfileSettingsModal({
 
                   {error ? <p className="text-[13px] text-[#ff6b6b]">{error}</p> : null}
                 </div>
+
+                <CopyQuotaMeter />
               </div>
 
               <button

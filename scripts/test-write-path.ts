@@ -53,7 +53,7 @@ async function main() {
   const row = deriveComponentRow({
     slug: SLUG, source, displayName: "E2E Test Button", category: "cards" as never,
     description: "", descriptionParagraphs: [], keyFeatures: [], tags: ["test"], related: [],
-    previewAccent: "#7C3AED", premium: false,
+    previewAccent: "#7C3AED", featured: false,
   });
   const upsert = await db.from("components").upsert({
     ...row,

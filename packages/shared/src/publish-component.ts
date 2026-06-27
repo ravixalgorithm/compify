@@ -118,7 +118,6 @@ export function metaFromForm(fields: {
   tags: string[];
   previewAccent: string;
   usage?: string;
-  premium?: boolean;
   related?: string[];
   keyFeatures?: string[];
   descriptionParagraphs?: string[];
@@ -132,7 +131,6 @@ export function metaFromForm(fields: {
     tags: fields.tags,
     previewAccent: fields.previewAccent,
     usage: fields.usage,
-    premium: fields.premium ?? false,
     related: fields.related,
     keyFeatures: fields.keyFeatures,
     descriptionParagraphs: fields.descriptionParagraphs,

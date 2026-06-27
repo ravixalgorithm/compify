@@ -47,6 +47,69 @@ export async function getTrendingScores(): Promise<Map<string, number>> {
   }
 }
 
+// "Trending" looks at a recent window so it reflects current momentum rather
+// than all-time totals. Buckets only exist from when the daily-stats migration
+// ran, so early on the window is naturally shallow.
+export const TRENDING_WINDOW_DAYS = 7;
+
+// Trending is a curated shortlist, not the whole catalogue — cap it so only the
+// genuinely-hot components show.
+export const TRENDING_LIMIT = 20;
+
+/**
+ * Time-windowed trending score per slug, summed from `component_stats_daily`
+ * over the last {@link TRENDING_WINDOW_DAYS} days (inclusive of today) using the
+ * same `views * 1 + copies * 5` weighting. Slugs with no recent activity are
+ * absent (callers treat a missing slug as 0 and fall back to all-time
+ * engagement). Read live so trending tracks recent activity.
+ */
+export async function getRecentTrendingScores(): Promise<Map<string, number>> {
+  try {
+    // `day` is a DATE column; compare against an ISO date string (UTC, matching
+    // Postgres `current_date`). N-1 so the window includes today.
+    const cutoff = new Date(Date.now() - (TRENDING_WINDOW_DAYS - 1) * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+    const { data, error } = await readClient()
+      .from("component_stats_daily")
+      .select("slug, views, copies")
+      .gte("day", cutoff);
+    if (error || !data) return new Map();
+    const out = new Map<string, number>();
+    for (const r of data as { slug: string; views: number | string; copies: number | string }[]) {
+      out.set(r.slug, (out.get(r.slug) ?? 0) + trendingScore(Number(r.views), Number(r.copies)));
+    }
+    return out;
+  } catch {
+    return new Map();
+  }
+}
+
+/**
+ * Manual ordering for the Featured view: slug -> featured_position (lower =
+ * nearer the top). Only featured rows with an explicit position are returned;
+ * the rest fall back to engagement order. Independent of the home-grid pins.
+ * Read live so a reorder reflects immediately.
+ */
+export async function getFeaturedOrder(): Promise<Map<string, number>> {
+  try {
+    const { data, error } = await readClient()
+      .from("components")
+      .select("slug, featured_position")
+      .eq("status", "published")
+      .eq("featured", true)
+      .not("featured_position", "is", null);
+    if (error || !data) return new Map();
+    const out = new Map<string, number>();
+    for (const r of data as { slug: string; featured_position: number | null }[]) {
+      if (r.featured_position != null) out.set(r.slug, Number(r.featured_position));
+    }
+    return out;
+  } catch {
+    return new Map();
+  }
+}
+
 export type ComponentPin = { column: number; position: number };
 
 /**
