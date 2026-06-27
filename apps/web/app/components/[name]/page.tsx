@@ -23,14 +23,10 @@ export default async function ComponentPage({ params }: { params: { name: string
   if (!data) notFound();
 
   return (
-    <main className="no-scrollbar relative h-full min-w-0 flex-1 overflow-y-auto overscroll-contain p-1.5">
-      <div className="min-h-full bg-bg shadow-[0px_4px_10px_rgba(0,0,0,0.04)]">
-        <ComponentWorkspace
-          entry={data.entry}
-          source={data.source}
-          moduleUrl={data.moduleUrl ?? undefined}
-        />
-      </div>
-    </main>
+    <ComponentWorkspace
+      entry={data.entry}
+      source={data.source}
+      moduleUrl={data.moduleUrl ?? undefined}
+    />
   );
 }

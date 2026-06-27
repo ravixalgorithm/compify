@@ -63,23 +63,27 @@ export function ComponentWorkspace({
   }, [probeModuleUrl, entry.name, colorKeySig]);
 
   return (
-    <div className="flex flex-col gap-5 p-[14px] xl:flex-row xl:items-start xl:p-[26px] 3xl:mx-auto 3xl:max-w-[1560px]">
-      {gradientKeys === null && colorKeys.length > 0 ? (
-        <GradientSupportProbe
-          name={entry.name}
-          moduleUrl={probeModuleUrl}
-          defaults={defaults}
-          colorKeys={colorKeys}
-          onResult={setGradientKeys}
-        />
-      ) : null}
-      <ComponentDetailColumn entry={entry} source={source} state={state} moduleUrl={moduleUrl} />
+    <div className="flex h-full min-w-0">
+      {/* Scrolling content column — framed like the gallery; scrolls independently
+          of the control panel. */}
+      <main className="no-scrollbar relative min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-1.5">
+        <div className="min-h-full bg-bg p-[14px] shadow-[0px_4px_10px_rgba(0,0,0,0.04)] xl:p-[26px]">
+          {gradientKeys === null && colorKeys.length > 0 ? (
+            <GradientSupportProbe
+              name={entry.name}
+              moduleUrl={probeModuleUrl}
+              defaults={defaults}
+              colorKeys={colorKeys}
+              onResult={setGradientKeys}
+            />
+          ) : null}
+          <ComponentDetailColumn entry={entry} source={source} state={state} moduleUrl={moduleUrl} />
+        </div>
+      </main>
 
-      {/* Stacks below the preview up to xl (so 1024px tablets get a full-width preview);
-          becomes the sticky side rail at xl+. On large monitors (3xl) the whole row is
-          clamped + centered so the preview/docs stay fixed-width and the panel grows.
-          top-8 (32px) = main p-1.5 (6px) + workspace pt — matches natural offset so sticky never jumps */}
-      <aside className="h-[70vh] w-full shrink-0 overflow-hidden [contain:layout] xl:sticky xl:top-8 xl:z-10 xl:h-[calc(100vh-42px)] xl:w-[325px] 3xl:w-[500px]">
+      {/* Control panel — a full-height rail stuck to the right edge, like the
+          sidebar. It owns its own internal scroll (TweakPanel is h-full). */}
+      <aside className="h-full w-[300px] shrink-0 xl:w-[325px] 3xl:w-[500px]">
         <TweakPanel
           schema={schema}
           state={state}
