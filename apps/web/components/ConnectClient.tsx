@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   RiArrowDownSLine,
   RiCheckLine,
@@ -142,36 +142,37 @@ function ClientCard({
         </motion.span>
       </button>
 
-      <AnimatePresence initial={false}>
-        {open ? (
-          <motion.div
-            key="body"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={microTransition}
-            className="overflow-hidden"
-          >
-            <div className={cn("px-3 py-2.5", mcpDocs.surface)}>
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className={mcpDocs.label}>{snippetLabel(id)}</p>
-                  <p className="mt-0.5 text-2xs leading-4 tracking-[-0.33px] text-[#777]">
-                    {EDITOR_HINT[id]}
-                  </p>
-                </div>
-                <CopyButton
-                  copied={copied}
-                  onCopy={() => copy(snippet)}
-                  className={cn("shrink-0 pt-0.5", mcpDocs.label, "hover:text-white")}
-                  iconSize={12}
-                />
+      {/* CSS grid-rows collapse (0fr↔1fr) instead of a framer-motion height/opacity
+          animation: it animates purely on the compositor with no height measurement
+          and no opacity layer, which avoids the white flash that height:auto + opacity
+          could produce on expand. The body stays mounted (clipped) when collapsed. */}
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none",
+          mcpDocs.surface,
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="px-3 py-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className={mcpDocs.label}>{snippetLabel(id)}</p>
+                <p className="mt-0.5 text-2xs leading-4 tracking-[-0.33px] text-[#777]">
+                  {EDITOR_HINT[id]}
+                </p>
               </div>
-              <McpSnippetCode editor={id} code={snippet} />
+              <CopyButton
+                copied={copied}
+                onCopy={() => copy(snippet)}
+                className={cn("shrink-0 pt-0.5", mcpDocs.label, "hover:text-white")}
+                iconSize={12}
+              />
             </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+            <McpSnippetCode editor={id} code={snippet} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
