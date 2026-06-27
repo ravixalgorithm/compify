@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { RiRefreshLine } from "@remixicon/react";
 import type { PreviewLayout, PreviewSurfaceLayout, TweakState } from "@compify/shared";
@@ -72,6 +72,20 @@ function PreviewContent({
   // Reload nonce — bumped by the reload button to remount the component (replays
   // its mount animations / resets its internal state) without a full page reload.
   const [reloadNonce, setReloadNonce] = useState(0);
+
+  // Also remount when a control changes, so the user sees the mount animation
+  // replay with the new setting. Debounced + skips the first render, so dragging
+  // a slider replays once it settles instead of restarting on every tick.
+  const propsKey = JSON.stringify(componentProps);
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    const t = window.setTimeout(() => setReloadNonce((n) => n + 1), 250);
+    return () => window.clearTimeout(t);
+  }, [propsKey]);
 
   // DB-backed path: render the runtime-compiled module. Filesystem path
   // (no moduleUrl): render the bundled library component (unchanged behavior).
