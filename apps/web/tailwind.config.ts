@@ -9,7 +9,7 @@ const config: Config = {
         "3xl": "1920px",
       },
       colors: {
-        bg: "#111111",
+        bg: "#1E1E1F",
         surface: "#151414",
         elevated: "#242424",
         stroke: "#212121",

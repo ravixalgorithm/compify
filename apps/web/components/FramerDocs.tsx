@@ -66,7 +66,7 @@ function Section({
 
 export function FramerDocs() {
   return (
-    <div className="font-[family-name:var(--font-roboto-mono)] -mx-6 -my-6 min-h-[calc(100vh-12px)] bg-[#111] px-6 pb-12 pt-[70px] sm:-mx-10 sm:-my-10 sm:px-10 lg:px-12 xl:px-20 2xl:px-[120px]">
+    <div className="font-[family-name:var(--font-roboto-mono)] -mx-6 -my-6 min-h-[calc(100vh-12px)] bg-bg px-6 pb-12 pt-[70px] sm:-mx-10 sm:-my-10 sm:px-10 lg:px-12 xl:px-20 2xl:px-[120px]">
       <div className="mx-auto w-full max-w-[1042px]">
         <header className="pb-8">
           <h1 className="text-display font-medium leading-10 tracking-[-0.96px] text-white">
@@ -168,7 +168,7 @@ export function FramerDocs() {
             {FAQ.map((item, index) => (
               <div
                 key={item.q}
-                className={`border border-[#2b2b2b] px-4 py-3 ${index % 2 === 0 ? "bg-[#111]" : "bg-[#161616]"}`}
+                className={`border border-[#2b2b2b] px-4 py-3 ${index % 2 === 0 ? "bg-bg" : "bg-[#161616]"}`}
               >
                 <p className="text-base font-medium tracking-[-0.42px] text-white">{item.q}</p>
                 <p className="mt-2 text-sm leading-[22px] tracking-[-0.39px] text-[#b8b8b8]">
