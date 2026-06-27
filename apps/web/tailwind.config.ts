@@ -9,12 +9,12 @@ const config: Config = {
         "3xl": "1920px",
       },
       colors: {
-        bg: "#111111",
+        bg: "#1E1E1F",
         surface: "#151414",
         elevated: "#242424",
         stroke: "#212121",
         "stroke-hover": "#2e2e2e",
-        divider: "rgba(43,43,43,0.5)",
+        divider: "#343434",
         // Control panel (tweak panel) surfaces
         panel: "#232324",
         "panel-line": "#333333",

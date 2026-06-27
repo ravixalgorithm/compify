@@ -3,7 +3,7 @@ export const mcpDocs = {
   border: "border-[#2b2b2b]",
   surface: "bg-[#161616]",
   surfaceRaised: "bg-[#1a1a1a]",
-  page: "bg-[#111]",
+  page: "bg-bg",
   muted: "text-[#b8b8b8]",
   label: "text-xs tracking-[-0.36px] text-[#b8b8b8]",
   body: "text-base leading-6 tracking-[-0.42px] text-white",
